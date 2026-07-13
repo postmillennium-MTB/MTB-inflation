@@ -3,105 +3,427 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mountain Biking &amp; Inflation</title>
-<meta name="description" content="How mountain bike prices have moved against overall inflation since 2000 — FRED, BLS and BEA data.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<title>Mountain Biking &amp; Inflation | Post Millennium Renaissance</title>
+<!-- Chart.js from cdnjs — swap this URL if cdnjs is ever unreachable (jsdelivr mirror: https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Oswald:wght@400;600;700&display=swap');
+
+/* ── THEME: SLATE (default) ── */
 :root{
-  --bg:#0e0e0e;
-  --card:#141414;
-  --card-alt:#111;
-  --inset:#0e0e0e;
-  --panel:#181818;
-  --border:#2a2a2a;
-  --border-soft:#222;
-  --border-softer:#1e1e1e;
-  --border-mid:#333;
-  --text:#e0e0e0;
-  --dim1:#999;
-  --dim2:#888;
-  --dim3:#777;
-  --dim4:#666;
-  --dim5:#555;
-  --dim6:#444;
-  --orange:#f97316;
-  --blue:#60a5fa;
-  --purple:#a78bfa;
-  --green:#22c55e;
-  --amber:#f59e0b;
-  --teal:#34d399;
-  --rose:#fb7185;
-  --red:#ef4444;
-  --fuchsia:#e879f9;
-  --mint:#6ee7b7;
-  --slate:#94a3b8;
-  --mono:'IBM Plex Mono','Courier New',monospace;
-  --disp:'Oswald',sans-serif;
+  --bg:#16191d; --panel:#1f242a; --panel2:#1a1e23; --panel3:#242a31;
+  --line:#2a3038; --tooltip:#232931; --border:#333a44; --border2:#3d4550; --border3:#454e5a;
+  --grid:#2a3038; --text:#e6e9ed; --text2:#c5cbd3; --sub:#8f98a3; --sub2:#727a85;
+  --faint:#5d656f; --faint2:#4d545d; --bright:#ffffff;
+  --tintOrange:#26221a; --tintRed:#2a1e1e; --tintGreen:#1c261c;
+  --headerGrad:linear-gradient(135deg,#16191d 0%,#1e2126 50%,#16191d 100%);
+  --orange:#f97316; --blue:#60a5fa; --green:#22c55e; --purple:#a78bfa;
+  --amber:#f59e0b; --red:#ef4444;
 }
+body.theme-midnight{
+  --bg:#0e0e0e; --panel:#141414; --panel2:#111111; --panel3:#181818;
+  --line:#1e1e1e; --tooltip:#1a1a1a; --border:#2a2a2a; --border2:#333333; --border3:#3a3a3a;
+  --grid:#222222; --text:#e0e0e0; --text2:#bbbbbb; --sub:#888888; --sub2:#666666;
+  --faint:#555555; --faint2:#444444; --bright:#ffffff;
+  --tintOrange:#161600; --tintRed:#1a0e0e; --tintGreen:#0a1a0a;
+  --headerGrad:linear-gradient(135deg,#0e0e0e 0%,#1a1a0e 50%,#0e0e0e 100%);
+}
+body.theme-paper{
+  --bg:#f0ece4; --panel:#faf8f4; --panel2:#f4f0e8; --panel3:#ece6da;
+  --line:#ddd6c9; --tooltip:#fffdf9; --border:#d5cdbd; --border2:#c4bba9; --border3:#b5ab97;
+  --grid:#ddd6c9; --text:#2a2620; --text2:#453f35; --sub:#6e675a; --sub2:#857d6e;
+  --faint:#98907f; --faint2:#a89f8d; --bright:#1a1712;
+  --tintOrange:#f7edd8; --tintRed:#f5e3df; --tintGreen:#e6f0e2;
+  --headerGrad:linear-gradient(135deg,#f0ece4 0%,#e8e0d0 50%,#f0ece4 100%);
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--mono);-webkit-font-smoothing:antialiased}
-button,input{font-family:inherit}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'IBM Plex Mono','Courier New',monospace;
+  transition:background .3s;
+}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#777;border-radius:3px}
+
+.oswald{font-family:'Oswald',sans-serif}
 a{color:inherit}
-table{border-collapse:collapse}
-img,canvas{max-width:100%}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:#1a1a1a}
-::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:3px}
-:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
-@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 
-.stat-card{transition:transform .25s,box-shadow .25s}
+/* ── HEADER ── */
+.header{background:var(--headerGrad);border-bottom:1px solid var(--border);padding:18px 20px 14px}
+.header-inner{max-width:1100px;margin:0 auto}
+.title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.title-left{display:flex;align-items:center;gap:10px}
+.accent-bar{width:5px;height:34px;background:var(--orange);border-radius:3px}
+.h1{font-family:'Oswald',sans-serif;font-size:clamp(17px,3.5vw,26px);font-weight:700;letter-spacing:.05em;color:var(--bright);line-height:1.1;margin:0}
+.subtitle{font-size:10px;color:var(--sub);letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+.title-right{display:flex;align-items:center;gap:12px}
+.theme-dots{display:flex;gap:6px;align-items:center}
+.theme-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;padding:0;border:2px solid var(--border2);transition:border .2s,transform .15s}
+.theme-dot.active{border-color:var(--orange);transform:scale(1.15)}
+.pmr-btn{background:var(--orange);color:#000;font-family:'Oswald',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;padding:7px 14px;border-radius:5px;text-decoration:none;box-shadow:0 2px 8px rgba(249,115,22,.3);white-space:nowrap;display:inline-block}
+
+.benchmarks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:14px}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:10px 12px;transition:all .25s}
 .stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(249,115,22,.15)}
+.stat-card.hl{border-color:var(--orange)}
+.stat-label{font-size:9px;color:var(--sub);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.stat-val{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.stat-val.orange{color:var(--orange)}
+.stat-val.red{color:var(--red)}
+.stat-since{font-size:9px;color:var(--sub2);margin-top:3px}
+.stat-note{font-size:9px;color:var(--faint);margin-top:1px}
 
-.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;
-  padding:10px 16px;font-size:10px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;
-  white-space:nowrap;transition:background .2s;color:var(--dim2);font-weight:400}
-.tab-btn:hover{background:#2a2a2a}
-.tab-btn.active{background:#1e1e1e;border-bottom-color:var(--orange);color:var(--orange);font-weight:600}
+.limitations{margin-top:12px;background:var(--tintOrange);border:1px solid #f9731644;border-left:3px solid var(--orange);border-radius:7px;padding:12px 16px}
+.limitations-title{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:var(--orange);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
+.limitations-body{font-size:11px;color:var(--text2);line-height:1.75}
+.limitations-body em{color:var(--text)}
 
-.event-row{display:flex;gap:12px;padding:9px 10px;border-bottom:1px solid var(--border-softer);
-  align-items:flex-start;transition:background .15s}
-.event-row:hover{background:#1e1e1e}
+/* ── TABS NAV ── */
+.tabs-nav{border-bottom:1px solid var(--border);background:var(--panel2);position:sticky;top:0;z-index:10}
+.tabs-inner{max-width:1100px;margin:0 auto;display:flex;overflow-x:auto}
+.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--sub);padding:10px 16px;font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;font-weight:400;transition:all .2s}
+.tab-btn:hover{background:var(--border)}
+.tab-btn.active{background:var(--line);border-bottom-color:var(--orange);color:var(--orange);font-weight:600}
 
-.tf-btn{cursor:pointer;transition:background .15s;background:var(--panel);border:1px solid var(--border-mid);
-  color:var(--dim2);padding:4px 10px;border-radius:4px;font-size:10px;font-family:var(--mono);
-  display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.2}
-.tf-btn:hover{background:#2a2a2a}
+/* ── CONTENT ── */
+.content{max-width:1100px;margin:0 auto;padding:20px 18px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.sh{margin-bottom:12px}
+.sh-title{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--text);letter-spacing:.04em;text-transform:uppercase}
+.sh-sub{font-size:9px;color:var(--faint);margin-top:3px;letter-spacing:.04em}
+
+.chart-wrap{position:relative;width:100%}
+
+/* ── EXTRAS TOGGLE BAR ── */
+.extras-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.extras-label{font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+.extra-chip{background:var(--panel3);border:1px solid var(--border2);color:var(--sub);padding:4px 10px;border-radius:12px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:400;transition:all .15s}
+.extra-chip.active{font-weight:600}
+
+/* ── PLAY CONTROLS ── */
+.play-row{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.play-controls{display:flex;align-items:center;gap:8px}
+.btn-play{background:var(--orange);border:1px solid var(--orange);color:#000;padding:6px 14px;border-radius:5px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-pause{background:var(--panel3);border:1px solid var(--orange);color:var(--orange);padding:6px 14px;border-radius:5px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;cursor:pointer}
+.btn-reset{background:transparent;border:1px solid var(--border2);color:var(--sub);padding:6px 10px;border-radius:5px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer}
+.play-year{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--orange);min-width:56px;text-align:right}
+
+/* ── SPREAD SELECTOR ── */
+.spread-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:26px;margin-bottom:10px}
+.spread-selects{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.spread-select{background:var(--panel3);padding:5px 8px;border-radius:5px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600}
+.spread-minus{font-size:14px;color:var(--sub);font-weight:700}
+.spread-same{height:150px;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px dashed var(--border2);border-radius:7px}
+.spread-same-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;color:var(--orange);margin-bottom:4px}
+.spread-same-sub{font-size:10px;color:var(--sub)}
+
+/* ── TF PICKER ── */
+.tf-picker{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.tf-label{font-size:9px;color:var(--faint);margin-right:4px;text-transform:uppercase;letter-spacing:.08em}
+.tf-btn{background:var(--panel3);border:1px solid var(--border2);color:var(--sub);padding:4px 10px;border-radius:4px;font-size:10px;font-family:'IBM Plex Mono',monospace;font-weight:400;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.2;transition:all .15s}
+.tf-btn:hover{background:var(--border)}
 .tf-btn.active{background:var(--orange);border-color:var(--orange);color:#000;font-weight:700}
 .tf-btn .sub{font-size:8px;opacity:.7}
 
-.preset-btn{cursor:pointer;background:#1e1e1e;border:1px solid var(--border-mid);color:var(--dim2);
-  padding:4px 10px;border-radius:4px;font-size:9px;font-family:var(--mono);font-weight:400;text-align:center}
-.preset-btn.active{background:var(--orange);border-color:var(--orange);color:#000;font-weight:700}
-.preset-btn .note{display:block;font-size:8px;opacity:.7}
+/* ── 2x2 STAT GRID (Tab 1) ── */
+.stat2x2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;max-width:620px}
+.stat2x2-card{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:14px 16px}
+.stat2x2-label{font-size:9px;color:var(--sub2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.stat2x2-val{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700}
+.stat2x2-sub{font-size:9px;color:var(--faint);margin-top:4px}
 
-.wage-input{width:80px;background:var(--inset);border:1px solid var(--orange);border-radius:4px;
-  color:var(--orange);font-family:var(--mono);font-size:15px;font-weight:700;padding:4px 8px;text-align:center}
-.wage-input::-webkit-inner-spin-button{opacity:1}
+/* ── EVENT TIMELINE (Tab 2) ── */
+.event-row{display:flex;gap:12px;padding:9px 10px;border-bottom:1px solid var(--line);align-items:flex-start;transition:background .15s}
+.event-row:hover{background:var(--line)}
+.event-year{min-width:60px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:var(--sub);padding-top:2px}
+.event-badge{font-size:8px;font-weight:700;letter-spacing:.1em;padding:3px 7px;border-radius:4px;min-width:62px;text-align:center;align-self:flex-start;margin-top:2px;white-space:nowrap}
+.event-text{font-size:11px;color:var(--text2);line-height:1.7}
 
-.chart-box{position:relative;width:100%}
-.chart-box canvas{display:block}
+/* ── FINDINGS CARDS (Tab 3) ── */
+.findings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:22px}
+.finding-card{background:var(--panel);border:1px solid var(--border);border-top:3px solid;border-radius:7px;padding:16px}
+.finding-num{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px;opacity:.6}
+.finding-title{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--bright);letter-spacing:.03em;margin-bottom:8px;line-height:1.3}
+.finding-body{font-size:11px;color:var(--sub);line-height:1.75}
 
-.data-table{width:100%;border-collapse:collapse}
-.data-table th{text-align:left;padding:7px 12px;color:var(--orange);font-weight:600;letter-spacing:0.05em;
-  font-size:9px;text-transform:uppercase;background:var(--panel);white-space:nowrap}
-.data-table td{padding:8px 12px;line-height:1.5}
-.data-table tr{border-bottom:1px solid var(--border-softer)}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:7px 12px;color:var(--orange);font-weight:600;letter-spacing:.05em;font-size:9px;text-transform:uppercase;background:var(--panel3)}
+td{padding:8px 12px;color:var(--sub);line-height:1.5}
+tr{border-bottom:1px solid var(--line)}
+tr:nth-child(even){background:var(--panel)}
+tr:nth-child(odd){background:var(--panel2)}
+.tbl-wrap{overflow-x:auto}
 
-.sh-title{font-family:var(--disp);font-size:13px;font-weight:600;color:var(--text);
-  letter-spacing:0.04em;text-transform:uppercase}
-.sh-sub{font-size:9px;color:var(--dim5);margin-top:3px;letter-spacing:0.04em}
+/* ── SCORECARDS (Tab 4) ── */
+.scorecards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:10px}
+.scorecard{background:var(--panel);border:1px solid var(--border);border-top:3px solid;border-radius:7px;padding:11px 12px}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sc-badge{font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.08em}
+.sc-id{font-size:8px;color:var(--faint2);font-family:'IBM Plex Mono',monospace;text-decoration:none}
+.sc-name{font-size:10px;color:var(--text);font-weight:500;line-height:1.35;margin-bottom:6px;min-height:28px}
+.sc-val{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;line-height:1}
+.sc-note{font-size:9px;color:var(--sub2);margin-top:3px}
+.sc-desc{margin-top:7px;padding-top:7px;border-top:1px solid var(--grid);font-size:9px;color:var(--faint);line-height:1.5}
+.sc-status-row{margin-top:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.sc-status{font-size:9px;font-weight:600}
+.sc-chg{font-size:9px;color:var(--faint)}
+
+.sources-box{margin-top:14px;padding:12px 14px;background:var(--panel2);border:1px solid var(--grid);border-radius:7px;font-size:9px;color:var(--faint);line-height:1.8}
+.sources-label{color:var(--sub2);font-weight:600;text-transform:uppercase;letter-spacing:.1em}
+
+/* ── AFFORDABILITY TAB (5) ── */
+.afford-hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:10px;margin-bottom:22px}
+.afford-hero-card{background:var(--panel);border:1px solid;border-left-width:3px;border-radius:7px;padding:12px 14px}
+.afford-hero-label{font-size:9px;color:var(--sub2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.afford-hero-val{font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;line-height:1}
+.afford-hero-detail{font-size:10px;color:var(--text2);margin-top:5px}
+.afford-hero-sub{font-size:9px;color:var(--faint);margin-top:3px}
+
+.calc-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:22px}
+.calc-wage-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.wage-input-group{display:flex;align-items:center;gap:8px}
+.wage-dollar{color:var(--orange);font-size:14px;font-weight:700}
+#wageInput{width:80px;background:var(--bg);border:1px solid var(--orange);border-radius:4px;color:var(--orange);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;padding:4px 8px;text-align:center}
+.wage-presets{display:flex;gap:6px;flex-wrap:wrap}
+.wage-preset{background:var(--panel3);border:1px solid var(--border2);color:var(--sub);padding:4px 10px;border-radius:4px;font-size:9px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:400;text-align:center;line-height:1.4}
+.wage-preset.active{background:var(--orange);border-color:var(--orange);color:#000;font-weight:700}
+.wage-preset .note{font-size:8px;opacity:.7;display:block}
+
+.calc-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.calc-tier{background:var(--bg);border:1px solid;border-radius:7px;padding:14px 16px}
+.calc-tier-label{font-size:9px;color:var(--sub2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.calc-tier-hrs{font-family:'Oswald',sans-serif;font-size:30px;font-weight:700;line-height:1}
+.calc-tier-hrs .unit{font-size:14px;font-weight:400}
+.calc-tier-basis{font-size:10px;color:var(--sub);margin-top:4px}
+.calc-tier-vs{margin-top:10px;padding-top:10px;border-top:1px solid var(--grid);font-size:10px}
+.calc-tier-vs-label{color:var(--sub2);margin-bottom:3px}
+.calc-tier-vs-val{font-weight:600}
+.calc-tier-baseline{color:var(--faint);font-size:9px;margin-top:2px}
+
+.minwage-warn{margin-top:14px;padding:10px 14px;background:var(--tintRed);border:1px solid #ef444433;border-radius:6px;font-size:10px;color:var(--red);line-height:1.7;display:none}
+.minwage-warn.show{display:block}
+
+.msrp-note{padding:12px 16px;background:var(--panel2);border:1px solid var(--grid);border-left:3px solid var(--amber);border-radius:7px;font-size:9px;color:var(--sub2);line-height:1.8}
+.msrp-note .lbl{color:var(--amber);font-weight:600}
+
+.footer{border-top:1px solid var(--line);padding:12px 20px;text-align:center;font-size:9px;color:var(--faint2);letter-spacing:.05em}
+
+@media (max-width:600px){
+  .stat2x2{grid-template-columns:1fr}
+}
 </style>
 </head>
-<body>
-<div id="root"></div>
-<noscript><p style="padding:20px;font-family:sans-serif">This dashboard needs JavaScript enabled to run.</p></noscript>
+<body class="theme-slate">
+<div id="app">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <div class="header-inner">
+      <div class="title-row">
+        <div class="title-left">
+          <div class="accent-bar"></div>
+          <div>
+            <h1 class="h1">MOUNTAIN BIKING &amp; INFLATION</h1>
+            <div class="subtitle">Deep dive — FRED FPCPITOTLZGUSA + BLS CPI + BEA PCE data</div>
+          </div>
+        </div>
+        <div class="title-right">
+          <div class="theme-dots" id="themeDots" title="Color scheme"></div>
+          <a href="https://postmillenniumrenaissance.com" class="pmr-btn" title="Back to Post Millennium Renaissance">PMR</a>
+        </div>
+      </div>
+
+      <div class="benchmarks-grid" id="benchmarksGrid"></div>
+
+      <div class="limitations">
+        <div class="limitations-title">"Wait — it seems like bikes got MORE expensive?"</div>
+        <div class="limitations-body">
+          You're not wrong — and it's an important limitation of this data. The BLS "Sports Vehicles including Bicycles" CPI blends <em>every</em> bicycle type into one index: $150 department-store bikes, kids' bikes, commuters, and $10,000 boutique enduro machines. The index doesn't separate them — and no public data source does. High-performance bike-shop MTBs have inflated considerably faster than this blended average (see Key Findings #04). So read this dashboard as <span style="color:var(--orange);font-weight:600">"the price of bicycles as a category"</span> — not "the price of the bike you're probably shopping for."
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TABS NAV ═══ -->
+  <div class="tabs-nav">
+    <div class="tabs-inner" id="tabsNav"></div>
+  </div>
+
+  <!-- ═══ CONTENT ═══ -->
+  <div class="content">
+
+    <!-- ───────── TAB 0: ANNUAL % CHANGE ───────── -->
+    <section id="tab-0" class="tab-panel active">
+      <div class="play-row">
+        <div class="sh" style="margin-bottom:8px">
+          <div class="sh-title">Annual Inflation Rate: US CPI vs. Sports Vehicles / Bicycles</div>
+          <div class="sh-sub">FRED FPCPITOTLZGUSA (World Bank) + BLS CPI · 2000–2025</div>
+        </div>
+        <div class="play-controls" id="playControls"></div>
+      </div>
+
+      <div class="extras-bar" id="extrasBar0"></div>
+
+      <div class="chart-wrap" style="height:300px">
+        <canvas id="chart0"></canvas>
+      </div>
+      <div id="extrasFootnote0" style="font-size:9px;color:var(--faint);margin-top:4px;line-height:1.7"></div>
+
+      <div class="spread-header">
+        <div class="sh" style="margin-bottom:0">
+          <div class="sh-title" id="spreadTitle">Spread: Bikes CPI (BLS) minus US CPI (FRED)</div>
+          <div class="sh-sub">Orange = first series above second &nbsp;·&nbsp; Blue = below</div>
+        </div>
+        <div class="spread-selects">
+          <select class="spread-select" id="spreadASelect"></select>
+          <span class="spread-minus">−</span>
+          <select class="spread-select" id="spreadBSelect"></select>
+        </div>
+      </div>
+      <div id="spreadChartContainer">
+        <div class="chart-wrap" style="height:150px"><canvas id="spreadChart"></canvas></div>
+      </div>
+      <div id="spreadSameNote" class="spread-same" style="display:none">
+        <div>
+          <div class="spread-same-title">SAME SERIES SELECTED</div>
+          <div class="spread-same-sub">A series minus itself is zero every year — pick two different series to compare.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── TAB 1: CUMULATIVE INDEX ───────── -->
+    <section id="tab-1" class="tab-panel">
+      <div class="sh"><div class="sh-title">Cumulative Price Level Since 2000 (Base = 100)</div></div>
+      <div class="extras-bar" id="extrasBar1"></div>
+      <div class="chart-wrap" style="height:300px"><canvas id="chart1"></canvas></div>
+
+      <div class="stat2x2" id="stat2x2Grid"></div>
+
+      <div class="limitations" style="margin-top:18px">
+        <div class="limitations-body">
+          <strong style="color:var(--text)">The counterintuitive headline:</strong> Despite constant debate about mountain bike prices, the BLS "Sports Vehicles including Bicycles" CPI has inflated at only <span style="color:var(--orange);font-weight:600">1.73%/year</span> since 1978 — well below the overall CPI average of 3.43%/year. Since 2000, bikes have risen only 28% while the broader economy rose 83%.
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── TAB 2: COVID ERA ───────── -->
+    <section id="tab-2" class="tab-panel">
+      <div class="sh"><div class="sh-title">The COVID Rollercoaster: 2017–2025</div></div>
+      <div class="extras-bar" id="extrasBar2"></div>
+      <div class="chart-wrap" style="height:260px"><canvas id="chart2"></canvas></div>
+
+      <div class="sh" style="margin-top:22px"><div class="sh-title">Key Industry Events</div></div>
+      <div id="eventTimeline"></div>
+    </section>
+
+    <!-- ───────── TAB 3: KEY FINDINGS ───────── -->
+    <section id="tab-3" class="tab-panel">
+      <div class="sh"><div class="sh-title">Key Findings &amp; Analysis</div></div>
+      <div class="findings-grid" id="findingsGrid"></div>
+      <div class="sh"><div class="sh-title">Sports Category Comparison Table</div></div>
+      <div class="tbl-wrap"><table id="findingsTable"></table></div>
+    </section>
+
+    <!-- ───────── TAB 4: COMPARE ───────── -->
+    <section id="tab-4" class="tab-panel">
+      <div class="spread-header" style="margin-top:0">
+        <div class="sh" style="margin-bottom:0">
+          <div class="sh-title">10 Adjacent FRED &amp; BLS Metrics Compared</div>
+          <div class="sh-sub">All indexed to selected base year = 100 for like-for-like comparison</div>
+        </div>
+        <div class="tf-picker" id="lineTfPicker"></div>
+      </div>
+      <div class="chart-wrap" style="height:290px;margin-bottom:6px"><canvas id="chart4line"></canvas></div>
+      <div style="font-size:9px;color:var(--faint2);margin-bottom:20px;line-height:1.6">
+        † PPI series (PCU339920339920, PCU3399203399204) use approximate annual averages from BLS monthly data. PCE S&amp;R Price Index approximate pre-2020. PCE Sport Equip ($) is nominal spending (price × volume), not a pure price index. ‡ BEA NIPA estimates for PCE pre-2021.
+      </div>
+
+      <div class="spread-header">
+        <div class="sh" style="margin-bottom:0">
+          <div class="sh-title" id="barChartTitle">% Change Since 2021 vs. US CPI (+15.8%)</div>
+          <div class="sh-sub" id="barChartSub">2021→2024 · Blue dashed = US CPI baseline · green below · amber moderate · red above</div>
+        </div>
+        <div class="tf-picker" id="barTfPicker"></div>
+      </div>
+      <div class="chart-wrap" style="height:220px;margin-bottom:6px"><canvas id="chart4bar"></canvas></div>
+      <div style="font-size:9px;color:var(--faint2);margin-bottom:24px;line-height:1.6">
+        PCE Sport Equip ($) is nominal spending growth — reflects both price increases AND more consumers buying. Metrics without sufficient historical data (PPI Sporting Retailers, PCE Other Sport, Real PCE) are omitted from this chart.
+      </div>
+
+      <div class="sh"><div class="sh-title">All 10 Metrics at a Glance</div><div class="sh-sub">Change shown: 2021→2024 for all cards</div></div>
+      <div class="scorecards-grid" id="scorecardsGrid"></div>
+
+      <div class="sources-box">
+        <span class="sources-label">Sources: </span>
+        FRED FPCPITOTLZGUSA (World Bank/IMF) · BLS CPI Sports Vehicles (CUUR0000SSRD02) · FRED PCU339920339920 (BLS PPI Sporting Goods Mfg) · FRED DSPGRC1A027NBEA (BEA PCE) · FRED PCU3399203399204 (BLS PPI Golf) · FRED PCU451110451110 (BLS PPI Retailers) · FRED DODRRG3A086NBEA / DORIRG3A086NBEA (BEA chain-type price indices) · BLS Admission to Sporting Events CPI · FRED DSPGRX1A020NBEA (BEA Real PCE). Pre-2021 PPI values approximate from monthly BLS series; pre-2021 PCE approximated from BEA NIPA tables.
+      </div>
+    </section>
+
+    <!-- ───────── TAB 5: AFFORDABILITY ───────── -->
+    <section id="tab-5" class="tab-panel">
+      <div class="sh">
+        <div class="sh-title">Hours of Work to Buy a Mountain Bike</div>
+        <div class="sh-sub">FRED AHETPI (BLS) average hourly earnings · representative MSRP by tier · 2005–2024</div>
+      </div>
+      <div class="afford-hero-grid" id="affordHeroGrid"></div>
+
+      <div class="sh">
+        <div class="sh-title">Hours-to-Buy Index (2005 = 100)</div>
+        <div class="sh-sub">Accounts for both price AND wage changes — falling line = more affordable; rising = less affordable</div>
+      </div>
+      <div class="chart-wrap" style="height:270px;margin-bottom:6px"><canvas id="chart5a"></canvas></div>
+      <div style="font-size:9px;color:var(--faint2);margin-bottom:22px;line-height:1.6">
+        † 2020 wage data reflects a composition effect: COVID disproportionately eliminated lower-wage jobs, mathematically raising the average without actual individual wage growth. This creates the slight dip in affordability in 2020 before the true COVID MSRP surge hit in 2021–2022.
+      </div>
+
+      <div class="sh">
+        <div class="sh-title">Wages vs. Bike Prices — Both Indexed to 2005 = 100</div>
+        <div class="sh-sub">When the wage line is ABOVE a price line, that bike became more affordable. When below, less affordable.</div>
+      </div>
+      <div class="chart-wrap" style="height:240px;margin-bottom:6px"><canvas id="chart5b"></canvas></div>
+      <div style="font-size:9px;color:var(--faint2);margin-bottom:24px;line-height:1.6">
+        Wages (blue dashed) grew ~91% since 2005. Entry MSRP grew 67% — wages won. Mid MSRP grew 94% — essentially tied. Premium MSRP grew 123% — prices pulled ahead, but a 2024 premium bike is categorically better than its 2005 equivalent in every dimension.
+      </div>
+
+      <div class="sh"><div class="sh-title">Personal Affordability Calculator</div><div class="sh-sub">How many hours of work does a bike cost at your wage?</div></div>
+      <div class="calc-box">
+        <div class="calc-wage-row">
+          <div class="wage-input-group">
+            <span style="font-size:11px;color:var(--sub)">Your hourly wage:</span>
+            <span class="wage-dollar">$</span>
+            <input type="number" min="1" max="500" step="0.5" id="wageInput" value="30.34">
+            <span style="font-size:10px;color:var(--faint)">/hr</span>
+          </div>
+          <div class="wage-presets" id="wagePresets"></div>
+        </div>
+        <div class="calc-results" id="calcResults"></div>
+        <div class="minwage-warn" id="minwageWarn"></div>
+      </div>
+
+      <div class="sh"><div class="sh-title">Snapshot: Hours to Buy by Year and Tier</div></div>
+      <div class="tbl-wrap" style="margin-bottom:18px"><table id="snapshotTable"></table></div>
+
+      <div class="msrp-note">
+        <span class="lbl">📋 MSRP Note: </span>
+        Bike prices above represent suggested retail prices. Actual transaction prices vary — during the 2023–2024 post-COVID bust, market prices were often 15–30% below MSRP (some models 40% off), meaning real affordability in 2024 is likely even better than shown here. Conversely, during the 2020–2022 boom, popular models sold at or above MSRP with waitlists. The hours-to-buy chart uses MSRP as a consistent benchmark for comparability. Sources: FRED AHETPI (BLS CES0500000008), industry pricing via Bicycle Association, PeopleForBikes, PinkBike, and Singletracks market reports.
+      </div>
+    </section>
+
+  </div>
+
+  <div class="footer">
+    DATA: FRED FPCPITOTLZGUSA · BLS CPI/PPI · BEA PCE · EU HICP · Industry Reports &nbsp;·&nbsp; Analysis current to May 2026
+  </div>
+</div>
 <script>
-// ─── DATA (ported verbatim from the original React source) ───────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA — all values sourced from FRED / BLS / BEA. See sources box in Tab 4.
+// ═══════════════════════════════════════════════════════════════════════════
 
 const fredCPI = {
   2000:3.38,2001:2.83,2002:1.59,2003:2.27,2004:2.68,
@@ -125,7 +447,7 @@ const bikeCPI = {
   2020:2.40,2021:6.94,2022:4.65,2023:0.10,2024:-2.05,2025:-3.17
 };
 
-function buildCumulative(annualPct) {
+function buildCumulative(annualPct){
   let val = 100;
   const out = {};
   Object.keys(annualPct).map(Number).sort((a,b)=>a-b).forEach(y=>{
@@ -135,62 +457,63 @@ function buildCumulative(annualPct) {
   return out;
 }
 const fredCumulative = buildCumulative(fredCPI);
-const bikeCumulative = (()=>{ const b=bikeRawCPI[2000]; const o={}; Object.keys(bikeRawCPI).forEach(y=>{o[Number(y)]=parseFloat((bikeRawCPI[y]/b*100).toFixed(2));}); return o; })();
+const bikeCumulative = (()=>{
+  const b=bikeRawCPI[2000]; const o={};
+  Object.keys(bikeRawCPI).forEach(y=>{ o[Number(y)]=parseFloat((bikeRawCPI[y]/b*100).toFixed(2)); });
+  return o;
+})();
 
-function buildRows() {
+function buildRows(){
   const years=[...new Set([...Object.keys(fredCPI),...Object.keys(bikeCPI)])].map(Number).sort((a,b)=>a-b);
   return years.map(y=>({
     year:y, fredPct:fredCPI[y]??null, bikePct:bikeCPI[y]??null,
     fredIdx:fredCumulative[y]??null, bikeIdx:bikeCumulative[y]??null,
-    diff:(bikeCPI[y]!=null&&fredCPI[y]!=null)?parseFloat((bikeCPI[y]-fredCPI[y]).toFixed(2)):null,
   }));
 }
 const allRows = buildRows();
 const covidRows = allRows.filter(r=>r.year>=2017&&r.year<=2025);
+const allYearsArr = allRows.map(r=>r.year);
+const covidYearsArr = covidRows.map(r=>r.year);
 
-// ─── COMPARE TAB: ABSOLUTE DATA FOR ALL SERIES ───────────────────────────────
-// Used to normalize to any base year on demand.
-// † = approximate annual averages derived from monthly BLS/BEA series
-// ‡ = BEA NIPA estimates (nominal spending, price × volume)
-
+// Compare-tab absolute index values, used to normalize to any base year
 const ABS = {
-  "US CPI": {         // Cumulative index 2000=100, computed from FRED FPCPITOTLZGUSA
+  "US CPI": {
     2005:113.42,2006:117.09,2007:120.42,2008:125.05,2009:124.60,
     2010:126.64,2011:130.64,2012:133.34,2013:135.29,2014:137.48,
     2015:137.65,2016:139.38,2017:142.35,2018:145.82,2019:149.16,
     2020:151.00,2021:158.10,2022:170.75,2023:177.78,2024:183.03,
   },
-  "Bikes CPI": {      // BLS CPI raw index — exact values
+  "Bikes CPI": {
     2005:133.183,2006:137.967,2007:137.923,2008:139.401,2009:140.082,
     2010:141.313,2011:146.466,2012:148.385,2013:150.023,2014:149.555,
     2015:149.499,2016:147.150,2017:145.340,2018:148.435,2019:153.676,
     2020:157.358,2021:168.278,2022:176.106,2023:176.274,2024:172.666,2025:167.185,
   },
-  "PPI Sport Mfg": {  // PCU339920339920, Dec 1985=100 † approx annual avg
+  "PPI Sport Mfg": {
     2005:116.0,2006:118.5,2007:121.0,2008:124.0,2009:122.5,
     2010:126.0,2011:131.5,2012:135.0,2013:138.0,2014:142.0,
     2015:145.5,2016:147.0,2017:150.5,2018:154.0,2019:158.0,
     2020:155.0,2021:164.0,2022:173.5,2023:176.0,2024:178.5,2025:179.7,
   },
-  "PCE Sport Equip": {// DSPGRC1A027NBEA, $B nominal ‡ approx pre-2021
+  "PCE Sport Equip": {
     2005:47.0,2006:50.0,2007:53.5,2008:55.0,2009:52.5,
     2010:62.0,2011:66.5,2012:70.0,2013:73.5,2014:77.0,
     2015:80.0,2016:83.0,2017:85.5,2018:88.0,2019:90.0,
     2020:97.0,2021:111.214,2022:112.449,2023:117.772,2024:121.783,2025:126.877,
   },
-  "PPI Golf Equip": { // PCU3399203399204, Dec 1985=100 † approx annual avg
+  "PPI Golf Equip": {
     2005:100.0,2006:99.5,2007:99.0,2008:98.5,2009:97.0,
     2010:97.0,2011:96.5,2012:95.5,2013:95.0,2014:93.5,
     2015:91.5,2016:90.5,2017:89.0,2018:87.0,2019:82.5,
     2020:81.0,2021:82.5,2022:85.5,2023:84.0,2024:83.5,2025:83.6,
   },
-  "PCE S&R Price": {  // DODRRG3A086NBEA, 2017=100 — exact 2020-2024; approx prior
+  "PCE S&R Price": {
     2005:110.0,2006:109.0,2007:108.0,2008:107.5,2009:106.5,
     2010:107.0,2011:106.0,2012:105.0,2013:103.5,2014:103.0,
     2015:103.0,2016:101.5,2017:100.0,2018:99.5,2019:96.0,
     2020:94.117,2021:98.011,2022:101.949,2023:102.045,2024:100.482,
   },
-  "Sporting Events": {// BLS Admission to Sporting Events CPI, 1997=100 — 2019,2023,2024 exact; others approx
+  "Sporting Events": {
     2005:152.0,2006:159.0,2007:167.0,2008:175.0,2009:178.0,
     2010:174.0,2011:183.0,2012:191.0,2013:200.0,2014:206.0,
     2015:209.0,2016:214.0,2017:217.0,2018:219.0,2019:226.291,
@@ -198,996 +521,1022 @@ const ABS = {
   },
 };
 
-// Line chart series key → ABS key
 const LINE_KEYS = {
-  "US CPI":             "US CPI",
-  "Bikes CPI":          "Bikes CPI",
-  "PPI: Sport Mfg":     "PPI Sport Mfg",
-  "PCE Sport Equip ($)":"PCE Sport Equip",
-  "PPI: Golf Equip":    "PPI Golf Equip",
-  "PCE S&R Price Idx":  "PCE S&R Price",
-  "Sporting Events":    "Sporting Events",
+  "US CPI":"US CPI", "Bikes CPI":"Bikes CPI", "PPI: Sport Mfg":"PPI Sport Mfg",
+  "PCE Sport Equip ($)":"PCE Sport Equip", "PPI: Golf Equip":"PPI Golf Equip",
+  "PCE S&R Price Idx":"PCE S&R Price", "Sporting Events":"Sporting Events",
 };
 const LINE_COLORS = {
-  "US CPI":             "#60a5fa",
-  "Bikes CPI":          "#f97316",
-  "PPI: Sport Mfg":     "#a78bfa",
-  "PCE Sport Equip ($)":"#22c55e",
-  "PPI: Golf Equip":    "#f59e0b",
-  "PCE S&R Price Idx":  "#34d399",
-  "Sporting Events":    "#fb7185",
+  "US CPI":"#60a5fa", "Bikes CPI":"#f97316", "PPI: Sport Mfg":"#a78bfa",
+  "PCE Sport Equip ($)":"#22c55e", "PPI: Golf Equip":"#f59e0b",
+  "PCE S&R Price Idx":"#34d399", "Sporting Events":"#fb7185",
 };
 
-// Metric id → ABS key (null = no historical series data)
 const M2ABS = {
-  "FPCPITOTLZGUSA": "US CPI",
-  "BLS-Bikes":      "Bikes CPI",
-  "PCU339920339920":"PPI Sport Mfg",
-  "DSPGRC1A027NBEA":"PCE Sport Equip",
-  "PCU3399203399204":"PPI Golf Equip",
-  "PCU451110451110": null,
-  "DODRRG3A086NBEA":"PCE S&R Price",
-  "DORIRG3A086NBEA": null,
-  "Sporting-Events":"Sporting Events",
-  "DSPGRX1A020NBEA": null,
+  "FPCPITOTLZGUSA":"US CPI", "BLS-Bikes":"Bikes CPI", "PCU339920339920":"PPI Sport Mfg",
+  "DSPGRC1A027NBEA":"PCE Sport Equip", "PCU3399203399204":"PPI Golf Equip",
+  "PCU451110451110":null, "DODRRG3A086NBEA":"PCE S&R Price", "DORIRG3A086NBEA":null,
+  "Sporting-Events":"Sporting Events", "DSPGRX1A020NBEA":null,
 };
 
-// ─── AFFORDABILITY / HOURS OF WORK DATA ──────────────────────────────────────
-
-// FRED AHETPI: Avg Hourly Earnings, Production & Nonsupervisory Employees, Total Private
-// Source: BLS via FRED series AHETPI (CES0500000008), annual averages, seasonally adjusted
-// Note: 2020 spike is a composition effect — lower-wage workers laid off disproportionately
+// FRED AHETPI: Avg Hourly Earnings, Production & Nonsupervisory, Total Private
 const WAGES = {
   2005:15.89,2006:16.39,2007:17.00,2008:17.57,2009:18.10,
   2010:18.56,2011:19.10,2012:19.60,2013:20.08,2014:20.60,
   2015:21.03,2016:21.54,2017:22.10,2018:22.72,2019:23.51,
   2020:25.21,2021:25.90,2022:27.08,2023:28.88,2024:30.34,
 };
-
-// Representative MSRP by tier (†approximate industry pricing — see note in tab)
 const BIKE_PRICES = {
-  // Entry trail hardtail (Trek Marlin / Specialized Rockhopper class, ~$450–$1,050)
-  entry: {
-    2005:450,2006:470,2007:490,2008:510,2009:510,
-    2010:550,2011:570,2012:580,2013:600,2014:620,
-    2015:640,2016:650,2017:650,2018:680,2019:700,
-    2020:780,2021:950,2022:1050,2023:850,2024:750,
-  },
-  // Mid-range full suspension (Stumpjumper Comp / Fuel EX class, ~$1,800–$4,800)
-  mid: {
-    2005:1800,2006:1900,2007:2000,2008:2100,2009:2100,
-    2010:2200,2011:2400,2012:2500,2013:2600,2014:2700,
-    2015:2800,2016:2850,2017:2900,2018:3000,2019:3100,
-    2020:3500,2021:4200,2022:4800,2023:3900,2024:3500,
-  },
-  // Premium enduro (Yeti SB150 / Santa Cruz Megatower class, ~$3,500–$10,500)
-  premium: {
-    2005:3500,2006:3700,2007:3900,2008:4100,2009:4200,
-    2010:4500,2011:4800,2012:5000,2013:5200,2014:5500,
-    2015:5800,2016:6000,2017:6000,2018:6200,2019:6500,
-    2020:7500,2021:9000,2022:10500,2023:8500,2024:7800,
-  },
+  entry:{2005:450,2006:470,2007:490,2008:510,2009:510,2010:550,2011:570,2012:580,2013:600,2014:620,2015:640,2016:650,2017:650,2018:680,2019:700,2020:780,2021:950,2022:1050,2023:850,2024:750},
+  mid:{2005:1800,2006:1900,2007:2000,2008:2100,2009:2100,2010:2200,2011:2400,2012:2500,2013:2600,2014:2700,2015:2800,2016:2850,2017:2900,2018:3000,2019:3100,2020:3500,2021:4200,2022:4800,2023:3900,2024:3500},
+  premium:{2005:3500,2006:3700,2007:3900,2008:4100,2009:4200,2010:4500,2011:4800,2012:5000,2013:5200,2014:5500,2015:5800,2016:6000,2017:6000,2018:6200,2019:6500,2020:7500,2021:9000,2022:10500,2023:8500,2024:7800},
 };
-
-// Pre-compute hours-to-buy for each year
-const AFFORD_ROWS = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(y => {
+const AFFORD_ROWS = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(y=>{
   const w = WAGES[y];
-  const eh = BIKE_PRICES.entry[y] / w;
-  const mh = BIKE_PRICES.mid[y]   / w;
-  const ph = BIKE_PRICES.premium[y] / w;
-  // Indexed to 2005 = 100
-  const base_e = BIKE_PRICES.entry[2005]   / WAGES[2005];
-  const base_m = BIKE_PRICES.mid[2005]     / WAGES[2005];
-  const base_p = BIKE_PRICES.premium[2005] / WAGES[2005];
+  const eh=BIKE_PRICES.entry[y]/w, mh=BIKE_PRICES.mid[y]/w, ph=BIKE_PRICES.premium[y]/w;
+  const be=BIKE_PRICES.entry[2005]/WAGES[2005], bm=BIKE_PRICES.mid[2005]/WAGES[2005], bp=BIKE_PRICES.premium[2005]/WAGES[2005];
   return {
-    year: y, wage: w,
-    entryHrs:  parseFloat(eh.toFixed(1)),
-    midHrs:    parseFloat(mh.toFixed(1)),
-    premHrs:   parseFloat(ph.toFixed(1)),
-    entryIdx:  parseFloat((eh/base_e*100).toFixed(1)),
-    midIdx:    parseFloat((mh/base_m*100).toFixed(1)),
-    premIdx:   parseFloat((ph/base_p*100).toFixed(1)),
-    entryPrice: BIKE_PRICES.entry[y],
-    midPrice:   BIKE_PRICES.mid[y],
-    premPrice:  BIKE_PRICES.premium[y],
+    year:y, wage:w,
+    entryHrs:parseFloat(eh.toFixed(1)), midHrs:parseFloat(mh.toFixed(1)), premHrs:parseFloat(ph.toFixed(1)),
+    entryIdx:parseFloat((eh/be*100).toFixed(1)), midIdx:parseFloat((mh/bm*100).toFixed(1)), premIdx:parseFloat((ph/bp*100).toFixed(1)),
+    entryPrice:BIKE_PRICES.entry[y], midPrice:BIKE_PRICES.mid[y], premPrice:BIKE_PRICES.premium[y],
   };
 });
-
-// Wage + price indexed to 2005=100 (for the "components" chart)
-const WAGE_PRICE_IDX = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(y => ({
-  year: y,
-  wageIdx:  parseFloat((WAGES[y]                / WAGES[2005]                * 100).toFixed(1)),
-  entryIdx: parseFloat((BIKE_PRICES.entry[y]    / BIKE_PRICES.entry[2005]    * 100).toFixed(1)),
-  midIdx:   parseFloat((BIKE_PRICES.mid[y]      / BIKE_PRICES.mid[2005]      * 100).toFixed(1)),
-  premIdx:  parseFloat((BIKE_PRICES.premium[y]  / BIKE_PRICES.premium[2005]  * 100).toFixed(1)),
+const WAGE_PRICE_IDX = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(y=>({
+  year:y,
+  wageIdx:parseFloat((WAGES[y]/WAGES[2005]*100).toFixed(1)),
+  entryIdx:parseFloat((BIKE_PRICES.entry[y]/BIKE_PRICES.entry[2005]*100).toFixed(1)),
+  midIdx:parseFloat((BIKE_PRICES.mid[y]/BIKE_PRICES.mid[2005]*100).toFixed(1)),
+  premIdx:parseFloat((BIKE_PRICES.premium[y]/BIKE_PRICES.premium[2005]*100).toFixed(1)),
 }));
 
-// ─── 10 SCORECARDS ──────────────────────────────────────────────────────────
-
 const metrics = [
-  { id:"FPCPITOTLZGUSA", name:"US All-Items CPI",               shortName:"US CPI",            badge:"CPI", badgeCol:"#60a5fa", url:"https://fred.stlouisfed.org/series/FPCPITOTLZGUSA", source:"World Bank/IMF", recentVal:"+2.95%", recentNote:"Annual 2024", isBaseline:true, desc:"Economy-wide baseline" },
-  { id:"BLS-Bikes",      name:"Sports Vehicles / Bikes CPI",    shortName:"Bikes CPI (BLS)",   badge:"CPI", badgeCol:"#f97316", url:null,                                                source:"BLS",           recentVal:"−3.17%", recentNote:"Annual 2025", isBaseline:false, desc:"BLS CPI for all sport vehicles incl. bicycles" },
-  { id:"PCU339920339920",name:"PPI: Sporting Goods Mfg",        shortName:"PPI Sport Goods Mfg",badge:"PPI",badgeCol:"#a78bfa", url:"https://fred.stlouisfed.org/series/PCU339920339920", source:"BLS/FRED",       recentVal:"182.4",  recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices: all athletic & sporting goods mfg (NAICS 339920)" },
-  { id:"DSPGRC1A027NBEA",name:"PCE: Sporting Equipment Spending",shortName:"PCE Sport Equip $", badge:"PCE",badgeCol:"#22c55e", url:"https://fred.stlouisfed.org/series/DSPGRC1A027NBEA", source:"BEA/FRED",        recentVal:"$126.9B",recentNote:"Nominal 2025", isBaseline:false, desc:"Consumer spending: sporting equip, supplies, guns & ammo (nominal $B)" },
-  { id:"PCU3399203399204",name:"PPI: Golf Equipment",           shortName:"PPI Golf Equipment", badge:"PPI",badgeCol:"#f59e0b", url:"https://fred.stlouisfed.org/series/PCU3399203399204", source:"BLS/FRED",       recentVal:"84.6",   recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices for golf clubs, balls & bags — below 1985 base of 100" },
-  { id:"PCU451110451110", name:"PPI: Sporting Goods Retailers",  shortName:"PPI Sport Retailers",badge:"PPI",badgeCol:"#e879f9", url:"https://fred.stlouisfed.org/series/PCU451110451110",  source:"BLS/FRED",       recentVal:"+2.0%",  recentNote:"YoY Mar 2025", isBaseline:false, desc:"Retail-level prices: bikes, camping gear, fitness equip & accessories" },
-  { id:"DODRRG3A086NBEA", name:"PCE Price Idx: Sports & Rec",    shortName:"PCE S&R Price Idx", badge:"PCE",badgeCol:"#34d399", url:"https://fred.stlouisfed.org/series/DODRRG3A086NBEA",  source:"BEA/FRED",       recentVal:"100.5",  recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: all sports & recreational goods spending" },
-  { id:"DORIRG3A086NBEA", name:"PCE Price Idx: Other Sport Gds", shortName:"PCE Other Sport",   badge:"PCE",badgeCol:"#6ee7b7", url:"https://fred.stlouisfed.org/series/DORIRG3A086NBEA",  source:"BEA/FRED",       recentVal:"95.3",   recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: other sporting & recreational goods" },
-  { id:"Sporting-Events", name:"Admission to Sporting Events",   shortName:"Sporting Events CPI",badge:"CPI",badgeCol:"#fb7185", url:null,                                                source:"BLS",            recentVal:"+9.69%", recentNote:"Annual 2024", isBaseline:false, desc:"Consumer prices for tickets to professional & amateur sporting events" },
-  { id:"DSPGRX1A020NBEA", name:"Real PCE: Sporting Equipment",   shortName:"Real PCE Sport Equip",badge:"PCE",badgeCol:"#94a3b8",url:"https://fred.stlouisfed.org/series/DSPGRX1A020NBEA", source:"BEA/FRED",       recentVal:"~+11%",  recentNote:"Est. real 2021→2024", isBaseline:false, desc:"Inflation-adjusted consumer spending on sporting equipment" },
+  { id:"FPCPITOTLZGUSA", name:"US All-Items CPI", shortName:"US CPI", badge:"CPI", badgeCol:"#60a5fa", url:"https://fred.stlouisfed.org/series/FPCPITOTLZGUSA", recentVal:"+2.95%", recentNote:"Annual 2024", isBaseline:true, desc:"Economy-wide baseline" },
+  { id:"BLS-Bikes", name:"Sports Vehicles / Bikes CPI", shortName:"Bikes CPI (BLS)", badge:"CPI", badgeCol:"#f97316", url:null, recentVal:"−3.17%", recentNote:"Annual 2025", isBaseline:false, desc:"BLS CPI for all sport vehicles incl. bicycles" },
+  { id:"PCU339920339920", name:"PPI: Sporting Goods Mfg", shortName:"PPI Sport Goods Mfg", badge:"PPI", badgeCol:"#a78bfa", url:"https://fred.stlouisfed.org/series/PCU339920339920", recentVal:"182.4", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices: all athletic & sporting goods mfg (NAICS 339920)" },
+  { id:"DSPGRC1A027NBEA", name:"PCE: Sporting Equipment Spending", shortName:"PCE Sport Equip $", badge:"PCE", badgeCol:"#22c55e", url:"https://fred.stlouisfed.org/series/DSPGRC1A027NBEA", recentVal:"$126.9B", recentNote:"Nominal 2025", isBaseline:false, desc:"Consumer spending: sporting equip, supplies, guns & ammo (nominal $B)" },
+  { id:"PCU3399203399204", name:"PPI: Golf Equipment", shortName:"PPI Golf Equipment", badge:"PPI", badgeCol:"#f59e0b", url:"https://fred.stlouisfed.org/series/PCU3399203399204", recentVal:"84.6", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices for golf clubs, balls & bags — below 1985 base of 100" },
+  { id:"PCU451110451110", name:"PPI: Sporting Goods Retailers", shortName:"PPI Sport Retailers", badge:"PPI", badgeCol:"#e879f9", url:"https://fred.stlouisfed.org/series/PCU451110451110", recentVal:"+2.0%", recentNote:"YoY Mar 2025", isBaseline:false, desc:"Retail-level prices: bikes, camping gear, fitness equip & accessories" },
+  { id:"DODRRG3A086NBEA", name:"PCE Price Idx: Sports & Rec", shortName:"PCE S&R Price Idx", badge:"PCE", badgeCol:"#34d399", url:"https://fred.stlouisfed.org/series/DODRRG3A086NBEA", recentVal:"100.5", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: all sports & recreational goods spending" },
+  { id:"DORIRG3A086NBEA", name:"PCE Price Idx: Other Sport Gds", shortName:"PCE Other Sport", badge:"PCE", badgeCol:"#6ee7b7", url:"https://fred.stlouisfed.org/series/DORIRG3A086NBEA", recentVal:"95.3", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: other sporting & recreational goods" },
+  { id:"Sporting-Events", name:"Admission to Sporting Events", shortName:"Sporting Events CPI", badge:"CPI", badgeCol:"#fb7185", url:null, recentVal:"+9.69%", recentNote:"Annual 2024", isBaseline:false, desc:"Consumer prices for tickets to professional & amateur sporting events" },
+  { id:"DSPGRX1A020NBEA", name:"Real PCE: Sporting Equipment", shortName:"Real PCE Sport Equip", badge:"PCE", badgeCol:"#94a3b8", url:"https://fred.stlouisfed.org/series/DSPGRX1A020NBEA", recentVal:"~+11%", recentNote:"Est. real 2021→2024", isBaseline:false, desc:"Inflation-adjusted consumer spending on sporting equipment" },
 ];
-
-// ─── TIMEFRAME OPTIONS ───────────────────────────────────────────────────────
 
 const TF_OPTIONS = [
-  { year:2005, label:"2005",        sub:"20 yr" },
-  { year:2010, label:"2010",        sub:"15 yr" },
-  { year:2015, label:"2015",        sub:"10 yr" },
-  { year:2019, label:"2019",        sub:"Pre-COVID" },
-  { year:2021, label:"2021",        sub:"Post-COVID" },
+  { year:2005, label:"2005", sub:"20 yr" },
+  { year:2010, label:"2010", sub:"15 yr" },
+  { year:2015, label:"2015", sub:"10 yr" },
+  { year:2019, label:"2019", sub:"Pre-COVID" },
+  { year:2021, label:"2021", sub:"Post-COVID" },
 ];
+const ALL_YEARS = [2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
 
-const ALL_YEARS = [2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,
-                   2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+// Optional comparison series (annual % change), approximate annual averages from FRED monthly data †
+const EXTRA_SERIES = {
+  vehicles:{ label:"New Vehicles CPI", color:"#e879f9", fred:"CUUR0000SETA01",
+    note:"Interesting contrast: cars stayed flat for 20 years (hedonic quality adjustment), then spiked 11.8% in 2022",
+    data:{2000:0.0,2001:0.0,2002:-0.9,2003:-1.8,2004:0.6,2005:0.5,2006:-0.2,2007:-0.7,2008:-0.7,2009:0.9,2010:1.8,2011:2.4,2012:1.5,2013:1.1,2014:0.4,2015:0.4,2016:0.2,2017:-0.4,2018:-0.3,2019:0.4,2020:1.6,2021:6.6,2022:11.8,2023:4.0,2024:-0.9,2025:0.3} },
+  footwear:{ label:"Footwear CPI", color:"#34d399", fred:"CUUR0000SEAE",
+    note:"Includes athletic shoes — decades of near-zero inflation from offshore manufacturing, mirroring bikes",
+    data:{2000:-1.2,2001:-1.0,2002:-1.6,2003:-1.7,2004:-0.6,2005:-0.4,2006:0.7,2007:0.5,2008:1.2,2009:0.4,2010:0.5,2011:1.4,2012:2.7,2013:1.2,2014:0.6,2015:0.4,2016:0.9,2017:-0.4,2018:-0.5,2019:0.8,2020:-3.0,2021:4.9,2022:4.7,2023:1.2,2024:-1.0,2025:0.5} },
+  steel:{ label:"Steel Mill Products PPI", color:"#94a3b8", fred:"WPU1017",
+    note:"Chromoly frame tubing is a steel mill product. Wildly volatile — +72% in 2021 alone",
+    data:{2000:0.5,2001:-5.0,2002:3.0,2003:5.0,2004:35.0,2005:0.0,2006:8.0,2007:4.0,2008:25.0,2009:-25.0,2010:12.0,2011:10.0,2012:-4.0,2013:-3.0,2014:1.0,2015:-12.0,2016:-5.0,2017:8.0,2018:12.0,2019:-6.0,2020:-8.0,2021:72.0,2022:12.0,2023:-18.0,2024:-9.0,2025:0.0} },
+  aluminum:{ label:"Aluminum Sheet & Strip PPI", color:"#fbbf24", fred:"WPU10250105",
+    note:"Closest FRED proxy for 6061-series alloy used in most MTB frames — +28% in 2021",
+    data:{2000:2.0,2001:-4.0,2002:-2.0,2003:1.0,2004:8.0,2005:5.0,2006:15.0,2007:2.0,2008:3.0,2009:-12.0,2010:8.0,2011:7.0,2012:-3.0,2013:-2.0,2014:3.0,2015:-2.0,2016:-3.0,2017:6.0,2018:10.0,2019:-2.0,2020:-4.0,2021:28.0,2022:16.0,2023:-8.0,2024:-2.0,2025:3.0} },
+  titanium:{ label:"Titanium Mill Shapes PPI", color:"#22d3ee", fred:"WPU102505",
+    note:"Ti-6Al-4V frame tubing lives here. Steadier than steel/aluminum — aerospace demand sets the price, not bikes",
+    data:{2000:1.0,2001:2.0,2002:-3.0,2003:-2.0,2004:5.0,2005:25.0,2006:30.0,2007:-5.0,2008:-8.0,2009:-15.0,2010:2.0,2011:6.0,2012:3.0,2013:-2.0,2014:-1.0,2015:-2.0,2016:-4.0,2017:1.0,2018:3.0,2019:2.0,2020:-3.0,2021:3.0,2022:12.0,2023:8.0,2024:4.0,2025:2.0} },
+  euEquip:{ label:"EU Sports Equipment", color:"#6ee7b7", fred:"Eurostat HICP CP0932",
+    note:"European HICP for sporting equipment — averaged just 0.9%/yr 2014–2024; same offshore-manufacturing deflation story as US bikes",
+    data:{2000:1.0,2001:1.0,2002:0.5,2003:0.2,2004:0.0,2005:-0.2,2006:-0.3,2007:0.0,2008:0.5,2009:0.8,2010:0.3,2011:0.5,2012:0.8,2013:0.4,2014:0.2,2015:0.3,2016:0.4,2017:0.5,2018:0.3,2019:0.5,2020:1.0,2021:1.5,2022:3.8,2023:3.4,2024:1.0,2025:0.5} },
+  tickets:{ label:"Sports Tickets CPI", color:"#fb7185", fred:"BLS CUUR0000SS62031",
+    note:"Admission to sporting events — the runaway inflation champion: −18% COVID collapse, then +8–10%/yr four years straight",
+    data:{2000:3.5,2001:3.8,2002:3.5,2003:3.0,2004:3.2,2005:3.5,2006:4.6,2007:5.0,2008:4.8,2009:1.7,2010:-2.2,2011:5.2,2012:4.4,2013:4.7,2014:3.0,2015:1.5,2016:2.4,2017:1.4,2018:0.9,2019:3.3,2020:-18.2,2021:8.1,2022:8.3,2023:8.3,2024:9.7,2025:4.0} },
+};
+const EXTRA_CUM = Object.fromEntries(Object.keys(EXTRA_SERIES).map(k=>[k, buildCumulative(EXTRA_SERIES[k].data)]));
+
+const SPREAD_OPTS = {
+  bikes:{ label:"Bikes CPI (BLS)", color:"#f97316", data:bikeCPI },
+  uscpi:{ label:"US CPI (FRED)", color:"#60a5fa", data:fredCPI },
+  ...Object.fromEntries(Object.entries(EXTRA_SERIES).map(([k,s])=>[k,{label:s.label,color:s.color,data:s.data}])),
+};
 
 const benchmarks = [
-  { label:"Sports Tickets",       value:"+158%",  since:"1997–2026", note:"+9.7% in 2024 alone" },
-  { label:"US All-Items CPI",     value:"+83%",   since:"2000–2025", note:"FRED FPCPITOTLZGUSA" },
-  { label:"Sports Vehicles/Bikes",value:"+28%",   since:"2000–2025", note:"BLS CPI (all bike types)" },
-  { label:"EU Sport Equipment",   value:"+~9%",   since:"2014–2024", note:"EU HICP avg 0.9%/yr" },
-  { label:"MTB MSRP Surge",       value:"+40–50%",since:"2019–2022", note:"Bicycle Association data" },
+  { label:"Sports Tickets", value:"+158%", since:"1997–2026", note:"+9.7% in 2024 alone", hl:false },
+  { label:"US All-Items CPI", value:"+83%", since:"2000–2025", note:"FRED FPCPITOTLZGUSA", hl:false },
+  { label:"Sports Vehicles/Bikes", value:"+28%", since:"2000–2025", note:"BLS CPI (all bike types)", hl:true, cls:"orange" },
+  { label:"EU Sport Equipment", value:"+~9%", since:"2014–2024", note:"EU HICP avg 0.9%/yr", hl:false },
+  { label:"MTB MSRP Surge", value:"+40–50%", since:"2019–2022", note:"Bicycle Association data", hl:false, cls:"red" },
 ];
-// ─── CHART HELPERS ──────────────────────────────────────────────────────────
 
-let activeCharts = [];
-function trackChart(c){ activeCharts.push(c); return c; }
-function destroyActiveCharts(){
-  activeCharts.forEach(c=>{ try{ c.destroy(); }catch(e){} });
-  activeCharts = [];
-}
+const THEME_DOTS = [
+  { key:"slate", name:"Slate (default)", dot:"#232830" },
+  { key:"midnight", name:"Midnight", dot:"#0a0a0a" },
+  { key:"paper", name:"Paper", dot:"#ece6da" },
+];
 
-function hexToRgba(hex, alpha){
-  const h = hex.replace('#','');
-  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
+const TABS = ["Annual % Change","Cumulative Index","COVID Era","Key Findings","Compare","Affordability"];
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const state = {
+  tab: 0,
+  theme: "slate",
+  lineTf: 2021,
+  barTf: 2021,
+  myWage: 30.34,
+  playing: false,
+  playYear: 2025,
+  playTimer: null,
+  extras: {},          // key -> bool, shared across tabs 0/1/2
+  spreadA: "bikes",
+  spreadB: "uscpi",
+};
+const charts = {}; // Chart.js instance registry, keyed by canvas id
 
-// Vertical fade-to-transparent fill, used for the Cumulative Index area chart.
-function fadeGradient(hex, opacity){
-  return (ctx)=>{
-    const {chart} = ctx;
-    const area = chart.chartArea;
-    if(!area) return hexToRgba(hex, 0);
-    const g = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-    g.addColorStop(0, hexToRgba(hex, opacity));
-    g.addColorStop(1, hexToRgba(hex, 0));
-    return g;
-  };
-}
+const $ = id => document.getElementById(id);
+const fmtPct = v => (v==null ? "—" : `${v>0?"+":""}${v.toFixed(2)}%`);
 
-const MONO = "'IBM Plex Mono', 'Courier New', monospace";
-
-function baseTooltip(extra){
-  return Object.assign({
-    enabled:true,
-    backgroundColor:'#1a1a1a',
-    borderColor:'#3a3a3a',
-    borderWidth:1,
-    titleColor:'#f97316',
-    titleFont:{family:MONO, size:11, weight:'700'},
-    bodyColor:'#e0e0e0',
-    bodyFont:{family:MONO, size:11},
-    padding:10,
-    cornerRadius:6,
-    displayColors:true,
-    boxWidth:8,
-    boxHeight:8,
-    boxPadding:3,
-  }, extra||{});
-}
-
-function baseGrid(){
-  return { color:'#222', drawTicks:false };
-}
-function baseTicks(extra){
-  return Object.assign({ color:'#666', font:{family:MONO, size:10} }, extra||{});
-}
-
-// Generic reference-line plugin. Config passed per-chart via options.refLinesConfig = { lines: [...] }
-// Each line: { axis:'x'|'y', axisId:'x'|'y', value: number (data value OR category index), color, dash:[..], label, labelColor }
+// ═══════════════════════════════════════════════════════════════════════════
+// CUSTOM CHART.JS PLUGIN — draws horizontal/vertical reference lines
+// (replaces the ReferenceLine components from the React version)
+// ═══════════════════════════════════════════════════════════════════════════
 const refLinesPlugin = {
-  id: 'refLines',
-  afterDraw(chart){
-    const cfg = chart.options.refLinesConfig;
-    if(!cfg || !cfg.lines || !cfg.lines.length) return;
-    const {ctx, chartArea} = chart;
-    if(!chartArea) return;
+  id: "refLines",
+  afterDraw(chart, args, opts){
+    const lines = opts?.lines || [];
+    if(!lines.length) return;
+    const {ctx, chartArea:{left,right,top,bottom}, scales} = chart;
     ctx.save();
-    cfg.lines.forEach(l=>{
-      const scale = chart.scales[l.axisId];
-      if(!scale) return;
-      const pixel = scale.getPixelForValue(l.value);
+    lines.forEach(l=>{
       ctx.beginPath();
-      ctx.setLineDash(l.dash||[]);
       ctx.strokeStyle = l.color;
-      ctx.lineWidth = l.width||1.5;
-      if(scale.axis === 'y'){
-        ctx.moveTo(chartArea.left, pixel);
-        ctx.lineTo(chartArea.right, pixel);
+      ctx.lineWidth = l.width || 1;
+      if(l.dash) ctx.setLineDash(l.dash); else ctx.setLineDash([]);
+      if(l.type === "horizontal"){
+        const y = scales.y.getPixelForValue(l.value);
+        ctx.moveTo(left,y); ctx.lineTo(right,y);
       } else {
-        ctx.moveTo(pixel, chartArea.top);
-        ctx.lineTo(pixel, chartArea.bottom);
+        const x = scales.x.getPixelForValue(l.value);
+        ctx.moveTo(x,top); ctx.lineTo(x,bottom);
       }
       ctx.stroke();
       if(l.label){
         ctx.setLineDash([]);
-        ctx.font = "9px " + MONO;
-        ctx.fillStyle = l.labelColor || l.color;
-        if(scale.axis==='y'){
-          ctx.textAlign='right'; ctx.textBaseline='bottom';
-          ctx.fillText(l.label, chartArea.right-4, pixel-3);
+        ctx.fillStyle = l.color;
+        ctx.font = "9px 'IBM Plex Mono', monospace";
+        if(l.type === "vertical"){
+          const x = scales.x.getPixelForValue(l.value);
+          ctx.fillText(l.label, x+3, top+10);
         } else {
-          ctx.textAlign='center'; ctx.textBaseline='top';
-          ctx.fillText(l.label, pixel, chartArea.top+3);
+          const y = scales.y.getPixelForValue(l.value);
+          ctx.fillText(l.label, right-40, y-4);
         }
       }
     });
     ctx.restore();
   }
 };
+Chart.register(refLinesPlugin);
 
-// Builds a <div class="chart-box" style="height:Npx"><canvas></canvas></div>, returns the canvas element after insertion.
-function chartBox(container, id, height){
-  const div = document.createElement('div');
-  div.className = 'chart-box';
-  div.style.height = height + 'px';
-  div.innerHTML = `<canvas id="${id}"></canvas>`;
-  container.appendChild(div);
-  return div.querySelector('canvas');
+// Shared Chart.js defaults matching the widget's aesthetic
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+function baseFont(){ return { family:"'IBM Plex Mono', monospace", size:10 }; }
+
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// THEME SWITCHING
+// ═══════════════════════════════════════════════════════════════════════════
+function applyTheme(key){
+  state.theme = key;
+  document.body.className = "theme-" + key;
+  document.querySelectorAll(".theme-dot").forEach(d=>{
+    d.classList.toggle("active", d.dataset.key===key);
+  });
+  // Redraw whatever charts currently exist so gridlines/text pick up new CSS vars
+  Object.keys(charts).forEach(id=>{
+    const c = charts[id];
+    if(!c) return;
+    updateChartTheme(c);
+  });
 }
-// ─── APP STATE & SHELL ──────────────────────────────────────────────────────
-
-const state = {
-  tab: 0,
-  lineTf: 2021,
-  barTf: 2021,
-  myWage: 30.34,
-};
-
-const TABS = ["Annual % Change","Cumulative Index","COVID Era","Key Findings","Compare","Affordability"];
-
-function sh(title, sub, styleExtra){
-  return `<div style="margin-bottom:12px;${styleExtra||''}">
-    <div class="sh-title">${title}</div>
-    ${sub ? `<div class="sh-sub">${sub}</div>` : ''}
-  </div>`;
-}
-
-function tfPicker(options, currentVal, handlerName){
-  return `<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-    <span style="font-size:9px;color:var(--dim5);margin-right:4px;text-transform:uppercase;letter-spacing:0.08em">Base year:</span>
-    ${options.map(opt=>`
-      <button class="tf-btn ${opt.year===currentVal?'active':''}" onclick="${handlerName}(${opt.year})">
-        <span>${opt.label}</span><span class="sub">${opt.sub}</span>
-      </button>
-    `).join('')}
-  </div>`;
-}
-
-function renderShell(){
-  const root = document.getElementById('root');
-  root.innerHTML = `
-    <div style="min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--mono)">
-      <div id="header"></div>
-      <div id="tabbar" style="border-bottom:1px solid var(--border);background:#111;position:sticky;top:0;z-index:10"></div>
-      <div id="content" style="max-width:1100px;margin:0 auto;padding:20px 18px"></div>
-      <div id="footer"></div>
-    </div>
-  `;
-  renderHeader();
-  renderTabBar();
-  renderTabContent();
-  renderFooter();
-}
-
-function renderHeader(){
-  document.getElementById('header').innerHTML = `
-    <div style="background:linear-gradient(135deg,#0e0e0e 0%,#1a1a0e 50%,#0e0e0e 100%);border-bottom:1px solid var(--border);padding:18px 20px 14px">
-      <div style="max-width:1100px;margin:0 auto">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <div style="width:5px;height:34px;background:var(--orange);border-radius:3px"></div>
-          <div>
-            <div style="font-family:var(--disp);font-size:clamp(17px,3.5vw,26px);font-weight:700;letter-spacing:0.05em;color:#fff;line-height:1.1">MOUNTAIN BIKING &amp; INFLATION</div>
-            <div style="font-size:10px;color:var(--dim2);letter-spacing:0.12em;text-transform:uppercase;margin-top:3px">Deep dive — FRED FPCPITOTLZGUSA + BLS CPI + BEA PCE data</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:14px">
-          ${benchmarks.map((b,i)=>`
-            <div class="stat-card" style="background:var(--card);border:1px solid ${i===2?'var(--orange)':'var(--border)'};border-radius:7px;padding:10px 12px">
-              <div style="font-size:9px;color:var(--dim2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">${b.label}</div>
-              <div style="font-family:var(--disp);font-size:22px;font-weight:700;color:${i===2?'var(--orange)':i===4?'var(--red)':'var(--text)'};line-height:1">${b.value}</div>
-              <div style="font-size:9px;color:var(--dim4);margin-top:3px">${b.since}</div>
-              <div style="font-size:9px;color:var(--dim5);margin-top:1px">${b.note}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderTabBar(){
-  document.getElementById('tabbar').innerHTML = `
-    <div style="max-width:1100px;margin:0 auto;display:flex;overflow-x:auto">
-      ${TABS.map((t,i)=>`<button class="tab-btn ${state.tab===i?'active':''}" onclick="setTab(${i})">${t}</button>`).join('')}
-    </div>
-  `;
-}
-
-function renderFooter(){
-  document.getElementById('footer').innerHTML = `
-    <div style="border-top:1px solid var(--border-softer);padding:12px 20px;text-align:center;font-size:9px;color:var(--dim6);letter-spacing:0.05em">
-      DATA: FRED FPCPITOTLZGUSA · BLS CPI/PPI · BEA PCE · EU HICP · Industry Reports &nbsp;·&nbsp; Analysis current to May 2026
-    </div>
-  `;
-}
-
-const TAB_RENDERERS = [];  // populated by 06..11 (index = tab number)
-
-function renderTabContent(){
-  destroyActiveCharts();
-  const content = document.getElementById('content');
-  content.innerHTML = '';
-  TAB_RENDERERS[state.tab](content);
-}
-
-function setTab(i){
-  state.tab = i;
-  renderTabBar();
-  renderTabContent();
-}
-function setLineTf(y){ state.lineTf = y; renderTabContent(); }
-function setBarTf(y){ state.barTf = y; renderTabContent(); }
-function setMyWage(val, fromPreset){
-  state.myWage = val;
-  if(fromPreset){
-    const input = document.getElementById('wage-input');
-    if(input) input.value = val;
+function updateChartTheme(chart){
+  const grid = cssVar("--grid"), sub2 = cssVar("--sub2"), tooltip = cssVar("--tooltip"), border3 = cssVar("--border3"), text = cssVar("--text");
+  if(chart.options.scales?.x){
+    chart.options.scales.x.grid.color = grid;
+    chart.options.scales.x.ticks.color = sub2;
   }
-  if(typeof updateWageCalc === 'function') updateWageCalc();
+  if(chart.options.scales?.y){
+    chart.options.scales.y.grid.color = grid;
+    chart.options.scales.y.ticks.color = sub2;
+  }
+  if(chart.options.plugins?.legend?.labels) chart.options.plugins.legend.labels.color = sub2;
+  if(chart.options.plugins?.tooltip){
+    chart.options.plugins.tooltip.backgroundColor = tooltip;
+    chart.options.plugins.tooltip.borderColor = border3;
+    chart.options.plugins.tooltip.titleColor = "#f97316";
+    chart.options.plugins.tooltip.bodyColor = text;
+  }
+  chart.update("none");
 }
-// ─── TAB 0: ANNUAL % CHANGE ─────────────────────────────────────────────────
 
-function renderTab0(container){
-  container.innerHTML = `
-    <div>
-      ${sh('Annual Inflation Rate: US CPI vs. Sports Vehicles / Bicycles','FRED FPCPITOTLZGUSA (World Bank) + BLS CPI · 2000–2025')}
-      <div id="t0-chart-a"></div>
-      ${sh('Spread: Bikes CPI minus Overall CPI','Orange = bikes above CPI  ·  Blue = bikes below CPI (19 of 25 bars are blue)','margin-top:26px')}
-      <div id="t0-chart-b"></div>
-    </div>
-  `;
-
-  // Chart A — annual % change, two lines
-  const canvasA = chartBox(document.getElementById('t0-chart-a'), 't0-canvas-a', 280);
-  trackChart(new Chart(canvasA, {
-    type:'line',
-    data:{
-      labels: allRows.map(r=>String(r.year)),
-      datasets:[
-        { label:'US CPI (FRED)', data: allRows.map(r=>r.fredPct), borderColor:'#60a5fa', backgroundColor:'#60a5fa', borderWidth:2, pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0 },
-        { label:'Sports Vehicles / Bikes (BLS)', data: allRows.map(r=>r.bikePct), borderColor:'#f97316', backgroundColor:'#f97316', borderWidth:2.5, pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0 },
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:6,right:8}},
-      scales:{
-        x:{ grid:baseGrid(), ticks:baseTicks() },
-        y:{ min:-5, max:11, grid:baseGrid(), ticks:baseTicks({ callback:v=>v+'%' }) },
-      },
-      plugins:{
-        legend:{ labels:{ color:'#888', font:{family:MONO,size:10}, boxWidth:10, boxHeight:10, padding:14 } },
-        tooltip: baseTooltip({ callbacks:{ label:(c)=> c.parsed.y==null ? null : `${c.dataset.label}: ${c.parsed.y.toFixed(2)}%` } }),
-      },
-      refLinesConfig:{ lines:[ {axisId:'y', value:0, color:'#444', width:1.5} ] },
-    },
-    plugins:[refLinesPlugin]
-  }));
-
-  // Chart B — spread bar chart
-  const diffRows = allRows.filter(r=>r.diff!==null);
-  const canvasB = chartBox(document.getElementById('t0-chart-b'), 't0-canvas-b', 150);
-  trackChart(new Chart(canvasB, {
-    type:'bar',
-    data:{
-      labels: diffRows.map(r=>String(r.year)),
-      datasets:[{ label:'Bike − CPI', data: diffRows.map(r=>r.diff), backgroundColor: diffRows.map(r=>r.diff>=0?'#f97316':'#60a5fa'), borderRadius:2, borderSkipped:false }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:4,right:8}},
-      scales:{
-        x:{ grid:baseGrid(), ticks:baseTicks() },
-        y:{ grid:baseGrid(), ticks:baseTicks({ callback:v=>v+'%' }) },
-      },
-      plugins:{
-        legend:{ display:false },
-        tooltip: baseTooltip({ callbacks:{
-          title:(items)=> items[0]?.label,
-          label:(c)=> `Bike − CPI: ${c.parsed.y>0?'+':''}${c.parsed.y.toFixed(2)}%`,
-        }}),
-      },
-      refLinesConfig:{ lines:[ {axisId:'y', value:0, color:'#555', width:1} ] },
-    },
-    plugins:[refLinesPlugin]
-  }));
+function stdTooltip(extra){
+  return {
+    backgroundColor: cssVar("--tooltip"),
+    borderColor: cssVar("--border3"),
+    borderWidth: 1,
+    titleColor: "#f97316",
+    bodyColor: cssVar("--text"),
+    titleFont: { family:"'IBM Plex Mono', monospace", size:11, weight:"700" },
+    bodyFont: { family:"'IBM Plex Mono', monospace", size:11 },
+    padding: 10,
+    boxPadding: 4,
+    ...extra
+  };
 }
-TAB_RENDERERS[0] = renderTab0;
-// ─── TAB 1: CUMULATIVE INDEX ────────────────────────────────────────────────
+function stdScales(yTitle, xTicksFont){
+  return {
+    x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font: xTicksFont || baseFont()} },
+    y:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font: baseFont()} },
+  };
+}
+function stdLegend(){
+  return { labels:{ color:cssVar("--sub2"), font: {family:"'IBM Plex Mono', monospace", size:10}, boxWidth:12, padding:10 } };
+}
 
-function renderTab1(container){
-  container.innerHTML = `
-    <div>
-      ${sh('Cumulative Price Level Since 2000 (Base = 100)')}
-      <div id="t1-chart"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;max-width:620px" id="t1-cards"></div>
-    </div>
-  `;
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════════
+function showTab(idx){
+  state.tab = idx;
+  document.querySelectorAll(".tab-btn").forEach((b,i)=>b.classList.toggle("active", i===idx));
+  document.querySelectorAll(".tab-panel").forEach((p,i)=>p.classList.toggle("active", i===idx));
+  // Lazy-init charts for this tab the first time it's shown
+  if(idx===0 && !charts.chart0) initTab0();
+  if(idx===1 && !charts.chart1) initTab1();
+  if(idx===2 && !charts.chart2) initTab2();
+  if(idx===3 && !document.getElementById("findingsGrid").children.length) initTab3();
+  if(idx===4 && !charts.chart4line) initTab4();
+  if(idx===5 && !charts.chart5a) initTab5();
+}
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 0 — ANNUAL % CHANGE (play button, extras toggles, configurable spread)
+// ═══════════════════════════════════════════════════════════════════════════
 
-  const canvas = chartBox(document.getElementById('t1-chart'), 't1-canvas', 300);
-  trackChart(new Chart(canvas, {
-    type:'line',
-    data:{
-      labels: allRows.map(r=>String(r.year)),
-      datasets:[
-        { label:'US CPI (FRED)', data: allRows.map(r=>r.fredIdx), borderColor:'#60a5fa', borderWidth:2.5, pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0, fill:true, backgroundColor: fadeGradient('#60a5fa', 0.16) },
-        { label:'Sports Vehicles / Bikes (BLS)', data: allRows.map(r=>r.bikeIdx), borderColor:'#f97316', borderWidth:2.5, pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0, fill:true, backgroundColor: fadeGradient('#f97316', 0.16) },
-      ]
-    },
+function activeExtras(){ return Object.keys(EXTRA_SERIES).filter(k=>state.extras[k]); }
+
+function renderExtrasBar(containerId){
+  const el = $(containerId);
+  el.innerHTML = `<span class="extras-label">Compare with:</span>`;
+  Object.entries(EXTRA_SERIES).forEach(([key,s])=>{
+    const btn = document.createElement("button");
+    btn.className = "extra-chip" + (state.extras[key] ? " active" : "");
+    btn.title = `${s.note} — Source: ${s.fred}`;
+    btn.textContent = (state.extras[key] ? "● " : "○ ") + s.label;
+    if(state.extras[key]){ btn.style.background = s.color+"22"; btn.style.borderColor = s.color; btn.style.color = s.color; }
+    btn.onclick = () => toggleExtra(key);
+    el.appendChild(btn);
+  });
+}
+
+function toggleExtra(key){
+  state.extras[key] = !state.extras[key];
+  renderExtrasBar("extrasBar0");
+  renderExtrasBar("extrasBar1");
+  renderExtrasBar("extrasBar2");
+  updateTab0Chart();
+  updateTab1Chart();
+  updateTab2Chart();
+}
+
+function domainFrom(vals, pad){
+  pad = pad ?? 1.5;
+  const v = vals.filter(x=>x!=null);
+  return { min: Math.floor(Math.min(...v)-pad), max: Math.ceil(Math.max(...v)+pad) };
+}
+
+function renderPlayControls(){
+  const el = $("playControls");
+  el.innerHTML = "";
+  if(state.playing){
+    const pause = document.createElement("button");
+    pause.className = "btn-pause"; pause.textContent = "⏸ Pause";
+    pause.onclick = pausePlay;
+    el.appendChild(pause);
+  } else {
+    const play = document.createElement("button");
+    play.className = "btn-play"; play.textContent = "▶ Play";
+    play.onclick = startPlay;
+    el.appendChild(play);
+  }
+  if(state.playYear < 2025){
+    const reset = document.createElement("button");
+    reset.className = "btn-reset"; reset.textContent = "↺ Reset";
+    reset.onclick = resetPlay;
+    el.appendChild(reset);
+  }
+  if(state.playing || state.playYear < 2025){
+    const yr = document.createElement("span");
+    yr.className = "play-year"; yr.textContent = state.playYear;
+    el.appendChild(yr);
+  }
+}
+function startPlay(){
+  state.playYear = 2000; state.playing = true;
+  renderPlayControls();
+  updateTab0Chart();
+  state.playTimer = setInterval(()=>{
+    state.playYear++;
+    if(state.playYear >= 2025){
+      state.playYear = 2025; state.playing = false;
+      clearInterval(state.playTimer);
+    }
+    renderPlayControls();
+    updateTab0Chart();
+  }, 400);
+}
+function pausePlay(){
+  state.playing = false;
+  clearInterval(state.playTimer);
+  renderPlayControls();
+}
+function resetPlay(){
+  state.playing = false;
+  clearInterval(state.playTimer);
+  state.playYear = 2025;
+  renderPlayControls();
+  updateTab0Chart();
+}
+
+function initTab0(){
+  renderExtrasBar("extrasBar0");
+  renderPlayControls();
+  buildTab0Chart();
+  buildSpreadUI();
+  buildSpreadChart();
+}
+
+function buildTab0Chart(){
+  const ctx = $("chart0").getContext("2d");
+  const extras = activeExtras();
+  const dom = domainFrom([...Object.values(fredCPI), ...Object.values(bikeCPI),
+    ...extras.flatMap(k=>Object.values(EXTRA_SERIES[k].data))]);
+
+  const datasets = [
+    { label:"US CPI (FRED)", data: allYearsArr.map(y => y<=state.playYear ? fredCPI[y] ?? null : null),
+      borderColor:"#60a5fa", backgroundColor:"#60a5fa", borderWidth:2, pointRadius:0, pointHoverRadius:3, tension:0.15 },
+    { label:"Sports Vehicles / Bikes (BLS)", data: allYearsArr.map(y => y<=state.playYear ? bikeCPI[y] ?? null : null),
+      borderColor:"#f97316", backgroundColor:"#f97316", borderWidth:2.5, pointRadius:0, pointHoverRadius:3, tension:0.15 },
+  ];
+  extras.forEach(k=>{
+    const s = EXTRA_SERIES[k];
+    datasets.push({ label:s.label, data: allYearsArr.map(y => y<=state.playYear ? s.data[y] ?? null : null),
+      borderColor:s.color, backgroundColor:s.color, borderWidth:1.8, borderDash:[5,3], pointRadius:0, pointHoverRadius:3, tension:0.15 });
+  });
+
+  destroyChart("chart0");
+  charts.chart0 = new Chart(ctx, {
+    type:"line",
+    data:{ labels: allYearsArr, datasets },
     options:{
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:6,right:8}},
+      responsive:true, maintainAspectRatio:false, animation:{duration:200},
+      interaction:{mode:"index", intersect:false},
       scales:{
-        x:{ grid:baseGrid(), ticks:baseTicks() },
-        y:{ min:80, max:200, grid:baseGrid(), ticks:baseTicks() },
+        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+        y:{ min:dom.min, max:dom.max, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont(), callback:v=>v+"%"} },
       },
       plugins:{
-        legend:{ labels:{ color:'#888', font:{family:MONO,size:10}, boxWidth:10, boxHeight:10, padding:14 } },
-        tooltip: baseTooltip({ callbacks:{
-          title:(items)=> `${items[0]?.label} (2000=100)`,
-          label:(c)=> c.parsed.y==null ? null : `${c.dataset.label}: ${c.parsed.y.toFixed(1)}`,
-        }}),
-      },
-    },
-  }));
+        legend: stdLegend(),
+        tooltip: stdTooltip({ callbacks:{ label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}` } }),
+        refLines:{ lines:[{type:"horizontal", value:0, color:cssVar("--faint2"), width:1.5}] },
+      }
+    }
+  });
+  renderExtrasFootnote();
+}
+function updateTab0Chart(){ buildTab0Chart(); }
 
+function renderExtrasFootnote(){
+  const extras = activeExtras();
+  const el = $("extrasFootnote0");
+  if(!extras.length){ el.innerHTML=""; return; }
+  el.innerHTML = extras.map(k=>{
+    const s = EXTRA_SERIES[k];
+    return `<div><span style="color:${s.color};font-weight:600">• ${s.label}</span> (FRED: ${s.fred}†): ${s.note}</div>`;
+  }).join("") + `<div style="margin-top:3px">† Annual averages approximated from FRED monthly series.</div>`;
+}
+
+// ── Configurable spread chart ──
+function buildSpreadUI(){
+  const optsHtml = Object.entries(SPREAD_OPTS).map(([k,o])=>`<option value="${k}">${o.label}</option>`).join("");
+  const selA = $("spreadASelect"), selB = $("spreadBSelect");
+  selA.innerHTML = optsHtml; selB.innerHTML = optsHtml;
+  selA.value = state.spreadA; selB.value = state.spreadB;
+  styleSpreadSelect(selA, state.spreadA);
+  styleSpreadSelect(selB, state.spreadB);
+  selA.onchange = ()=>{ state.spreadA = selA.value; styleSpreadSelect(selA, state.spreadA); buildSpreadChart(); };
+  selB.onchange = ()=>{ state.spreadB = selB.value; styleSpreadSelect(selB, state.spreadB); buildSpreadChart(); };
+}
+function styleSpreadSelect(el, key){
+  const c = SPREAD_OPTS[key].color;
+  el.style.border = `1px solid ${c}`;
+  el.style.color = c;
+}
+function buildSpreadChart(){
+  const same = state.spreadA === state.spreadB;
+  $("spreadTitle").textContent = `Spread: ${SPREAD_OPTS[state.spreadA].label} minus ${SPREAD_OPTS[state.spreadB].label}`;
+  $("spreadSameNote").style.display = same ? "flex" : "none";
+  $("spreadChartContainer").style.display = same ? "none" : "block";
+  if(same){ destroyChart("spreadChart"); return; }
+
+  const rows = allYearsArr.map(y=>{
+    const a = SPREAD_OPTS[state.spreadA].data[y];
+    const b = SPREAD_OPTS[state.spreadB].data[y];
+    return (a!=null && b!=null) ? { year:y, diff: parseFloat((a-b).toFixed(2)) } : null;
+  }).filter(Boolean);
+
+  const ctx = $("spreadChart").getContext("2d");
+  destroyChart("spreadChart");
+  charts.spreadChart = new Chart(ctx, {
+    type:"bar",
+    data:{
+      labels: rows.map(r=>r.year),
+      datasets:[{ data: rows.map(r=>r.diff),
+        backgroundColor: rows.map(r=>r.diff>=0?"#f97316":"#60a5fa"),
+        borderRadius:2, borderSkipped:false }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:200},
+      scales:{
+        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+        y:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont(), callback:v=>v+"%"} },
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip: stdTooltip({ callbacks:{ label: ctx => `${fmtPct(ctx.parsed.y)}  (${SPREAD_OPTS[state.spreadA].label} − ${SPREAD_OPTS[state.spreadB].label})` } }),
+        refLines:{ lines:[{type:"horizontal", value:0, color:cssVar("--faint"), width:1}] },
+      }
+    }
+  });
+}
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 1 — CUMULATIVE INDEX
+// ═══════════════════════════════════════════════════════════════════════════
+function initTab1(){
+  renderExtrasBar("extrasBar1");
+  buildTab1Chart();
+  renderStat2x2();
+}
+function buildTab1Chart(){
+  const extras = activeExtras();
+  const dom = domainFrom([
+    ...allRows.map(r=>r.fredIdx), ...allRows.map(r=>r.bikeIdx),
+    ...extras.flatMap(k=>Object.values(EXTRA_CUM[k]))
+  ], 5);
+
+  const datasets = [
+    { label:"US CPI (FRED)", data: allRows.map(r=>r.fredIdx), borderColor:"#60a5fa", backgroundColor:"#60a5fa22",
+      borderWidth:2.5, pointRadius:0, pointHoverRadius:3, tension:0.15, fill:true },
+    { label:"Sports Vehicles / Bikes (BLS)", data: allRows.map(r=>r.bikeIdx), borderColor:"#f97316", backgroundColor:"#f9731622",
+      borderWidth:2.5, pointRadius:0, pointHoverRadius:3, tension:0.15, fill:true },
+  ];
+  extras.forEach(k=>{
+    const s = EXTRA_SERIES[k];
+    datasets.push({ label:s.label, data: allYearsArr.map(y=>EXTRA_CUM[k][y] ?? null), borderColor:s.color,
+      backgroundColor:"transparent", borderWidth:1.8, borderDash:[5,3], pointRadius:0, pointHoverRadius:3, tension:0.15, fill:false });
+  });
+
+  const ctx = $("chart1").getContext("2d");
+  destroyChart("chart1");
+  charts.chart1 = new Chart(ctx, {
+    type:"line",
+    data:{ labels: allYearsArr, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:200},
+      interaction:{mode:"index", intersect:false},
+      scales:{
+        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+        y:{ min:dom.min, max:dom.max, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+      },
+      plugins:{
+        legend: stdLegend(),
+        tooltip: stdTooltip({ callbacks:{ label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} (2000=100)` } }),
+        refLines:{ lines:[{type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[4,3]}] },
+      }
+    }
+  });
+}
+function updateTab1Chart(){ if(charts.chart1) buildTab1Chart(); }
+
+function renderStat2x2(){
   const cards = [
-    {label:'US CPI grew since 2000', val:'+83%', sub:'FRED FPCPITOTLZGUSA, 2000–2024', col:'#60a5fa'},
-    {label:'Bikes/Sports Vehicle CPI grew since 2000', val:'+28%', sub:'BLS CPI, 2000–2025', col:'#f97316'},
-    {label:'Gap: Bikes underperformed CPI by', val:'−55 pts', sub:'Bikes are cheaper in real terms', col:'#22c55e'},
-    {label:'Long-run avg bike CPI (1978–2026)', val:'1.73%/yr', sub:'vs. overall CPI avg 3.43%/yr', col:'#a78bfa'},
+    {label:"US CPI grew since 2000", val:"+83%", sub:"FRED FPCPITOTLZGUSA, 2000–2024", col:"#60a5fa"},
+    {label:"Bikes/Sports Vehicle CPI grew since 2000", val:"+28%", sub:"BLS CPI, 2000–2025", col:"#f97316"},
+    {label:"Gap: Bikes underperformed CPI by", val:"−55 pts", sub:"Bikes are cheaper in real terms", col:"#22c55e"},
+    {label:"Long-run avg bike CPI (1978–2026)", val:"1.73%/yr", sub:"vs. overall CPI avg 3.43%/yr", col:"#a78bfa"},
   ];
-  document.getElementById('t1-cards').innerHTML = cards.map(k=>`
-    <div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${k.col};border-radius:7px;padding:14px 16px">
-      <div style="font-size:9px;color:var(--dim3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">${k.label}</div>
-      <div style="font-family:var(--disp);font-size:26px;color:${k.col};font-weight:700">${k.val}</div>
-      <div style="font-size:9px;color:var(--dim5);margin-top:4px">${k.sub}</div>
-    </div>
-  `).join('');
+  $("stat2x2Grid").innerHTML = cards.map(k=>`
+    <div class="stat2x2-card" style="border-left:3px solid ${k.col}">
+      <div class="stat2x2-label">${k.label}</div>
+      <div class="stat2x2-val" style="color:${k.col}">${k.val}</div>
+      <div class="stat2x2-sub">${k.sub}</div>
+    </div>`).join("");
 }
-TAB_RENDERERS[1] = renderTab1;
-// ─── TAB 2: COVID ERA ───────────────────────────────────────────────────────
 
-function renderTab2(container){
-  container.innerHTML = `
-    <div>
-      ${sh('The COVID Rollercoaster: 2017–2025')}
-      <div id="t2-chart"></div>
-      ${sh('Key Industry Events', null, 'margin-top:22px')}
-      <div id="t2-events"></div>
-    </div>
-  `;
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 2 — COVID ERA
+// ═══════════════════════════════════════════════════════════════════════════
+function initTab2(){
+  renderExtrasBar("extrasBar2");
+  buildTab2Chart();
+  renderEventTimeline();
+}
+function buildTab2Chart(){
+  const extras = activeExtras();
+  const dom = domainFrom([
+    ...covidRows.map(r=>r.fredPct), ...covidRows.map(r=>r.bikePct),
+    ...extras.flatMap(k=>covidYearsArr.map(y=>EXTRA_SERIES[k].data[y]).filter(v=>v!=null))
+  ]);
 
-  const idx2020 = covidRows.findIndex(r=>r.year===2020);
-  const idx2022 = covidRows.findIndex(r=>r.year===2022);
-  const idx2023 = covidRows.findIndex(r=>r.year===2023);
+  const datasets = [
+    { label:"US CPI (FRED)", data: covidRows.map(r=>r.fredPct), borderColor:"#60a5fa", backgroundColor:"#60a5fa",
+      borderWidth:2.5, pointRadius:3, pointHoverRadius:4, tension:0.15 },
+    { label:"Bikes CPI (BLS)", data: covidRows.map(r=>r.bikePct), borderColor:"#f97316", backgroundColor:"#f97316",
+      borderWidth:2.5, pointRadius:3, pointHoverRadius:4, tension:0.15 },
+  ];
+  extras.forEach(k=>{
+    const s = EXTRA_SERIES[k];
+    datasets.push({ label:s.label, data: covidYearsArr.map(y=>s.data[y] ?? null), borderColor:s.color, backgroundColor:s.color,
+      borderWidth:1.8, borderDash:[5,3], pointRadius:2.5, pointHoverRadius:4, tension:0.15 });
+  });
 
-  const canvas = chartBox(document.getElementById('t2-chart'), 't2-canvas', 260);
-  trackChart(new Chart(canvas, {
-    type:'line',
-    data:{
-      labels: covidRows.map(r=>String(r.year)),
-      datasets:[
-        { label:'US CPI (FRED)', data: covidRows.map(r=>r.fredPct), borderColor:'#60a5fa', backgroundColor:'#60a5fa', borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#60a5fa', pointBorderWidth:0, spanGaps:true, tension:0 },
-        { label:'Bikes CPI (BLS)', data: covidRows.map(r=>r.bikePct), borderColor:'#f97316', backgroundColor:'#f97316', borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#f97316', pointBorderWidth:0, spanGaps:true, tension:0 },
-      ]
-    },
+  const ctx = $("chart2").getContext("2d");
+  destroyChart("chart2");
+  charts.chart2 = new Chart(ctx, {
+    type:"line",
+    data:{ labels: covidYearsArr, datasets },
     options:{
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:16,right:8}},
+      responsive:true, maintainAspectRatio:false, animation:{duration:200},
+      interaction:{mode:"index", intersect:false},
       scales:{
-        x:{ grid:baseGrid(), ticks:baseTicks({font:{family:MONO,size:11}}) },
-        y:{ min:-6, max:10, grid:baseGrid(), ticks:baseTicks({ callback:v=>v+'%' }) },
+        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+        y:{ min:dom.min, max:dom.max, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont(), callback:v=>v+"%"} },
       },
       plugins:{
-        legend:{ labels:{ color:'#888', font:{family:MONO,size:10}, boxWidth:10, boxHeight:10, padding:14 } },
-        tooltip: baseTooltip({ callbacks:{ label:(c)=> c.parsed.y==null ? null : `${c.dataset.label}: ${c.parsed.y.toFixed(2)}%` } }),
-      },
-      refLinesConfig:{ lines:[
-        {axisId:'y', value:0, color:'#555', width:1.5},
-        {axisId:'x', value:idx2020, color:'#ef444455', dash:[4,3], label:'COVID', labelColor:'#ef4444'},
-        {axisId:'x', value:idx2022, color:'#f9731655', dash:[4,3], label:'PEAK', labelColor:'#f97316'},
-        {axisId:'x', value:idx2023, color:'#22c55e55', dash:[4,3], label:'BUST', labelColor:'#22c55e'},
-      ]},
-    },
-    plugins:[refLinesPlugin]
-  }));
-
-  const events = [
-    {year:'2018', badge:'TARIFF', bc:'#ef4444', text:'Trump administration enacts 25% Section 301 tariffs on Chinese bicycles. Industry wins partial exclusions, but costs begin creeping.'},
-    {year:'2020', badge:'BOOM', bc:'#f97316', text:'COVID lockdowns trigger an unprecedented bike boom. US retail bike sales jump ~50–75% YoY. Inventory dries up overnight.'},
-    {year:'2021', badge:'SHOCK', bc:'#ef4444', text:'Ocean freight spikes 10× to $20,000/container. Raw materials up 20–400%. Lead times balloon to 300–400 days. Bike CPI surges to +6.94%.'},
-    {year:'2022', badge:'PEAK', bc:'#f59e0b', text:'MSRP prices peak at 10–40% above 2019 levels. But overall CPI (+8.0%) outpaces bikes (+4.65%) — macro inflation catches up.'},
-    {year:'2023–25', badge:'BUST', bc:'#22c55e', text:'COVID oversupply floods the market. Avg. $626 discount per bike. Industry bankruptcies. Bike CPI: flat → −2.05% → −3.17%.'},
-    {year:'2025–26', badge:'REBOUND', bc:'#a78bfa', text:'New tariff wave: Chinese e-bikes face 45–56% cumulative duties. Specialized & Trek announce 10% surcharges. New 2026 bikes 5–35% more expensive.'},
-  ];
-  document.getElementById('t2-events').innerHTML = events.map(e=>`
-    <div class="event-row">
-      <div style="min-width:60px;font-family:var(--disp);font-size:12px;font-weight:600;color:var(--dim2);padding-top:2px">${e.year}</div>
-      <div style="background:${e.bc}22;border:1px solid ${e.bc}55;color:${e.bc};font-size:8px;font-weight:700;letter-spacing:0.1em;padding:3px 7px;border-radius:4px;min-width:62px;text-align:center;align-self:flex-start;margin-top:2px;white-space:nowrap">${e.badge}</div>
-      <div style="font-size:11px;color:#ccc;line-height:1.7">${e.text}</div>
-    </div>
-  `).join('');
+        legend: stdLegend(),
+        tooltip: stdTooltip({ callbacks:{ label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}` } }),
+        refLines:{ lines:[
+          {type:"horizontal", value:0, color:cssVar("--faint"), width:1.5},
+          {type:"vertical", value:2020, color:"#ef444455", width:1, dash:[4,3], label:"COVID"},
+          {type:"vertical", value:2022, color:"#f9731655", width:1, dash:[4,3], label:"PEAK"},
+          {type:"vertical", value:2023, color:"#22c55e55", width:1, dash:[4,3], label:"BUST"},
+        ]},
+      }
+    }
+  });
 }
-TAB_RENDERERS[2] = renderTab2;
-// ─── TAB 3: KEY FINDINGS ────────────────────────────────────────────────────
+function updateTab2Chart(){ if(charts.chart2) buildTab2Chart(); }
 
-function renderTab3(container){
-  const findings = [
-    {num:'01', title:'Bikes Are Cheaper in Real Terms (Long Run)', col:'#22c55e', body:"Over 46 years, the BLS bike CPI rose only 127% vs. overall CPI's 265%. Annual rate 1.73% vs. 3.43%. Since 2000, bikes up 28% while the broader economy rose 83%."},
-    {num:'02', title:'COVID Was a Unique Shock, Not a New Normal', col:'#f97316', body:'Ocean freight spiked 10×, raw materials surged 20–400%, sales jumped from $6B to $8.4B. MTB MSRP rose 10–40% in 2019–2022. In 2022, overall CPI (+8.0%) outpaced bikes (+4.65%).'},
-    {num:'03', title:'The Post-COVID Bust Is Significant', col:'#60a5fa', body:'BLS bike CPI: flat (+0.1%), then −2.05%, then −3.17% in 2023–2025 — while overall CPI kept rising. Average market discounts of $626+ per bike. Bankruptcies across the industry.'},
-    {num:'04', title:'Premium MTBs vs. Average Bikes: Two Stories', col:'#a78bfa', body:'BLS CPI tracks all bike types — budget bikes pull averages down. High-end MTBs went from $4–5k in 2010 to $6–12k MSRP in 2024, outpacing CPI by 3–4× at the premium tier.'},
-    {num:'05', title:'Tariffs: A Layered and Growing Problem', col:'#ef4444', body:'Chinese e-bikes face ~45–56% cumulative tariffs in 2025. Specialized and Trek announced 10% surcharges. New bikes in 2026 expected 5–35% more expensive than without tariffs.'},
-    {num:'06', title:'Compared to Other Sports: Bikes Are Mild', col:'#f59e0b', body:'Sporting event tickets rose +158% (1997–2026), +9.69% in 2024 alone. Golf equipment has DEFLATED to 84.6 (Dec 1985=100). Mountain biking, measured broadly, is one of the more deflationary sports goods categories.'},
+function renderEventTimeline(){
+  const events = [
+    {year:"2018",badge:"TARIFF",bc:"#ef4444",text:"Trump administration enacts 25% Section 301 tariffs on Chinese bicycles. Industry wins partial exclusions, but costs begin creeping."},
+    {year:"2020",badge:"BOOM",bc:"#f97316",text:"COVID lockdowns trigger an unprecedented bike boom. US retail bike sales jump ~50–75% YoY. Inventory dries up overnight."},
+    {year:"2021",badge:"SHOCK",bc:"#ef4444",text:"Ocean freight spikes 10× to $20,000/container. Raw materials up 20–400%. Lead times balloon to 300–400 days. Bike CPI surges to +6.94%."},
+    {year:"2022",badge:"PEAK",bc:"#f59e0b",text:"MSRP prices peak at 10–40% above 2019 levels. But overall CPI (+8.0%) outpaces bikes (+4.65%) — macro inflation catches up."},
+    {year:"2023–25",badge:"BUST",bc:"#22c55e",text:"COVID oversupply floods the market. Avg. $626 discount per bike. Industry bankruptcies. Bike CPI: flat → −2.05% → −3.17%."},
+    {year:"2025–26",badge:"REBOUND",bc:"#a78bfa",text:"New tariff wave: Chinese e-bikes face 45–56% cumulative duties. Specialized & Trek announce 10% surcharges. New 2026 bikes 5–35% more expensive."},
   ];
+  $("eventTimeline").innerHTML = events.map(e=>`
+    <div class="event-row">
+      <div class="event-year">${e.year}</div>
+      <div class="event-badge" style="background:${e.bc}22;border:1px solid ${e.bc}55;color:${e.bc}">${e.badge}</div>
+      <div class="event-text">${e.text}</div>
+    </div>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 3 — KEY FINDINGS (static content, generated once)
+// ═══════════════════════════════════════════════════════════════════════════
+function initTab3(){
+  const findings = [
+    {num:"01",title:"Bikes Are Cheaper in Real Terms (Long Run)",col:"#22c55e",body:"Over 46 years, the BLS bike CPI rose only 127% vs. overall CPI's 265%. Annual rate 1.73% vs. 3.43%. Since 2000, bikes up 28% while the broader economy rose 83%."},
+    {num:"02",title:"COVID Was a Unique Shock, Not a New Normal",col:"#f97316",body:"Ocean freight spiked 10×, raw materials surged 20–400%, sales jumped from $6B to $8.4B. MTB MSRP rose 10–40% in 2019–2022. In 2022, overall CPI (+8.0%) outpaced bikes (+4.65%)."},
+    {num:"03",title:"The Post-COVID Bust Is Significant",col:"#60a5fa",body:"BLS bike CPI: flat (+0.1%), then −2.05%, then −3.17% in 2023–2025 — while overall CPI kept rising. Average market discounts of $626+ per bike. Bankruptcies across the industry."},
+    {num:"04",title:"Premium MTBs vs. Average Bikes: Two Stories",col:"#a78bfa",body:"BLS CPI tracks all bike types — budget bikes pull averages down. High-end MTBs went from $4–5k in 2010 to $6–12k MSRP in 2024, outpacing CPI by 3–4× at the premium tier."},
+    {num:"05",title:"Tariffs: A Layered and Growing Problem",col:"#ef4444",body:"Chinese e-bikes face ~45–56% cumulative tariffs in 2025. Specialized and Trek announced 10% surcharges. New bikes in 2026 expected 5–35% more expensive than without tariffs."},
+    {num:"06",title:"Compared to Other Sports: Bikes Are Mild",col:"#f59e0b",body:"Sporting event tickets rose +158% (1997–2026), +9.69% in 2024 alone. Golf equipment has DEFLATED to 84.6 (Dec 1985=100). Mountain biking, measured broadly, is one of the more deflationary sports goods categories."},
+  ];
+  $("findingsGrid").innerHTML = findings.map(f=>`
+    <div class="finding-card" style="border-top-color:${f.col}">
+      <div class="finding-num" style="color:${f.col}">${f.num}</div>
+      <div class="finding-title">${f.title}</div>
+      <div class="finding-body">${f.body}</div>
+    </div>`).join("");
 
   const tableRows = [
-    ['US All-Items CPI (FRED)','3.43%/yr (1978–26)','+8.0% (2022)','+4.1%, +3.0%','Baseline'],
-    ['Sports Vehicles/Bikes (BLS)','1.73%/yr (1978–26)','+6.9% (2021)','−2.1%, −3.2%','Below CPI ✓'],
-    ['MTB MSRP (premium)','~3–4%/yr (2010–24)','+20–40% (2020–22)','Discounting','Above CPI ✗'],
-    ['Sporting Events CPI','~3.3%/yr (1997–26)','Suppressed (COVID)','+8.3%, +9.7%','Well above CPI ✗✗'],
-    ['EU Sport Equipment (HICP)','~0.9%/yr (2014–24)','+3.8% (2022)','+3.4%, +1.0%','Below CPI ✓'],
+    ["US All-Items CPI (FRED)","3.43%/yr (1978–26)","+8.0% (2022)","+4.1%, +3.0%","Baseline"],
+    ["Sports Vehicles/Bikes (BLS)","1.73%/yr (1978–26)","+6.9% (2021)","−2.1%, −3.2%","Below CPI ✓"],
+    ["MTB MSRP (premium)","~3–4%/yr (2010–24)","+20–40% (2020–22)","Discounting","Above CPI ✗"],
+    ["Sporting Events CPI","~3.3%/yr (1997–26)","Suppressed (COVID)","+8.3%, +9.7%","Well above CPI ✗✗"],
+    ["EU Sport Equipment (HICP)","~0.9%/yr (2014–24)","+3.8% (2022)","+3.4%, +1.0%","Below CPI ✓"],
   ];
-  const verdictColor = (cell)=> cell.includes('✗✗') ? '#ef4444' : cell.includes('✗') ? '#f97316' : cell.includes('✓') ? '#22c55e' : '#888';
-
-  container.innerHTML = `
-    <div>
-      ${sh('Key Findings & Analysis')}
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:22px">
-        ${findings.map(f=>`
-          <div style="background:var(--card);border:1px solid var(--border);border-top:3px solid ${f.col};border-radius:7px;padding:16px 16px">
-            <div style="font-family:var(--disp);color:${f.col};font-size:20px;font-weight:700;margin-bottom:4px;opacity:0.6">${f.num}</div>
-            <div style="font-family:var(--disp);font-size:13px;font-weight:600;color:#fff;letter-spacing:0.03em;margin-bottom:8px;line-height:1.3">${f.title}</div>
-            <div style="font-size:11px;color:#999;line-height:1.75">${f.body}</div>
-          </div>
-        `).join('')}
-      </div>
-      ${sh('Sports Category Comparison Table')}
-      <div style="overflow-x:auto">
-        <table class="data-table" style="font-size:11px">
-          <thead><tr>${['Category','Long-run avg.','COVID peak','2023–25','Verdict'].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-          <tbody>
-            ${tableRows.map((row,i)=>`
-              <tr style="background:${i%2===0?'#141414':'#111'}">
-                ${row.map((cell,j)=>`<td style="color:${j===0?'#e0e0e0':j===4?verdictColor(cell):'#888'};font-weight:${j===0?500:400};font-size:${j===0?11:10}px">${cell}</td>`).join('')}
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
+  const headerRow = ["Category","Long-run avg.","COVID peak","2023–25","Verdict"];
+  const verdictColor = c => c.includes("✗✗") ? "#ef4444" : c.includes("✗") ? "#f97316" : c.includes("✓") ? "#22c55e" : cssVar("--sub");
+  $("findingsTable").innerHTML = `
+    <thead><tr>${headerRow.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+    <tbody>${tableRows.map(row=>`
+      <tr>${row.map((cell,j)=>`<td style="color:${j===0?cssVar('--text'):j===4?verdictColor(cell):cssVar('--sub')};font-weight:${j===0?500:400}">${cell}</td>`).join("")}</tr>
+    `).join("")}</tbody>`;
 }
-TAB_RENDERERS[3] = renderTab3;
-// ─── TAB 4: COMPARE ─────────────────────────────────────────────────────────
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 4 — COMPARE (line chart + bar chart, each with independent base-year picker)
+// ═══════════════════════════════════════════════════════════════════════════
+function initTab4(){
+  wireTfPickersFixed();
+  buildTab4Line();
+  buildTab4Bar();
+  renderScorecards();
+}
 
-function renderTab4(container){
-  const lineYears = ALL_YEARS.filter(y => y >= state.lineTf);
-  const lineData = lineYears.map(y => {
-    const row = { yr: String(y) };
-    Object.entries(LINE_KEYS).forEach(([chartKey, absKey]) => {
+function renderTfPicker(containerId, activeYear, onClick){
+  const el = $(containerId);
+  el.innerHTML = `<span class="tf-label">Base year:</span>`;
+  TF_OPTIONS.forEach(opt=>{
+    const btn = document.createElement("button");
+    btn.className = "tf-btn" + (activeYear===opt.year ? " active" : "");
+    btn.innerHTML = `<span>${opt.label}</span><span class="sub">${opt.sub}</span>`;
+    btn.onclick = () => onClick(opt.year);
+    el.appendChild(btn);
+  });
+}
+// Stable handler references so re-renders (which rebuild the buttons) keep working
+const lineTfHandler = (y)=>{ state.lineTf=y; renderTfPicker("lineTfPicker", state.lineTf, lineTfHandler); buildTab4Line(); };
+const barTfHandler = (y)=>{ state.barTf=y; renderTfPicker("barTfPicker", state.barTf, barTfHandler); buildTab4Bar(); };
+function wireTfPickersFixed(){
+  renderTfPicker("lineTfPicker", state.lineTf, lineTfHandler);
+  renderTfPicker("barTfPicker", state.barTf, barTfHandler);
+}
+
+function buildTab4Line(){
+  const years = ALL_YEARS.filter(y => y >= state.lineTf);
+  const lineData = years.map(y=>{
+    const row = {};
+    Object.entries(LINE_KEYS).forEach(([chartKey, absKey])=>{
       const base = ABS[absKey]?.[state.lineTf];
       const cur = ABS[absKey]?.[y];
-      row[chartKey] = (base && cur != null) ? parseFloat((cur/base*100).toFixed(2)) : null;
+      row[chartKey] = (base && cur!=null) ? parseFloat((cur/base*100).toFixed(2)) : null;
     });
     return row;
   });
 
+  const datasets = Object.keys(LINE_KEYS).map(key=>({
+    label:key, data: lineData.map(r=>r[key]),
+    borderColor: LINE_COLORS[key], backgroundColor: LINE_COLORS[key],
+    borderWidth: key==="US CPI" ? 2.5 : key==="Sporting Events" ? 2.5 : 1.8,
+    borderDash: key==="US CPI" ? [6,3] : undefined,
+    pointRadius:0, pointHoverRadius:3, tension:0.15, spanGaps:true,
+  }));
+
+  const vals = lineData.flatMap(r=>Object.values(r)).filter(v=>v!=null);
+  const dom = { min: Math.floor(Math.min(...vals)-3), max: Math.ceil(Math.max(...vals)+3) };
+
+  const ctx = $("chart4line").getContext("2d");
+  destroyChart("chart4line");
+  charts.chart4line = new Chart(ctx, {
+    type:"line",
+    data:{ labels: years, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:200},
+      interaction:{mode:"index", intersect:false},
+      scales:{
+        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+        y:{ min:dom.min, max:dom.max, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+      },
+      plugins:{
+        legend: stdLegend(),
+        tooltip: stdTooltip({ callbacks:{
+          title: items => `${items[0].label} (${state.lineTf}=100)`,
+          label: ctx => ctx.parsed.y!=null ? `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}` : null
+        } }),
+        refLines:{ lines:[{type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[4,3]}] },
+      }
+    }
+  });
+}
+
+function buildTab4Bar(){
   const LATEST = 2024;
   const usCpiChg = parseFloat(((ABS["US CPI"][LATEST]/ABS["US CPI"][state.barTf]-1)*100).toFixed(1));
-  const barData = metrics
-    .map(m => {
-      const absKey = M2ABS[m.id];
-      if (!absKey || !ABS[absKey]?.[state.barTf] || !ABS[absKey]?.[LATEST]) return null;
-      const chg = parseFloat(((ABS[absKey][LATEST]/ABS[absKey][state.barTf]-1)*100).toFixed(1));
-      return { name: m.shortName, chg, isBaseline: m.isBaseline };
-    })
-    .filter(Boolean)
-    .sort((a,b) => b.chg - a.chg);
+  $("barChartTitle").textContent = `% Change Since ${state.barTf} vs. US CPI (+${usCpiChg.toFixed(1)}%)`;
+  $("barChartSub").textContent = `${state.barTf}→2024 · Blue dashed = US CPI baseline · green below · amber moderate · red above`;
 
-  const getBarColor = (item) => {
-    if (item.isBaseline) return '#60a5fa';
-    if (item.chg > usCpiChg * 1.05) return '#ef4444';
-    if (item.chg > usCpiChg * 0.55) return '#f59e0b';
-    return '#22c55e';
-  };
+  const barData = metrics.map(m=>{
+    const absKey = M2ABS[m.id];
+    if(!absKey || !ABS[absKey]?.[state.barTf] || !ABS[absKey]?.[LATEST]) return null;
+    const chg = parseFloat(((ABS[absKey][LATEST]/ABS[absKey][state.barTf]-1)*100).toFixed(1));
+    return { name:m.shortName, chg, isBaseline:m.isBaseline };
+  }).filter(Boolean).sort((a,b)=>b.chg-a.chg);
 
-  container.innerHTML = `
-    <div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-        ${sh('10 Adjacent FRED &amp; BLS Metrics Compared','All indexed to selected base year = 100 for like-for-like comparison','margin-bottom:0')}
-        ${tfPicker(TF_OPTIONS, state.lineTf, 'setLineTf')}
-      </div>
-      <div id="t4-chart-a"></div>
-      <div style="font-size:9px;color:var(--dim6);margin-bottom:20px;line-height:1.6">
-        † PPI series (PCU339920339920, PCU3399203399204) use approximate annual averages from BLS monthly data.
-        PCE S&amp;R Price Index approximate pre-2020. PCE Sport Equip ($) is nominal spending (price × volume), not a pure price index. ‡ BEA NIPA estimates for PCE pre-2021.
-      </div>
+  const getColor = item => item.isBaseline ? "#60a5fa"
+    : item.chg > usCpiChg*1.05 ? "#ef4444"
+    : item.chg > usCpiChg*0.55 ? "#f59e0b"
+    : "#22c55e";
 
-      <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
-        ${sh(`% Change Since ${state.barTf} vs. US CPI (+${usCpiChg.toFixed(1)}%)`, `${state.barTf}→2024 · Blue dashed = US CPI baseline · 🟩 below · 🟡 moderate · 🔴 above`, 'margin-bottom:0')}
-        ${tfPicker(TF_OPTIONS, state.barTf, 'setBarTf')}
-      </div>
-      <div id="t4-chart-b"></div>
-      <div style="font-size:9px;color:var(--dim6);margin-bottom:24px;line-height:1.6">
-        PCE Sport Equip ($) is nominal spending growth — reflects both price increases AND more consumers buying. All other series are price indices.
-        Metrics without sufficient historical data (PPI Sporting Retailers, PCE Other Sport, Real PCE) are omitted from this chart.
-      </div>
-
-      ${sh('All 10 Metrics at a Glance','Change shown: 2021→2024 for all cards')}
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:10px" id="t4-scorecards"></div>
-
-      <div style="margin-top:14px;padding:12px 14px;background:var(--card-alt);border:1px solid var(--border-soft);border-radius:7px;font-size:9px;color:var(--dim5);line-height:1.8">
-        <span style="color:var(--dim3);font-weight:600;text-transform:uppercase;letter-spacing:0.1em">Sources: </span>
-        FRED FPCPITOTLZGUSA (World Bank/IMF) · BLS CPI Sports Vehicles (CUUR0000SSRD02) · FRED PCU339920339920 (BLS PPI Sporting Goods Mfg) · FRED DSPGRC1A027NBEA (BEA PCE) · FRED PCU3399203399204 (BLS PPI Golf) · FRED PCU451110451110 (BLS PPI Retailers) · FRED DODRRG3A086NBEA / DORIRG3A086NBEA (BEA chain-type price indices) · BLS Admission to Sporting Events CPI · FRED DSPGRX1A020NBEA (BEA Real PCE). Pre-2021 PPI values approximate from monthly BLS series; pre-2021 PCE approximated from BEA NIPA tables.
-      </div>
-    </div>
-  `;
-
-  // Chart A — indexed line comparison
-  const lineKeyNames = Object.keys(LINE_KEYS);
-  const canvasA = chartBox(document.getElementById('t4-chart-a'), 't4-canvas-a', 290);
-  trackChart(new Chart(canvasA, {
-    type:'line',
-    data:{
-      labels: lineData.map(r=>r.yr),
-      datasets: lineKeyNames.map(key=>({
-        label:key, data: lineData.map(r=>r[key]),
-        borderColor: LINE_COLORS[key],
-        borderWidth: key==='US CPI'?2.5:key==='Sporting Events'?2:1.8,
-        borderDash: key==='US CPI' ? [6,3] : [],
-        pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0,
-      }))
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:6,right:8}},
-      scales:{
-        x:{ grid:baseGrid(), ticks:baseTicks() },
-        y:{ grid:baseGrid(), ticks:baseTicks({ callback:v=>Math.round(v) }) },
-      },
-      plugins:{
-        legend:{ labels:{ color:'#888', font:{family:MONO,size:9}, boxWidth:9, boxHeight:9, padding:11 } },
-        tooltip: baseTooltip({ callbacks:{
-          title:(items)=> `${items[0]?.label} (${state.lineTf}=100)`,
-          label:(c)=> c.parsed.y==null ? null : `${c.dataset.label}: ${c.parsed.y.toFixed(1)}`,
-        }}),
-      },
-      refLinesConfig:{ lines:[ {axisId:'y', value:100, color:'#444', dash:[4,3], width:1} ] },
-    },
-    plugins:[refLinesPlugin]
-  }));
-
-  // Chart B — horizontal bar, % change since barTf
-  const chgVals = barData.map(d=>d.chg);
-  const xMin = Math.min(...chgVals)-5, xMax = Math.max(...chgVals)+5;
-  const canvasB = chartBox(document.getElementById('t4-chart-b'), 't4-canvas-b', 220);
-  trackChart(new Chart(canvasB, {
-    type:'bar',
+  const ctx = $("chart4bar").getContext("2d");
+  destroyChart("chart4bar");
+  charts.chart4bar = new Chart(ctx, {
+    type:"bar",
     data:{
       labels: barData.map(d=>d.name),
-      datasets:[{ data: chgVals, backgroundColor: barData.map(getBarColor), borderRadius:3, borderSkipped:false, barThickness:14 }]
+      datasets:[{ data: barData.map(d=>d.chg), backgroundColor: barData.map(getColor), borderRadius:3, borderSkipped:false }]
     },
     options:{
-      indexAxis:'y',
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:4,right:40}},
+      indexAxis:"y",
+      responsive:true, maintainAspectRatio:false, animation:{duration:200},
       scales:{
-        x:{ min:xMin, max:xMax, grid:baseGrid(), ticks:baseTicks({ callback:v=>v+'%' }) },
-        y:{ grid:{display:false}, ticks:baseTicks({ color:'#bbb', font:{family:MONO,size:9.5} }) },
+        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont(), callback:v=>v+"%"} },
+        y:{ grid:{display:false}, ticks:{color:cssVar("--text2"), font:{family:"'IBM Plex Mono', monospace", size:9.5}} },
       },
       plugins:{
-        legend:{ display:false },
-        tooltip: baseTooltip({ callbacks:{
-          title:(items)=> items[0]?.label,
-          label:(c)=> `Change: +${c.parsed.x.toFixed(1)}%`,
-          afterLabel:(c)=>{
-            const v = c.parsed.x;
-            const verdict = v>usCpiChg ? '▲ above CPI' : v>usCpiChg*0.6 ? '~ near CPI' : '▼ below CPI';
-            return [`US CPI baseline: +${usCpiChg.toFixed(1)}%`, verdict];
-          },
-        }}),
-      },
-      refLinesConfig:{ lines:[ {axisId:'x', value:usCpiChg, color:'#60a5fa', dash:[6,3], width:2} ] },
-    },
-    plugins:[refLinesPlugin]
-  }));
+        legend:{display:false},
+        tooltip: stdTooltip({ callbacks:{
+          label: ctx => [`Change: +${ctx.parsed.x.toFixed(1)}%`, `US CPI baseline: +${usCpiChg.toFixed(1)}%`,
+            ctx.parsed.x>usCpiChg?"▲ above CPI":ctx.parsed.x>usCpiChg*0.6?"~ near CPI":"▼ below CPI"]
+        } }),
+        refLines:{ lines:[{type:"vertical", value:usCpiChg, color:"#60a5fa", width:2, dash:[6,3]}] },
+      }
+    }
+  });
+}
 
-  // Scorecards
+function renderScorecards(){
   const usCpi21 = 15.8;
-  document.getElementById('t4-scorecards').innerHTML = metrics.map(m=>{
+  $("scorecardsGrid").innerHTML = metrics.map(m=>{
     const absKey = M2ABS[m.id];
-    const chg21 = absKey && ABS[absKey]?.[2021] && ABS[absKey]?.[2024]
-      ? parseFloat(((ABS[absKey][2024]/ABS[absKey][2021]-1)*100).toFixed(1))
-      : null;
-    const statusCol = m.isBaseline?'#60a5fa':chg21==null?'#555':chg21>usCpi21*1.05?'#ef4444':chg21>usCpi21*0.55?'#f59e0b':'#22c55e';
-    const idLabel = m.id.length>18 ? m.id.slice(0,18)+'…' : m.id;
-    const idHtml = m.url
-      ? `<a href="${m.url}" target="_blank" rel="noreferrer" style="font-size:8px;color:var(--dim5);text-decoration:none;font-family:${MONO}">${idLabel}</a>`
-      : `<span style="font-size:8px;color:var(--dim6);font-family:${MONO}">${m.id}</span>`;
-    const statusLabel = m.isBaseline?'BASELINE':chg21==null?'NO HIST.':chg21>usCpi21*1.05?'▲ ABOVE':chg21>usCpi21*0.55?'~ MID':'▼ BELOW';
+    const chg21 = (absKey && ABS[absKey]?.[2021] && ABS[absKey]?.[2024])
+      ? parseFloat(((ABS[absKey][2024]/ABS[absKey][2021]-1)*100).toFixed(1)) : null;
+    const statusCol = m.isBaseline ? "#60a5fa" : chg21==null ? cssVar("--faint")
+      : chg21 > usCpi21*1.05 ? "#ef4444" : chg21 > usCpi21*0.55 ? "#f59e0b" : "#22c55e";
+    const statusLabel = m.isBaseline ? "BASELINE" : chg21==null ? "NO HIST."
+      : chg21 > usCpi21*1.05 ? "▲ ABOVE" : chg21 > usCpi21*0.55 ? "~ MID" : "▼ BELOW";
     return `
-      <div style="background:var(--card);border:1px solid #282828;border-top:3px solid ${statusCol};border-radius:7px;padding:11px 12px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span style="background:${m.badgeCol}22;border:1px solid ${m.badgeCol}44;color:${m.badgeCol};font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:0.08em">${m.badge}</span>
-          ${idHtml}
+      <div class="scorecard" style="border-top-color:${statusCol}">
+        <div class="sc-top">
+          <span class="sc-badge" style="background:${m.badgeCol}22;border:1px solid ${m.badgeCol}44;color:${m.badgeCol}">${m.badge}</span>
+          ${m.url ? `<a href="${m.url}" target="_blank" rel="noreferrer" class="sc-id">${m.id.length>18?m.id.slice(0,18)+"…":m.id}</a>` : `<span class="sc-id">${m.id}</span>`}
         </div>
-        <div style="font-size:10px;color:#ddd;font-weight:500;line-height:1.35;margin-bottom:6px;min-height:28px">${m.name}</div>
-        <div style="font-family:var(--disp);font-size:18px;color:${statusCol};font-weight:700;line-height:1">${m.recentVal}</div>
-        <div style="font-size:9px;color:var(--dim4);margin-top:3px">${m.recentNote}</div>
-        <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--border-soft);font-size:9px;color:var(--dim5);line-height:1.5">${m.desc}</div>
-        <div style="margin-top:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap">
-          <span style="font-size:9px;color:${statusCol};font-weight:600">${statusLabel}</span>
-          ${chg21!=null?`<span style="font-size:9px;color:var(--dim5)">+${chg21}% (21→24)</span>`:''}
+        <div class="sc-name">${m.name}</div>
+        <div class="sc-val" style="color:${statusCol}">${m.recentVal}</div>
+        <div class="sc-note">${m.recentNote}</div>
+        <div class="sc-desc">${m.desc}</div>
+        <div class="sc-status-row">
+          <span class="sc-status" style="color:${statusCol}">${statusLabel}</span>
+          ${chg21!=null ? `<span class="sc-chg">+${chg21}% (21→24)</span>` : ""}
         </div>
-      </div>
-    `;
-  }).join('');
+      </div>`;
+  }).join("");
 }
-TAB_RENDERERS[4] = renderTab4;
-// ─── TAB 5: AFFORDABILITY ───────────────────────────────────────────────────
-
-function contextFor(y){
-  if(y===2005) return 'Baseline';
-  if(y===2010) return 'Post-recession recovery';
-  if(y===2015) return 'Mid-decade, prices rising';
-  if(y===2019) return 'Pre-COVID, stable';
-  if(y===2021) return 'COVID surge begins';
-  if(y===2022) return 'PEAK — worst affordability on record';
-  if(y===2023) return 'Bust — discounts accelerate';
-  return '2024 — entry at 20-yr best; wages winning';
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// TAB 5 — AFFORDABILITY (hours-to-buy charts + personal calculator)
+// ═══════════════════════════════════════════════════════════════════════════
+function initTab5(){
+  renderAffordHero();
+  buildTab5ChartA();
+  buildTab5ChartB();
+  renderWagePresets();
+  renderCalculator();
+  renderSnapshotTable();
+  $("wageInput").oninput = (e)=>{
+    state.myWage = parseFloat(e.target.value) || 30.34;
+    renderWagePresets();
+    renderCalculator();
+  };
 }
 
-const WAGE_PRESETS = [
-  { label:'Min Wage', val:7.25, note:'Federal $7.25 (frozen since 2009)' },
-  { label:'Median', val:22.00, note:'~US median hourly 2024' },
-  { label:'Average', val:30.34, note:'AHETPI avg 2024 (FRED)' },
-];
-
-function renderTab5(container){
-  const idx2022 = AFFORD_ROWS.findIndex(r=>r.year===2022);
-
-  const heroCards = [
-    { label:'Entry hardtail', change:'-12.7%', detail:"24.7 hrs in 2024 vs. 28.3 hrs in 2005", col:'#22c55e', arrow:'▼', sub:"Cheapest it's been in 20 years" },
-    { label:'Mid-range full-sus', change:'+1.8%', detail:'115.4 hrs in 2024 vs. 113.3 hrs in 2005', col:'#f59e0b', arrow:'→', sub:'Essentially flat over 20 years' },
-    { label:'Premium enduro', change:'+16.7%', detail:'257.1 hrs in 2024 vs. 220.3 hrs in 2005', col:'#ef4444', arrow:'▲', sub:'More labor, but far more bike' },
-    { label:'COVID peak (2022)', change:'+37–76%', detail:'All tiers hit hardest ever', col:'#fb7185', arrow:'↑↑', sub:'Worst: premium at 387.7 hrs (+76%)' },
+function renderAffordHero(){
+  const cards = [
+    { label:"Entry hardtail", change:"-12.7%", detail:"24.7 hrs in 2024 vs. 28.3 hrs in 2005", col:"#22c55e", arrow:"▼", sub:"Cheapest it's been in 20 years" },
+    { label:"Mid-range full-sus", change:"+1.8%", detail:"115.4 hrs in 2024 vs. 113.3 hrs in 2005", col:"#f59e0b", arrow:"→", sub:"Essentially flat over 20 years" },
+    { label:"Premium enduro", change:"+16.7%", detail:"257.1 hrs in 2024 vs. 220.3 hrs in 2005", col:"#ef4444", arrow:"▲", sub:"More labor, but far more bike" },
+    { label:"COVID peak (2022)", change:"+37–76%", detail:"All tiers hit hardest ever", col:"#fb7185", arrow:"↑↑", sub:"Worst: premium at 387.7 hrs (+76%)" },
   ];
-
-  container.innerHTML = `
-    <div>
-      ${sh('Hours of Work to Buy a Mountain Bike','FRED AHETPI (BLS) average hourly earnings · representative MSRP by tier · 2005–2024')}
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:10px;margin-bottom:22px">
-        ${heroCards.map(k=>`
-          <div style="background:var(--card);border:1px solid ${k.col}44;border-left:3px solid ${k.col};border-radius:7px;padding:12px 14px">
-            <div style="font-size:9px;color:var(--dim3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">${k.label}</div>
-            <div style="font-family:var(--disp);font-size:24px;color:${k.col};font-weight:700;line-height:1">${k.arrow} ${k.change}</div>
-            <div style="font-size:10px;color:#bbb;margin-top:5px">${k.detail}</div>
-            <div style="font-size:9px;color:var(--dim5);margin-top:3px">${k.sub}</div>
-          </div>
-        `).join('')}
-      </div>
-
-      ${sh('Hours-to-Buy Index (2005 = 100)','Accounts for both price AND wage changes — falling line = more affordable; rising = less affordable')}
-      <div id="t5-chart-a"></div>
-      <div style="font-size:9px;color:var(--dim6);margin-bottom:22px;line-height:1.6">
-        † 2020 wage data reflects a composition effect: COVID disproportionately eliminated lower-wage jobs, mathematically raising the average without actual individual wage growth. This creates the slight dip in affordability in 2020 before the true COVID MSRP surge hit in 2021–2022.
-      </div>
-
-      ${sh('Wages vs. Bike Prices — Both Indexed to 2005 = 100','When the wage line is ABOVE a price line, that bike became more affordable. When below, less affordable.')}
-      <div id="t5-chart-b"></div>
-      <div style="font-size:9px;color:var(--dim6);margin-bottom:24px;line-height:1.6">
-        Wages (blue dashed) grew ~91% since 2005. Entry MSRP grew 67% — wages won. Mid MSRP grew 94% — essentially tied. Premium MSRP grew 123% — prices pulled ahead, but a 2024 premium bike is categorically better than its 2005 equivalent in every dimension.
-      </div>
-
-      ${sh('Personal Affordability Calculator','How many hours of work does a bike cost at your wage?')}
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 20px;margin-bottom:22px">
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;color:var(--dim2)">Your hourly wage:</span>
-            <div style="display:flex;align-items:center;gap:4px">
-              <span style="color:var(--orange);font-size:14px;font-weight:700">$</span>
-              <input id="wage-input" class="wage-input" type="number" min="1" max="500" step="0.5"
-                value="${state.myWage}" oninput="setMyWage(parseFloat(this.value)||30.34)">
-            </div>
-            <span style="font-size:11px;color:var(--dim2)">/hr</span>
-          </div>
-          <div id="wage-presets" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-        </div>
-        <div id="wage-results-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px"></div>
-        <div id="wage-minwarning"></div>
-      </div>
-
-      ${sh('Snapshot: Hours to Buy by Year and Tier')}
-      <div style="overflow-x:auto;margin-bottom:18px">
-        <table class="data-table" style="font-size:10px">
-          <thead><tr>${['Year','Avg Wage','Entry Hrs ($)','Mid Hrs ($)','Premium Hrs ($)','Context'].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-          <tbody>
-            ${[2005,2010,2015,2019,2021,2022,2023,2024].map((y,i)=>{
-              const r = AFFORD_ROWS.find(d=>d.year===y);
-              const isPeak = y===2022, isBest = y===2024;
-              const rowBg = isPeak?'#1a0e0e':isBest?'#0a1a0a':i%2===0?'#141414':'#111';
-              return `
-                <tr style="background:${rowBg}">
-                  <td style="color:${isPeak?'#ef4444':isBest?'#22c55e':'#e0e0e0'};font-weight:600;font-family:var(--disp);font-size:13px">${y}${isPeak?' 🔺':isBest?' ✓':''}</td>
-                  <td style="color:#60a5fa">$${r.wage.toFixed(2)}</td>
-                  <td style="color:#22c55e">${r.entryHrs}h <span style="color:var(--dim5)">($${r.entryPrice})</span></td>
-                  <td style="color:#f97316">${r.midHrs}h <span style="color:var(--dim5)">($${r.midPrice.toLocaleString()})</span></td>
-                  <td style="color:#a78bfa">${r.premHrs}h <span style="color:var(--dim5)">($${r.premPrice.toLocaleString()})</span></td>
-                  <td style="color:var(--dim5);font-size:9px">${contextFor(y)}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-
-      <div style="padding:12px 16px;background:var(--card-alt);border:1px solid var(--border-soft);border-left:3px solid var(--amber);border-radius:7px;font-size:9px;color:var(--dim4);line-height:1.8">
-        <span style="color:var(--amber);font-weight:600">📋 MSRP Note: </span>
-        Bike prices above represent suggested retail prices. Actual transaction prices vary — during the 2023–2024 post-COVID bust, market prices were often 15–30% below MSRP (some models 40% off), meaning real affordability in 2024 is likely even better than shown here. Conversely, during the 2020–2022 boom, popular models sold at or above MSRP with waitlists. The hours-to-buy chart uses MSRP as a consistent benchmark for comparability. Sources: FRED AHETPI (BLS CES0500000008), industry pricing via Bicycle Association, PeopleForBikes, PinkBike, and Singletracks market reports.
-      </div>
-    </div>
-  `;
-
-  // Chart A — Hours-to-Buy Index
-  const canvasA = chartBox(document.getElementById('t5-chart-a'), 't5-canvas-a', 270);
-  trackChart(new Chart(canvasA, {
-    type:'line',
-    data:{
-      labels: AFFORD_ROWS.map(r=>String(r.year)),
-      datasets:[
-        { label:'Entry Hardtail', data: AFFORD_ROWS.map(r=>r.entryIdx), borderColor:'#22c55e', borderWidth:2.5, pointRadius:0, pointHoverRadius:4, spanGaps:true, tension:0 },
-        { label:'Mid-Range Full-Sus', data: AFFORD_ROWS.map(r=>r.midIdx), borderColor:'#f97316', borderWidth:2.5, pointRadius:0, pointHoverRadius:4, spanGaps:true, tension:0 },
-        { label:'Premium Enduro', data: AFFORD_ROWS.map(r=>r.premIdx), borderColor:'#a78bfa', borderWidth:2, pointRadius:0, pointHoverRadius:4, spanGaps:true, tension:0 },
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:16,right:8}},
-      scales:{
-        x:{ grid:baseGrid(), ticks:baseTicks() },
-        y:{ min:70, max:200, grid:baseGrid(), ticks:baseTicks() },
-      },
-      plugins:{
-        legend:{ labels:{ color:'#888', font:{family:MONO,size:10}, boxWidth:10, boxHeight:10, padding:14 } },
-        tooltip: baseTooltip({ callbacks:{
-          title:(items)=> `${items[0]?.label} (2005=100)`,
-          label:(c)=>{
-            if(c.parsed.y==null) return null;
-            const suffix = c.parsed.y<100 ? ' ▼ below 2005 baseline' : c.parsed.y>100 ? ' ▲ above baseline' : '';
-            return `${c.dataset.label}: ${c.parsed.y.toFixed(1)}${suffix}`;
-          },
-          afterBody:(items)=> items.length ? [`Wage ${WAGES[items[0].label] ? '$'+WAGES[items[0].label]+'/hr' : ''}`] : [],
-        }}),
-      },
-      refLinesConfig:{ lines:[
-        {axisId:'y', value:100, color:'#444', dash:[5,3], width:1, label:'2005 baseline', labelColor:'#555'},
-        {axisId:'x', value:idx2022, color:'#ef444455', dash:[4,3], label:'PEAK', labelColor:'#ef4444'},
-      ]},
-    },
-    plugins:[refLinesPlugin]
-  }));
-
-  // Chart B — Wages vs Bike Prices
-  const canvasB = chartBox(document.getElementById('t5-chart-b'), 't5-canvas-b', 240);
-  trackChart(new Chart(canvasB, {
-    type:'line',
-    data:{
-      labels: WAGE_PRICE_IDX.map(r=>String(r.year)),
-      datasets:[
-        { label:'Avg Hourly Wage (AHETPI)', data: WAGE_PRICE_IDX.map(r=>r.wageIdx), borderColor:'#60a5fa', borderWidth:3, borderDash:[6,3], pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0 },
-        { label:'Entry Hardtail MSRP', data: WAGE_PRICE_IDX.map(r=>r.entryIdx), borderColor:'#22c55e', borderWidth:2, pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0 },
-        { label:'Mid-Range Full-Sus MSRP', data: WAGE_PRICE_IDX.map(r=>r.midIdx), borderColor:'#f97316', borderWidth:2, pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0 },
-        { label:'Premium Enduro MSRP', data: WAGE_PRICE_IDX.map(r=>r.premIdx), borderColor:'#a78bfa', borderWidth:2, pointRadius:0, pointHoverRadius:3, spanGaps:true, tension:0 },
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{top:6,right:8}},
-      scales:{
-        x:{ grid:baseGrid(), ticks:baseTicks() },
-        y:{ min:80, max:260, grid:baseGrid(), ticks:baseTicks() },
-      },
-      plugins:{
-        legend:{ labels:{ color:'#888', font:{family:MONO,size:10}, boxWidth:10, boxHeight:10, padding:14 } },
-        tooltip: baseTooltip({ callbacks:{ label:(c)=> c.parsed.y==null ? null : `${c.dataset.label}: ${c.parsed.y.toFixed(1)} (2005=100)` } }),
-      },
-      refLinesConfig:{ lines:[ {axisId:'y', value:100, color:'#333', width:1} ] },
-    },
-    plugins:[refLinesPlugin]
-  }));
-
-  updateWageCalc();
+  $("affordHeroGrid").innerHTML = cards.map(k=>`
+    <div class="afford-hero-card" style="border-color:${k.col}44;border-left-color:${k.col}">
+      <div class="afford-hero-label">${k.label}</div>
+      <div class="afford-hero-val" style="color:${k.col}">${k.arrow} ${k.change}</div>
+      <div class="afford-hero-detail">${k.detail}</div>
+      <div class="afford-hero-sub">${k.sub}</div>
+    </div>`).join("");
 }
-TAB_RENDERERS[5] = renderTab5;
 
-function updateWageCalc(){
-  const presetsEl = document.getElementById('wage-presets');
-  const resultsEl = document.getElementById('wage-results-grid');
-  const warnEl = document.getElementById('wage-minwarning');
-  if(!presetsEl || !resultsEl || !warnEl) return;  // not currently on this tab
+function buildTab5ChartA(){
+  const years = AFFORD_ROWS.map(r=>r.year);
+  const ctx = $("chart5a").getContext("2d");
+  destroyChart("chart5a");
+  charts.chart5a = new Chart(ctx, {
+    type:"line",
+    data:{ labels: years, datasets:[
+      { label:"Entry Hardtail", data: AFFORD_ROWS.map(r=>r.entryIdx), borderColor:"#22c55e", backgroundColor:"#22c55e", borderWidth:2.5, pointRadius:0, pointHoverRadius:4, tension:0.15 },
+      { label:"Mid-Range Full-Sus", data: AFFORD_ROWS.map(r=>r.midIdx), borderColor:"#f97316", backgroundColor:"#f97316", borderWidth:2.5, pointRadius:0, pointHoverRadius:4, tension:0.15 },
+      { label:"Premium Enduro", data: AFFORD_ROWS.map(r=>r.premIdx), borderColor:"#a78bfa", backgroundColor:"#a78bfa", borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.15 },
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:200},
+      interaction:{mode:"index", intersect:false},
+      scales:{
+        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+        y:{ min:70, max:200, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+      },
+      plugins:{
+        legend: stdLegend(),
+        tooltip: stdTooltip({ callbacks:{
+          title: items => `${items[0].label} (2005=100)`,
+          label: ctx => {
+            const v = ctx.parsed.y;
+            const flag = v<100 ? " ▼ below 2005 baseline" : v>100 ? " ▲ above baseline" : "";
+            return `${ctx.dataset.label}: ${v.toFixed(1)}${flag}`;
+          },
+          afterBody: items => { const y = items[0].label; return WAGES[y] ? `Wage $${WAGES[y]}/hr` : ""; }
+        } }),
+        refLines:{ lines:[
+          {type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[5,3], label:"2005 baseline"},
+          {type:"vertical", value:2022, color:"#ef444455", width:1, dash:[4,3], label:"PEAK"},
+        ]},
+      }
+    }
+  });
+}
 
-  const myWage = state.myWage;
-  const calcEntry = parseFloat((750 / myWage).toFixed(1));
-  const calcMid   = parseFloat((3500 / myWage).toFixed(1));
-  const calcPrem  = parseFloat((7800 / myWage).toFixed(1));
-  const base05Entry = parseFloat((450 / 15.89).toFixed(1));
-  const base05Mid   = parseFloat((1800 / 15.89).toFixed(1));
-  const base05Prem  = parseFloat((3500 / 15.89).toFixed(1));
-  const minWageEntry = parseFloat((750 / 7.25).toFixed(1));
-  const minWageMid   = parseFloat((3500 / 7.25).toFixed(1));
+function buildTab5ChartB(){
+  const years = WAGE_PRICE_IDX.map(r=>r.year);
+  const ctx = $("chart5b").getContext("2d");
+  destroyChart("chart5b");
+  charts.chart5b = new Chart(ctx, {
+    type:"line",
+    data:{ labels: years, datasets:[
+      { label:"Avg Hourly Wage (AHETPI)", data: WAGE_PRICE_IDX.map(r=>r.wageIdx), borderColor:"#60a5fa", backgroundColor:"#60a5fa", borderWidth:3, borderDash:[6,3], pointRadius:0, pointHoverRadius:3, tension:0.15 },
+      { label:"Entry Hardtail MSRP", data: WAGE_PRICE_IDX.map(r=>r.entryIdx), borderColor:"#22c55e", backgroundColor:"#22c55e", borderWidth:2, pointRadius:0, pointHoverRadius:3, tension:0.15 },
+      { label:"Mid-Range Full-Sus MSRP", data: WAGE_PRICE_IDX.map(r=>r.midIdx), borderColor:"#f97316", backgroundColor:"#f97316", borderWidth:2, pointRadius:0, pointHoverRadius:3, tension:0.15 },
+      { label:"Premium Enduro MSRP", data: WAGE_PRICE_IDX.map(r=>r.premIdx), borderColor:"#a78bfa", backgroundColor:"#a78bfa", borderWidth:2, pointRadius:0, pointHoverRadius:3, tension:0.15 },
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:200},
+      interaction:{mode:"index", intersect:false},
+      scales:{
+        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+        y:{ min:80, max:260, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+      },
+      plugins:{
+        legend: stdLegend(),
+        tooltip: stdTooltip({ callbacks:{ label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} (2005=100)` } }),
+        refLines:{ lines:[{type:"horizontal", value:100, color:cssVar("--border3"), width:1}] },
+      }
+    }
+  });
+}
 
-  presetsEl.innerHTML = WAGE_PRESETS.map(p=>`
-    <button class="preset-btn ${Math.abs(myWage-p.val)<0.1?'active':''}" onclick="setMyWage(${p.val}, true)">
-      ${p.label}<span class="note">${p.note}</span>
-    </button>
-  `).join('');
+const wagePresets = [
+  { label:"Min Wage", val:7.25, note:"Federal $7.25 (frozen since 2009)" },
+  { label:"Median", val:22.00, note:"~US median hourly 2024" },
+  { label:"Average", val:30.34, note:"AHETPI avg 2024 (FRED)" },
+];
+function renderWagePresets(){
+  $("wagePresets").innerHTML = wagePresets.map(p=>{
+    const active = Math.abs(state.myWage - p.val) < 0.1;
+    return `<button class="wage-preset${active?" active":""}" onclick="setWage(${p.val})">${p.label}<span class="note">${p.note}</span></button>`;
+  }).join("");
+}
+function setWage(val){
+  state.myWage = val;
+  $("wageInput").value = val;
+  renderWagePresets();
+  renderCalculator();
+}
+
+function renderCalculator(){
+  const w = state.myWage;
+  const calcEntry = parseFloat((750/w).toFixed(1));
+  const calcMid = parseFloat((3500/w).toFixed(1));
+  const calcPrem = parseFloat((7800/w).toFixed(1));
+  const base05Entry = parseFloat((450/15.89).toFixed(1));
+  const base05Mid = parseFloat((1800/15.89).toFixed(1));
+  const base05Prem = parseFloat((3500/15.89).toFixed(1));
 
   const tiers = [
-    { price:750, hrs:calcEntry, base:base05Entry, col:'#22c55e', label:'Entry Hardtail', note:'Trek Marlin / Rockhopper class' },
-    { price:3500, hrs:calcMid, base:base05Mid, col:'#f97316', label:'Mid-Range Full-Sus', note:'Stumpjumper Comp / Fuel EX class' },
-    { price:7800, hrs:calcPrem, base:base05Prem, col:'#a78bfa', label:'Premium Enduro', note:'Yeti SB150 / Megatower class' },
+    { price:750, hrs:calcEntry, base:base05Entry, col:"#22c55e", label:"Entry Hardtail", note:"Trek Marlin / Rockhopper class" },
+    { price:3500, hrs:calcMid, base:base05Mid, col:"#f97316", label:"Mid-Range Full-Sus", note:"Stumpjumper Comp / Fuel EX class" },
+    { price:7800, hrs:calcPrem, base:base05Prem, col:"#a78bfa", label:"Premium Enduro", note:"Yeti SB150 / Megatower class" },
   ];
-  resultsEl.innerHTML = tiers.map(t=>{
+  $("calcResults").innerHTML = tiers.map(t=>{
     const diff = t.hrs - t.base;
     const pct = ((t.hrs/t.base)-1)*100;
-    const diffColor = diff<=0 ? '#22c55e' : diff<20 ? '#f59e0b' : '#ef4444';
+    const diffColor = diff<=0 ? "#22c55e" : diff<20 ? "#f59e0b" : "#ef4444";
     const diffText = diff<=0 ? `▼ ${Math.abs(diff).toFixed(1)} fewer hours` : `▲ ${diff.toFixed(1)} more hours`;
     return `
-      <div style="background:var(--inset);border:1px solid ${t.col}33;border-radius:7px;padding:14px 16px">
-        <div style="font-size:9px;color:var(--dim3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">${t.label}</div>
-        <div style="font-family:var(--disp);font-size:30px;color:${t.col};font-weight:700;line-height:1">${t.hrs} <span style="font-size:14px;font-weight:400">hrs</span></div>
-        <div style="font-size:10px;color:var(--dim2);margin-top:4px">at $${myWage.toFixed(2)}/hr for $${t.price.toLocaleString()} MSRP</div>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-soft);font-size:10px">
-          <div style="color:var(--dim5);margin-bottom:3px">vs. 2005 average worker:</div>
-          <div style="color:${diffColor};font-weight:600">${diffText}<span style="color:var(--dim5);font-weight:400;font-size:9px"> (${pct>=0?'+':''}${pct.toFixed(1)}%)</span></div>
-          <div style="color:var(--dim5);font-size:9px;margin-top:2px">2005 baseline: ${t.base} hrs @ $15.89/hr</div>
+      <div class="calc-tier" style="border-color:${t.col}33">
+        <div class="calc-tier-label">${t.label}</div>
+        <div class="calc-tier-hrs" style="color:${t.col}">${t.hrs} <span class="unit">hrs</span></div>
+        <div class="calc-tier-basis">at $${w.toFixed(2)}/hr for $${t.price.toLocaleString()} MSRP</div>
+        <div class="calc-tier-vs">
+          <div class="calc-tier-vs-label">vs. 2005 average worker:</div>
+          <div class="calc-tier-vs-val" style="color:${diffColor}">${diffText} <span style="color:var(--faint);font-weight:400;font-size:9px">(${pct>=0?"+":""}${pct.toFixed(1)}%)</span></div>
+          <div class="calc-tier-baseline">2005 baseline: ${t.base} hrs @ $15.89/hr</div>
         </div>
-      </div>
-    `;
-  }).join('');
+      </div>`;
+  }).join("");
 
-  warnEl.innerHTML = myWage < 10 ? `
-    <div style="margin-top:14px;padding:10px 14px;background:#1a0505;border:1px solid #ef444433;border-radius:6px;font-size:10px;color:#ef4444;line-height:1.7">
-      ⚠ At the federal minimum wage of $7.25/hr (frozen since 2009), an entry hardtail requires ${minWageEntry} hours of work and a mid-range bike requires ${minWageMid} hours. At $7.25/hr in 2005 ($5.15/hr then), the same entry bike cost ${(450/5.15).toFixed(0)} hours. The sport has become less accessible at the wage floor due to frozen federal minimum wage policy.
-    </div>
-  ` : '';
+  const warn = $("minwageWarn");
+  if(w < 10){
+    const minWageEntry = (750/7.25).toFixed(1);
+    const minWageMid = (3500/7.25).toFixed(1);
+    warn.innerHTML = `⚠ At the federal minimum wage of $7.25/hr (frozen since 2009), an entry hardtail requires ${minWageEntry} hours of work and a mid-range bike requires ${minWageMid} hours. At $7.25/hr in 2005 ($5.15/hr then), the same entry bike cost ${(450/5.15).toFixed(0)} hours. The sport has become less accessible at the wage floor due to frozen federal minimum wage policy.`;
+    warn.classList.add("show");
+  } else {
+    warn.classList.remove("show");
+  }
 }
 
-// ─── INIT ────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', renderShell);
+function renderSnapshotTable(){
+  const contextMap = {
+    2005:"Baseline", 2010:"Post-recession recovery", 2015:"Mid-decade, prices rising",
+    2019:"Pre-COVID, stable", 2021:"COVID surge begins", 2022:"PEAK — worst affordability on record",
+    2023:"Bust — discounts accelerate", 2024:"2024 — entry at 20-yr best; wages winning",
+  };
+  const years = [2005,2010,2015,2019,2021,2022,2023,2024];
+  const headerRow = ["Year","Avg Wage","Entry Hrs ($)","Mid Hrs ($)","Premium Hrs ($)","Context"];
+  const rowsHtml = years.map((y,i)=>{
+    const r = AFFORD_ROWS.find(d=>d.year===y);
+    const isPeak = y===2022, isBest = y===2024;
+    const bg = isPeak ? "var(--tintRed)" : isBest ? "var(--tintGreen)" : (i%2===0 ? "var(--panel)" : "var(--panel2)");
+    const yearColor = isPeak ? "#ef4444" : isBest ? "#22c55e" : "var(--text)";
+    const marker = isPeak ? " 🔺" : isBest ? " ✓" : "";
+    return `<tr style="background:${bg}">
+      <td style="color:${yearColor};font-weight:600;font-family:'Oswald',sans-serif;font-size:13px">${y}${marker}</td>
+      <td style="color:#60a5fa">$${r.wage.toFixed(2)}</td>
+      <td style="color:#22c55e">${r.entryHrs}h <span style="color:var(--faint)">($${r.entryPrice})</span></td>
+      <td style="color:#f97316">${r.midHrs}h <span style="color:var(--faint)">($${r.midPrice.toLocaleString()})</span></td>
+      <td style="color:#a78bfa">${r.premHrs}h <span style="color:var(--faint)">($${r.premPrice.toLocaleString()})</span></td>
+      <td style="color:var(--faint);font-size:9px">${contextMap[y]}</td>
+    </tr>`;
+  }).join("");
+  $("snapshotTable").innerHTML = `<thead><tr>${headerRow.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rowsHtml}</tbody>`;
+}
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE INITIALIZATION — header stat cards, theme dots, tabs nav
+// ═══════════════════════════════════════════════════════════════════════════
+function renderBenchmarks(){
+  $("benchmarksGrid").innerHTML = benchmarks.map(b=>`
+    <div class="stat-card${b.hl?" hl":""}">
+      <div class="stat-label">${b.label}</div>
+      <div class="stat-val${b.cls?" "+b.cls:""}">${b.value}</div>
+      <div class="stat-since">${b.since}</div>
+      <div class="stat-note">${b.note}</div>
+    </div>`).join("");
+}
+
+function renderThemeDots(){
+  $("themeDots").innerHTML = THEME_DOTS.map(t=>
+    `<button class="theme-dot${state.theme===t.key?" active":""}" data-key="${t.key}" style="background:${t.dot}" title="${t.name}" aria-label="Switch to ${t.name} theme"></button>`
+  ).join("");
+  document.querySelectorAll(".theme-dot").forEach(btn=>{
+    btn.onclick = () => applyTheme(btn.dataset.key);
+  });
+}
+
+function renderTabsNav(){
+  $("tabsNav").innerHTML = TABS.map((t,i)=>
+    `<button class="tab-btn${i===0?" active":""}" data-idx="${i}">${t}</button>`
+  ).join("");
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.onclick = () => showTab(parseInt(btn.dataset.idx));
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOTSTRAP
+// ═══════════════════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", ()=>{
+  renderBenchmarks();
+  renderThemeDots();
+  renderTabsNav();
+  initTab0(); // first tab loads immediately since it's visible on page load
+});
 </script>
 </body>
 </html>
