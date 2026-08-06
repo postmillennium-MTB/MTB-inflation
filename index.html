@@ -325,7 +325,11 @@ tr:nth-child(odd){background:var(--panel2)}
         </div>
         <div class="title-right">
           <div class="theme-dots" id="themeDots" title="Color scheme"></div>
-          <a href="https://postmillenniumrenaissance.com" class="pmr-btn" title="Back to Post Millennium Renaissance">PMR</a>
+          <!-- target="_top" is required: this tool is embedded in an iframe on
+               postmillenniumrenaissance.com/MTB-inflation/. Without it the link
+               loads the homepage INSIDE the frame, so the page changes but the
+               browser's address bar still reads /MTB-inflation/. -->
+          <a href="https://postmillenniumrenaissance.com" target="_top" class="pmr-btn" title="Back to Post Millennium Renaissance">PMR</a>
         </div>
       </div>
 
