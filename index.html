@@ -304,6 +304,48 @@ tr:nth-child(odd){background:var(--panel2)}
 .msrp-note{padding:12px 16px;background:var(--panel2);border:1px solid var(--grid);border-left:3px solid var(--amber);border-radius:7px;font-size:9px;color:var(--sub2);line-height:1.8}
 .msrp-note .lbl{color:var(--amber);font-weight:600}
 
+/* ── CORRELATION MATRIX (Tab 6) ── */
+.corr-chip-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center}
+.corr-chip{background:var(--panel3);border:1px solid var(--border2);color:var(--sub);padding:5px 11px;border-radius:12px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:400;transition:all .15s;user-select:none}
+.corr-chip.active{font-weight:600}
+.corr-chip.locked{cursor:not-allowed;opacity:.55}
+.corr-count-note{font-size:9px;color:var(--faint);margin-bottom:16px;letter-spacing:.03em}
+
+.corr-matrix-wrap{overflow:auto;border:1px solid var(--border);border-radius:8px;background:var(--panel);padding:16px}
+.corr-grid{display:grid;width:max-content}
+.corr-grid.fade-in{animation:corrFadeIn .35s ease}
+@keyframes corrFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.corr-cell{display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:600;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;border-radius:3px;margin:1px}
+.corr-cell:hover{transform:scale(1.14);box-shadow:0 0 0 2px var(--bright);z-index:5}
+.corr-cell.diagonal{cursor:default;background:var(--panel3) !important;color:var(--faint) !important}
+.corr-cell.diagonal:hover{transform:none;box-shadow:none}
+.corr-cell.active-pair{outline:2px solid var(--bright);outline-offset:-2px}
+@keyframes corrPulse{0%{transform:scale(1)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
+.corr-cell.pulse{animation:corrPulse .35s ease}
+.corr-row-label{font-size:9px;color:var(--sub2);font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;white-space:nowrap;text-align:right;transition:color .12s}
+.corr-col-label{font-size:9px;color:var(--sub2);font-family:'IBM Plex Mono',monospace;writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;justify-content:flex-end;padding-bottom:6px;white-space:nowrap;transition:color .12s}
+.corr-row-label.hl,.corr-col-label.hl{color:var(--orange);font-weight:600}
+
+.corr-legend{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:9px;color:var(--faint);flex-wrap:wrap}
+.corr-legend-bar{height:10px;width:180px;border-radius:5px;background:linear-gradient(90deg,var(--blue),var(--panel3) 50%,var(--orange))}
+
+.corr-detail{margin-top:22px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 20px;transition:box-shadow .2s}
+.corr-detail-empty{text-align:center;padding:36px 10px;color:var(--faint);font-size:11px}
+.corr-detail-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+.corr-detail-title{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--text);line-height:1.3}
+.corr-detail-sub{font-size:10px;color:var(--faint);margin-top:4px}
+.corr-detail-stats{display:flex;gap:18px;flex-wrap:wrap}
+.corr-stat{text-align:center;min-width:56px}
+.corr-stat-val{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;line-height:1}
+.corr-stat-label{font-size:8px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
+
+.corr-excluded-note{margin-top:16px;padding:12px 16px;background:var(--panel2);border:1px solid var(--grid);border-left:3px solid var(--faint2);border-radius:7px;font-size:9px;color:var(--sub2);line-height:1.85}
+.corr-excluded-note strong{color:var(--text)}
+
+@media (max-width:600px){
+.corr-detail-stats{width:100%;justify-content:space-between}
+}
+
 .footer{border-top:1px solid var(--line);padding:12px 20px;text-align:center;font-size:9px;color:var(--faint2);letter-spacing:.05em}
 
 @media (max-width:600px){
@@ -517,6 +559,34 @@ tr:nth-child(odd){background:var(--panel2)}
         <span class="lbl">📋 MSRP Note: </span>
         Bike prices above represent suggested retail prices. Actual transaction prices vary — during the 2023–2024 post-COVID bust, market prices were often 15–30% below MSRP (some models 40% off), meaning real affordability in 2024 is likely even better than shown here. Conversely, during the 2020–2022 boom, popular models sold at or above MSRP with waitlists. The hours-to-buy chart uses MSRP as a consistent benchmark for comparability. Sources: FRED AHETPI (BLS CES0500000008), industry pricing via Bicycle Association, PeopleForBikes, PinkBike, and Singletracks market reports.
       </div>
+    </section>
+
+    <!-- ───────── TAB 6: CORRELATION MATRIX ───────── -->
+    <section id="tab-6" class="tab-panel">
+      <div class="sh">
+        <div class="sh-title">Cross-Category Correlation Matrix</div>
+        <div class="sh-sub">How closely each series' annual % change moves with every other · click any cell for the year-by-year scatter</div>
+      </div>
+
+      <div class="corr-chip-bar" id="corrChipBar"></div>
+      <div class="corr-count-note" id="corrCountNote"></div>
+
+      <div class="corr-matrix-wrap">
+        <div class="corr-grid" id="corrGrid"></div>
+      </div>
+
+      <div class="corr-legend">
+        <span>−1.0</span>
+        <div class="corr-legend-bar"></div>
+        <span>+1.0</span>
+        <span style="margin-left:6px">&nbsp;·&nbsp; Blue = move opposite &nbsp;·&nbsp; Orange = move together</span>
+      </div>
+
+      <div class="corr-detail" id="corrDetail">
+        <div class="corr-detail-empty">Click any cell above to see the year-by-year scatter for that pair.</div>
+      </div>
+
+      <div class="corr-excluded-note" id="corrExcludedNote"></div>
     </section>
 
   </div>
@@ -1811,6 +1881,300 @@ function renderSnapshotTable(){
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
+// TAB 6 — CORRELATION MATRIX
+//
+// Reuses the same fredCPI/bikeCPI/EXTRA_SERIES data every other tab draws
+// from — no separate dataset to keep in sync. One series (Real PCE: Other
+// Sport/Rec Goods) is left out: it only has 18 years of history, and a
+// correlation coefficient computed on that few points swings wildly with a
+// single unusual year. See CORRELATION_EXCLUDED below and the footnote it
+// drives at the bottom of the tab.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Short labels for the matrix's own row/column headers — the full labels
+// used everywhere else in the tool are too long to fit rotated in a grid.
+const CORR_SHORT_LABELS = {
+  vehicles:"New Vehicles", footwear:"Footwear", steel:"Steel PPI", aluminum:"Aluminum PPI",
+  titanium:"Titanium PPI", euEquip:"EU Equip", tickets:"Sport Tickets", durables:"Durables",
+  sportRetail:"Sport Retail $", ppiOther:"PPI Other Sport", importSport:"Import Sport",
+  rubberPlastic:"Rubber/Plastic", recreation:"Recreation CPI", wagesECI:"Wages (ECI)",
+  usedCars:"Used Cars",
+};
+
+const CORRELATION_SERIES = {
+  uscpi:{ label:"US CPI (FRED)", short:"US CPI", color:PALETTE.blue, data:fredCPI },
+  bikes:{ label:"Bikes CPI (BLS)", short:"Bikes CPI", color:PALETTE.orange, data:bikeCPI },
+  ...Object.fromEntries(
+    Object.entries(EXTRA_SERIES)
+      .filter(([key]) => key !== "realSportRec")
+      .map(([key, s]) => [key, { label:s.label, short:CORR_SHORT_LABELS[key] || s.label, color:s.color, data:s.data }])
+  ),
+};
+
+// Canonical display order — selection toggles don't change this, so the
+// matrix layout stays stable no matter what order categories were clicked in.
+const CORRELATION_ORDER = [
+  "uscpi","bikes","vehicles","footwear","steel","aluminum","titanium","euEquip",
+  "tickets","durables","sportRetail","ppiOther","importSport","rubberPlastic",
+  "recreation","wagesECI","usedCars",
+];
+
+// Ten categories shown on first load — a mix of the baseline, materials,
+// durable-goods comparisons, and wages, so the default view already tells a
+// story rather than being an arbitrary first-ten.
+const CORRELATION_DEFAULTS = ["uscpi","bikes","vehicles","footwear","steel","aluminum","recreation","usedCars","wagesECI","tickets"];
+
+const CORRELATION_EXCLUDED = [
+  { label:"Real PCE: Other Sport/Rec Goods", span:"2007–2024, 18 years" },
+];
+
+state.corrSelected = new Set(CORRELATION_DEFAULTS);
+state.corrActivePair = null; // [keyA, keyB] or null
+
+// Pearson correlation coefficient between two annual-%-change series, using
+// only the years both series actually have. Needs at least 3 overlapping
+// years to mean anything; returns null below that (and the UI shows "—").
+function pearsonR(dataA, dataB){
+  const years = Object.keys(dataA).map(Number).filter(y => dataB[y] != null).sort((a,b)=>a-b);
+  const n = years.length;
+  if(n < 3) return null;
+  const xs = years.map(y=>dataA[y]), ys = years.map(y=>dataB[y]);
+  const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+  let num=0, dx2=0, dy2=0;
+  for(let i=0;i<n;i++){ const dx=xs[i]-mx, dy=ys[i]-my; num+=dx*dy; dx2+=dx*dx; dy2+=dy*dy; }
+  if(dx2===0 || dy2===0) return null; // a flat series has no defined correlation
+  return { r: num/Math.sqrt(dx2*dy2), n, years };
+}
+
+// ── small colour-math helpers, local to this tab ──
+function hexToRgb(hex){
+  hex = hex.replace("#","");
+  if(hex.length===3) hex = hex.split("").map(c=>c+c).join("");
+  const n = parseInt(hex,16);
+  return [(n>>16)&255, (n>>8)&255, n&255];
+}
+function lerpRgb(a,b,t){ return [0,1,2].map(i => a[i] + (b[i]-a[i])*t); }
+function rgbToHex(rgb){ return "#" + rgb.map(v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,"0")).join(""); }
+
+// Diverging scale: blue (r=-1) through the panel colour (r=0) to orange
+// (r=+1) — the tool's own two primary series colours doing double duty as
+// the correlation legend, so the matrix reads as an extension of the charts
+// rather than an unrelated visual language.
+function corrCellColor(r){
+  if(r == null) return cssVar("--panel3");
+  const mid = hexToRgb(cssVar("--panel3"));
+  const end = hexToRgb(r < 0 ? PALETTE.blue : PALETTE.orange);
+  return rgbToHex(lerpRgb(mid, end, Math.min(1, Math.abs(r))));
+}
+function corrTextColor(bgHex){
+  const [r,g,b] = hexToRgb(bgHex);
+  const luminance = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return luminance > 0.6 ? "#14161a" : "#ffffff";
+}
+function corrStrengthLabel(r){
+  const a = Math.abs(r);
+  const dir = r >= 0 ? "positive" : "negative";
+  if(a >= 0.7) return `Strong ${dir}`;
+  if(a >= 0.4) return `Moderate ${dir}`;
+  if(a >= 0.2) return `Weak ${dir}`;
+  return "Little to no relationship";
+}
+
+function selectedCorrKeys(){ return CORRELATION_ORDER.filter(k => state.corrSelected.has(k)); }
+
+function renderCorrChips(){
+  const el = $("corrChipBar");
+  el.innerHTML = `<span class="extras-label">Categories:</span>`;
+  CORRELATION_ORDER.forEach(key=>{
+    const s = CORRELATION_SERIES[key];
+    const active = state.corrSelected.has(key);
+    const locked = active && state.corrSelected.size <= 2; // enforce a 2-category minimum
+    const btn = document.createElement("button");
+    btn.className = "corr-chip" + (active ? " active" : "") + (locked ? " locked" : "");
+    btn.title = locked ? "At least 2 categories are required" : "";
+    btn.textContent = (active ? "● " : "○ ") + s.label;
+    if(active){ btn.style.background = withAlpha(s.color,"22"); btn.style.borderColor = s.color; btn.style.color = s.color; }
+    btn.onclick = () => toggleCorrSeries(key);
+    el.appendChild(btn);
+  });
+  $("corrCountNote").textContent = `${state.corrSelected.size} of ${CORRELATION_ORDER.length} eligible categories selected — click a chip to add or remove one. Minimum 2.`;
+}
+
+function toggleCorrSeries(key){
+  if(state.corrSelected.has(key)){
+    if(state.corrSelected.size <= 2) return; // no-op: stay at the floor
+    state.corrSelected.delete(key);
+  } else {
+    state.corrSelected.add(key);
+  }
+  state.corrActivePair = null;
+  renderCorrChips();
+  renderCorrMatrix();
+  renderCorrDetail();
+}
+
+function renderCorrMatrix(){
+  const keys = selectedCorrKeys();
+  const n = keys.length;
+  const cellSize = n > 14 ? 34 : n > 10 ? 42 : 52;
+  const fontSize = n > 14 ? "8.5px" : n > 10 ? "9.5px" : "10.5px";
+  const rowLabelW = 130;
+  const headerH = 96;
+
+  const grid = $("corrGrid");
+  grid.style.gridTemplateColumns = `${rowLabelW}px repeat(${n}, ${cellSize}px)`;
+  grid.style.gridTemplateRows = `${headerH}px repeat(${n}, ${cellSize}px)`;
+  grid.innerHTML = "";
+  grid.classList.remove("fade-in"); void grid.offsetWidth; grid.classList.add("fade-in");
+
+  grid.appendChild(document.createElement("div")); // blank top-left corner
+
+  keys.forEach(k=>{
+    const div = document.createElement("div");
+    div.className = "corr-col-label";
+    div.textContent = CORRELATION_SERIES[k].short;
+    div.title = CORRELATION_SERIES[k].label;
+    div.dataset.key = k;
+    grid.appendChild(div);
+  });
+
+  keys.forEach(rowKey=>{
+    const rowLabel = document.createElement("div");
+    rowLabel.className = "corr-row-label";
+    rowLabel.textContent = CORRELATION_SERIES[rowKey].short;
+    rowLabel.title = CORRELATION_SERIES[rowKey].label;
+    rowLabel.dataset.key = rowKey;
+    grid.appendChild(rowLabel);
+
+    keys.forEach(colKey=>{
+      const cell = document.createElement("div");
+      cell.className = "corr-cell";
+      cell.style.width = cellSize+"px";
+      cell.style.height = cellSize+"px";
+      cell.style.fontSize = fontSize;
+      cell.dataset.row = rowKey;
+      cell.dataset.col = colKey;
+
+      if(rowKey === colKey){
+        cell.classList.add("diagonal");
+        cell.textContent = "1.00";
+        cell.title = `${CORRELATION_SERIES[rowKey].label} vs itself`;
+      } else {
+        const res = pearsonR(CORRELATION_SERIES[rowKey].data, CORRELATION_SERIES[colKey].data);
+        const bg = corrCellColor(res ? res.r : null);
+        cell.style.background = bg;
+        cell.style.color = corrTextColor(bg);
+        cell.textContent = res ? res.r.toFixed(2) : "—";
+        cell.title = res
+          ? `${CORRELATION_SERIES[rowKey].label} vs ${CORRELATION_SERIES[colKey].label}\nr = ${res.r.toFixed(2)}  (${res.n} overlapping years)`
+          : `${CORRELATION_SERIES[rowKey].label} vs ${CORRELATION_SERIES[colKey].label}: not enough overlapping years`;
+        if(state.corrActivePair && state.corrActivePair.includes(rowKey) && state.corrActivePair.includes(colKey)){
+          cell.classList.add("active-pair");
+        }
+        cell.onclick = e => onCorrCellClick(rowKey, colKey, e.currentTarget);
+        cell.onmouseenter = () => setCorrLabelHighlight(rowKey, colKey, true);
+        cell.onmouseleave = () => setCorrLabelHighlight(rowKey, colKey, false);
+      }
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function setCorrLabelHighlight(rowKey, colKey, on){
+  document.querySelectorAll(`.corr-row-label[data-key="${rowKey}"], .corr-col-label[data-key="${colKey}"]`)
+    .forEach(el => el.classList.toggle("hl", on));
+}
+
+function onCorrCellClick(a, b, el){
+  state.corrActivePair = [a, b];
+  el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse");
+  document.querySelectorAll(".corr-cell.active-pair").forEach(c=>c.classList.remove("active-pair"));
+  el.classList.add("active-pair");
+  renderCorrDetail();
+  $("corrDetail").scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+function renderCorrDetail(){
+  const el = $("corrDetail");
+  if(!state.corrActivePair){
+    el.innerHTML = `<div class="corr-detail-empty">Click any cell above to see the year-by-year scatter for that pair.</div>`;
+    destroyChart("corrScatter");
+    return;
+  }
+  const [aKey, bKey] = state.corrActivePair;
+  const sa = CORRELATION_SERIES[aKey], sb = CORRELATION_SERIES[bKey];
+  const res = pearsonR(sa.data, sb.data);
+  const rColor = res ? corrCellColor(res.r) : cssVar("--faint");
+
+  el.innerHTML = `
+    <div class="corr-detail-header">
+      <div>
+        <div class="corr-detail-title">${sa.label} vs ${sb.label}</div>
+        <div class="corr-detail-sub">Each point is one calendar year's annual % change in both series</div>
+      </div>
+      <div class="corr-detail-stats">
+        <div class="corr-stat"><div class="corr-stat-val" style="color:${rColor}">${res ? res.r.toFixed(2) : "—"}</div><div class="corr-stat-label">r</div></div>
+        <div class="corr-stat"><div class="corr-stat-val">${res ? res.n : 0}</div><div class="corr-stat-label">years</div></div>
+        <div class="corr-stat" style="max-width:130px"><div class="corr-stat-val" style="font-size:12px;line-height:1.4">${res ? corrStrengthLabel(res.r) : "N/A"}</div><div class="corr-stat-label">reading</div></div>
+      </div>
+    </div>
+    <div class="chart-wrap chart-md"><canvas id="corrScatterCanvas"></canvas></div>
+  `;
+  buildCorrScatter(aKey, bKey);
+}
+
+function buildCorrScatter(aKey, bKey){
+  const sa = CORRELATION_SERIES[aKey], sb = CORRELATION_SERIES[bKey];
+  const years = Object.keys(sa.data).map(Number).filter(y => sb.data[y] != null).sort((x,y)=>x-y);
+  const points = years.map(y => ({ x:sa.data[y], y:sb.data[y], year:y }));
+
+  destroyChart("corrScatter");
+  charts.corrScatter = new Chart($("corrScatterCanvas").getContext("2d"), {
+    type:"scatter",
+    data:{ datasets:[{
+      data: points,
+      backgroundColor: withAlpha(PALETTE.orange, "cc"),
+      borderColor: PALETTE.orange,
+      pointRadius:5, pointHoverRadius:8, pointBorderWidth:1.5,
+    }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:CONFIG.chartAnimationMs},
+      scales:{
+        x:{ ...stdAxis({suffix:"%"}), title:{display:true, text:`${sa.short} — annual % change`, color:cssVar("--sub2"), font:baseFont()} },
+        y:{ ...stdAxis({suffix:"%"}), title:{display:true, text:`${sb.short} — annual % change`, color:cssVar("--sub2"), font:baseFont()} },
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip: stdTooltip({ callbacks:{
+          title: () => "",
+          label: ctx => [`${ctx.raw.year}`, `${sa.short}: ${fmtPct(ctx.raw.x)}`, `${sb.short}: ${fmtPct(ctx.raw.y)}`],
+        }}),
+      }
+    }
+  });
+}
+
+function renderCorrExcludedNote(){
+  $("corrExcludedNote").innerHTML = `
+    <strong>Why aren't all 17 comparison series here?</strong>
+    ${CORRELATION_EXCLUDED.map(e=>`${e.label} (${e.span})`).join(", ")}
+    is left out — a correlation computed on that few years swings wildly with a single unusual one, so including it
+    would show precision the data doesn't actually have. Even the categories shown here mostly cover 2000–2025;
+    read any single coefficient as a description of the last two decades, not a durable law. 2021–2022 in particular
+    hit almost every series in this file at once — that shared shock can push economically unrelated series (say,
+    steel prices and golf equipment) to look more correlated than they really are.
+  `;
+}
+
+function initTab6(){
+  renderCorrChips();
+  renderCorrMatrix();
+  renderCorrDetail();
+  renderCorrExcludedNote();
+}
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
 // TABS — the one place a tab is described.
 //
 // Adding a new tool, chart or view used to mean editing five separate places:
@@ -1833,6 +2197,7 @@ const TAB_CONFIG = [
   { title:"Key Findings",     panelId:"tab-3", init:initTab3 },
   { title:"Compare",          panelId:"tab-4", init:initTab4 },
   { title:"Affordability",    panelId:"tab-5", init:initTab5 },
+  { title:"Correlation",      panelId:"tab-6", init:initTab6 },
 ];
 
 function showTab(idx){
