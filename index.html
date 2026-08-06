@@ -32,6 +32,8 @@ const PALETTE = {
   amber:"#f59e0b",   red:"#ef4444",      rose:"#fb7185",     magenta:"#e879f9",
   mint:"#34d399",    mintPale:"#6ee7b7", greenPale:"#4ade80", slate:"#94a3b8",
   cyan:"#22d3ee",    gold:"#fbbf24",     yellow:"#facc15",   indigo:"#818cf8",
+  teal:"#2dd4bf",    stone:"#a8a29e",    sky:"#38bdf8",      pink:"#f472b6",
+  lime:"#a3e635",
 };
 
 /* Append a 2-digit hex alpha to a colour, e.g. withAlpha(PALETTE.orange,"22")
@@ -823,6 +825,27 @@ const EXTRA_SERIES = {
   ppiOther:{ label:"PPI: Other Sporting/Athletic Goods", color:PALETTE.indigo, fred:"PCU339920339920A",
     note:"Narrower BLS sub-index within sporting goods manufacturing, currently running hotter (190.4) than the broader index (182.4). Lowest-confidence series in this tool — shape approximated from the parent index",
     data:{2000:2.0,2001:1.5,2002:1.0,2003:2.0,2004:3.5,2005:2.5,2006:2.0,2007:2.0,2008:2.5,2009:-1.5,2010:3.0,2011:4.5,2012:2.5,2013:2.0,2014:3.0,2015:2.5,2016:1.0,2017:2.5,2018:2.5,2019:2.5,2020:-2.0,2021:8.0,2022:7.5,2023:2.0,2024:1.5,2025:1.8} },
+  // ── Added at the user's request: five more FRED comparison series ──
+  // All annual figures below are averages of the underlying MONTHLY FRED data
+  // for that calendar year, then year-over-year %-changed — same method noted
+  // in the tool's own "annual averages approximated from FRED monthly series"
+  // footnote. Series start where FRED's own history starts (IZ33992 in 2005,
+  // ECIWAG in 2001); earlier years are simply absent, not zero.
+  importSport:{ label:"Import Price: Sport/Athletic Goods", color:PALETTE.teal, fred:"IZ33992",
+    note:"What US importers pay at the border for sporting goods — the series closest to isolating tariff impact, since PPI and CPI blend in domestic production and retail markup",
+    data:{2006:0.8,2007:3.23,2008:7.3,2009:2.15,2010:-0.58,2011:1.52,2012:2.68,2013:1.05,2014:0.7,2015:-0.34,2016:-1.36,2017:0.75,2018:1.51,2019:2.83,2020:0.02,2021:3.31,2022:5.01,2023:4.52,2024:2.62,2025:0.43} },
+  rubberPlastic:{ label:"PPI: Rubber & Plastic Products", color:PALETTE.stone, fred:"WPU07",
+    note:"Covers tires, grips, and bushings — the input-cost line frame-material comparisons (steel/aluminum/titanium above) don't touch",
+    data:{2001:1.39,2002:-0.28,2003:2.6,2004:2.81,2005:7.48,2006:6.94,2007:0.82,2008:7.0,2009:-0.45,2010:3.33,2011:7.07,2012:2.29,2013:1.11,2014:0.63,2015:-1.68,2016:-1.26,2017:2.4,2018:3.19,2019:0.47,2020:-0.91,2021:11.9,2022:16.41,2023:0.01,2024:0.05,2025:0.67} },
+  recreation:{ label:"CPI: Recreation (parent category)", color:PALETTE.sky, fred:"CPIRECSL",
+    note:"The broader recreation basket that bikes and sporting-event tickets both sit inside — shows whether bikes outrun their own category or just ride its trend",
+    data:{2001:1.56,2002:1.26,2003:1.2,2004:1.05,2005:0.67,2006:1.42,2007:0.47,2008:1.63,2009:0.9,2010:-0.84,2011:0.04,2012:1.19,2013:0.49,2014:0.24,2015:0.35,2016:0.9,2017:1.3,2018:0.5,2019:1.28,2020:1.35,2021:2.4,2022:4.53,2023:4.02,2024:1.51,2025:2.1} },
+  wagesECI:{ label:"Employment Cost Index: Wages (Private)", color:PALETTE.pink, fred:"ECIWAG",
+    note:"BLS's preferred wage-inflation gauge — holds job mix constant, so it doesn't show the 2020 composition-effect dip that AHETPI (used in the Affordability tab) does",
+    data:{2002:3.21,2003:2.84,2004:2.65,2005:2.48,2006:2.92,2007:3.38,2008:2.96,2009:1.59,2010:1.61,2011:1.63,2012:1.82,2013:1.9,2014:2.03,2015:2.24,2016:2.37,2017:2.55,2018:3.03,2019:2.96,2020:2.93,2021:4.01,2022:5.25,2023:4.62,2024:3.94,2025:3.47} },
+  usedCars:{ label:"CPI: Used Cars & Trucks", color:PALETTE.lime, fred:"CUSR0000SETA02",
+    note:"One of the most extreme COVID-era swings of any consumer good — +26.5% in 2021 alone, then a sharp multi-year reversal — a striking contrast to bikes' comparatively mild boom/bust",
+    data:{2001:1.89,2002:-4.24,2003:-5.96,2004:-6.71,2005:4.56,2006:0.44,2007:-3.03,2008:-1.33,2009:-5.2,2010:12.71,2011:4.1,2012:0.88,2013:-0.27,2014:-0.51,2015:-1.27,2016:-2.58,2017:-3.9,2018:0.36,2019:1.01,2020:3.23,2021:26.5,2022:12.81,2023:-7.15,2024:-5.9,2025:2.81} },
 };
 const EXTRA_CUM = Object.fromEntries(Object.keys(EXTRA_SERIES).map(k=>[k, buildCumulative(EXTRA_SERIES[k].data)]));
 
