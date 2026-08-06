@@ -9,38 +9,101 @@
 <title>Mountain Biking &amp; Inflation | Post Millennium Renaissance</title>
 <!-- Chart.js from cdnjs — swap this URL if cdnjs is ever unreachable (jsdelivr mirror: https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME ENGINE — the single source of truth for every colour in this tool.
+
+   Both the CSS (panels, borders, text) and the JavaScript (chart lines, badges,
+   timeline pills) read their colours from the two objects below. Before this
+   existed, the same hex was typed into the stylesheet AND into the chart code,
+   so changing one and forgetting the other silently broke the match.
+
+   ── TO ADD A NEW COLOUR SCHEME ──
+   Copy one entry in THEMES, give it a new `key`, `name`, `dot`, and `vars`.
+   That is the only edit needed — the theme dots in the header build themselves
+   from this array, and the charts re-read these values when a theme is picked.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Accent colours: identical in every theme. These are the tool's "brand" hues
+   and are what the charts actually draw with. Use PALETTE.orange from
+   JavaScript, or var(--orange) from CSS — they are the same value. */
+const PALETTE = {
+  orange:"#f97316",  blue:"#60a5fa",     green:"#22c55e",    purple:"#a78bfa",
+  amber:"#f59e0b",   red:"#ef4444",      rose:"#fb7185",     magenta:"#e879f9",
+  mint:"#34d399",    mintPale:"#6ee7b7", greenPale:"#4ade80", slate:"#94a3b8",
+  cyan:"#22d3ee",    gold:"#fbbf24",     yellow:"#facc15",   indigo:"#818cf8",
+};
+
+/* Append a 2-digit hex alpha to a colour, e.g. withAlpha(PALETTE.orange,"22")
+   gives a ~13% transparent orange for chart fills and badge backgrounds. */
+function withAlpha(hex, hexAlpha){ return hex + hexAlpha; }
+
+/* Surface colours: these DO change per theme. `vars` becomes the CSS custom
+   properties for that theme, so any name added here is usable as var(--name). */
+const THEMES = [
+  {
+    key:"s10", name:"S-10 (default)", dot:"#e7e9ec",
+    vars:{
+      bg:"#f1f2f4", panel:"#ffffff", panel2:"#f7f8f9", panel3:"#eaecef",
+      line:"#e1e3e7", tooltip:"#ffffff", border:"#d6d9de", border2:"#c1c5cc", border3:"#acb1ba",
+      grid:"#e1e3e7", text:"#1c1f24", text2:"#3a3f47", sub:"#6b7078", sub2:"#868c95",
+      faint:"#9aa0a8", faint2:"#aab0b8", bright:"#0a0c0f",
+      tintOrange:"#fdeee0", tintRed:"#fbe8e6", tintGreen:"#e7f3e6",
+      headerGrad:"linear-gradient(135deg,#f1f2f4 0%,#e7e9ec 50%,#f1f2f4 100%)",
+    }
+  },
+  {
+    key:"f150", name:"F-150", dot:"#2d3542",
+    vars:{
+      bg:"#12161b", panel:"#1a2029", panel2:"#161b22", panel3:"#212832",
+      line:"#262e39", tooltip:"#1e252e", border:"#2d3542", border2:"#38414f", border3:"#44505f",
+      grid:"#262e39", text:"#e6e9ed", text2:"#c2c8d0", sub:"#8b95a3", sub2:"#6d7885",
+      faint:"#57616d", faint2:"#48515b", bright:"#ffffff",
+      tintOrange:"#231e15", tintRed:"#251a1a", tintGreen:"#15201a",
+      headerGrad:"linear-gradient(135deg,#12161b 0%,#182029 50%,#12161b 100%)",
+    }
+  },
+  {
+    key:"1500", name:"1500", dot:"#453f38",
+    vars:{
+      bg:"#1a1917", panel:"#221f1c", panel2:"#1d1b19", panel3:"#2a2622",
+      line:"#2f2b27", tooltip:"#242220", border:"#38332d", border2:"#453f38", border3:"#524b43",
+      grid:"#2f2b27", text:"#eae7e2", text2:"#c9c4bc", sub:"#a39c91", sub2:"#847d73",
+      faint:"#655f57", faint2:"#544f48", bright:"#ffffff",
+      tintOrange:"#28211a", tintRed:"#271c1a", tintGreen:"#1c231c",
+      headerGrad:"linear-gradient(135deg,#1a1917 0%,#211e1a 50%,#1a1917 100%)",
+    }
+  },
+];
+
+/* Turn THEMES + PALETTE into a real stylesheet and inject it into <head>.
+   This runs during page parse, before the main <style> block below, so there
+   is no flash of unstyled content. The first theme in the array is the default. */
+(function injectThemeCSS(){
+  const varsToCss = obj => Object.entries(obj).map(([k,v])=>`--${k}:${v}`).join(";");
+  const accents = varsToCss(PALETTE)
+    // Two pre-mixed translucent accents used by callout borders
+    + ";--orangeSoft:" + withAlpha(PALETTE.orange,"44")
+    + ";--redSoft:"    + withAlpha(PALETTE.red,"33");
+  const rules = THEMES.map((t,i)=>
+    i === 0
+      ? `:root{${varsToCss(t.vars)};${accents}}`          // default theme + accents
+      : `body.theme-${t.key}{${varsToCss(t.vars)}}`       // overrides only
+  ).join("\n");
+  const style = document.createElement("style");
+  style.id = "theme-vars";
+  style.textContent = rules;
+  document.head.appendChild(style);
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Oswald:wght@400;600;700&display=swap');
 
-/* ── THEME: S-10 (default, light neutral grey) ── */
-:root{
-  --bg:#f1f2f4; --panel:#ffffff; --panel2:#f7f8f9; --panel3:#eaecef;
-  --line:#e1e3e7; --tooltip:#ffffff; --border:#d6d9de; --border2:#c1c5cc; --border3:#acb1ba;
-  --grid:#e1e3e7; --text:#1c1f24; --text2:#3a3f47; --sub:#6b7078; --sub2:#868c95;
-  --faint:#9aa0a8; --faint2:#aab0b8; --bright:#0a0c0f;
-  --tintOrange:#fdeee0; --tintRed:#fbe8e6; --tintGreen:#e7f3e6;
-  --headerGrad:linear-gradient(135deg,#f1f2f4 0%,#e7e9ec 50%,#f1f2f4 100%);
-  --orange:#f97316; --blue:#60a5fa; --green:#22c55e; --purple:#a78bfa;
-  --amber:#f59e0b; --red:#ef4444;
-}
-/* ── THEME: F-150 (cool blue-steel grey, dark) ── */
-body.theme-f150{
-  --bg:#12161b; --panel:#1a2029; --panel2:#161b22; --panel3:#212832;
-  --line:#262e39; --tooltip:#1e252e; --border:#2d3542; --border2:#38414f; --border3:#44505f;
-  --grid:#262e39; --text:#e6e9ed; --text2:#c2c8d0; --sub:#8b95a3; --sub2:#6d7885;
-  --faint:#57616d; --faint2:#48515b; --bright:#ffffff;
-  --tintOrange:#231e15; --tintRed:#251a1a; --tintGreen:#15201a;
-  --headerGrad:linear-gradient(135deg,#12161b 0%,#182029 50%,#12161b 100%);
-}
-/* ── THEME: 1500 (warm charcoal grey, dark) ── */
-body.theme-1500{
-  --bg:#1a1917; --panel:#221f1c; --panel2:#1d1b19; --panel3:#2a2622;
-  --line:#2f2b27; --tooltip:#242220; --border:#38332d; --border2:#453f38; --border3:#524b43;
-  --grid:#2f2b27; --text:#eae7e2; --text2:#c9c4bc; --sub:#a39c91; --sub2:#847d73;
-  --faint:#655f57; --faint2:#544f48; --bright:#ffffff;
-  --tintOrange:#28211a; --tintRed:#271c1a; --tintGreen:#1c231c;
-  --headerGrad:linear-gradient(135deg,#1a1917 0%,#211e1a 50%,#1a1917 100%);
-}
+/* ── COLOURS ──────────────────────────────────────────────────────────────
+   All --colour variables (--bg, --panel, --orange, ...) are generated by the
+   THEME ENGINE script in <head>. Do not redefine them here — edit THEMES or
+   PALETTE up there instead, so the charts stay in sync with the page.
+   ──────────────────────────────────────────────────────────────────────── */
 
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -51,7 +114,7 @@ body{
 }
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#777;border-radius:3px}
+::-webkit-scrollbar-thumb{background:var(--faint);border-radius:3px}
 
 .oswald{font-family:'Oswald',sans-serif}
 a{color:inherit}
@@ -81,10 +144,21 @@ a{color:inherit}
 .stat-since{font-size:9px;color:var(--sub2);margin-top:3px}
 .stat-note{font-size:9px;color:var(--faint);margin-top:1px}
 
-.limitations{margin-top:12px;background:var(--tintOrange);border:1px solid #f9731644;border-left:3px solid var(--orange);border-radius:7px;padding:12px 16px}
-.limitations-title{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:var(--orange);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
+.limitations{margin-top:12px;background:var(--tintOrange);border:1px solid var(--orangeSoft);border-left:3px solid var(--orange);border-radius:7px;padding:12px 16px}
+.limitations-title{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:var(--orange);letter-spacing:.05em;text-transform:uppercase}
 .limitations-body{font-size:11px;color:var(--text2);line-height:1.75}
 .limitations-body em{color:var(--text)}
+/* Collapsible variant: the whole title row is a button. Collapsed by default;
+   the grid-template-rows 0fr->1fr trick animates open without a fixed height. */
+.limitations-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:none;border:none;padding:0;margin:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.limitations-chevron{font-size:10px;color:var(--orange);transition:transform .25s ease;flex-shrink:0}
+.limitations.open .limitations-chevron{transform:rotate(180deg)}
+.limitations-reveal{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
+.limitations.open .limitations-reveal{grid-template-rows:1fr}
+.limitations-reveal > div{overflow:hidden}
+.limitations.open .limitations-reveal > div{padding-top:5px}
+.limitations-hint{font-size:9px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase}
+.limitations.open .limitations-hint{display:none}
 
 /* ── TABS NAV ── */
 .tabs-nav{border-bottom:1px solid var(--border);background:var(--panel2);position:sticky;top:0;z-index:10}
@@ -102,7 +176,15 @@ a{color:inherit}
 .sh-title{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--text);letter-spacing:.04em;text-transform:uppercase}
 .sh-sub{font-size:9px;color:var(--faint);margin-top:3px;letter-spacing:.04em}
 
+/* ── CHART SIZING ──
+   Named heights instead of a different inline pixel value on every canvas.
+   Change a number here and every chart of that size follows. */
+:root{ --chartH-lg:300px; --chartH-md:260px; --chartH-sm:240px; --chartH-xs:150px }
 .chart-wrap{position:relative;width:100%}
+.chart-lg{height:var(--chartH-lg)}
+.chart-md{height:var(--chartH-md)}
+.chart-sm{height:var(--chartH-sm)}
+.chart-xs{height:var(--chartH-xs)}
 
 /* ── EXTRAS TOGGLE BAR ── */
 .extras-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
@@ -123,7 +205,7 @@ a{color:inherit}
 .spread-selects{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .spread-select{background:var(--panel3);padding:5px 8px;border-radius:5px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600}
 .spread-minus{font-size:14px;color:var(--sub);font-weight:700}
-.spread-same{height:150px;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px dashed var(--border2);border-radius:7px}
+.spread-same{height:var(--chartH-xs);display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px dashed var(--border2);border-radius:7px}
 .spread-same-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;color:var(--orange);margin-bottom:4px}
 .spread-same-sub{font-size:10px;color:var(--sub)}
 
@@ -214,7 +296,7 @@ tr:nth-child(odd){background:var(--panel2)}
 .calc-tier-vs-val{font-weight:600}
 .calc-tier-baseline{color:var(--faint);font-size:9px;margin-top:2px}
 
-.minwage-warn{margin-top:14px;padding:10px 14px;background:var(--tintRed);border:1px solid #ef444433;border-radius:6px;font-size:10px;color:var(--red);line-height:1.7;display:none}
+.minwage-warn{margin-top:14px;padding:10px 14px;background:var(--tintRed);border:1px solid var(--redSoft);border-radius:6px;font-size:10px;color:var(--red);line-height:1.7;display:none}
 .minwage-warn.show{display:block}
 
 .msrp-note{padding:12px 16px;background:var(--panel2);border:1px solid var(--grid);border-left:3px solid var(--amber);border-radius:7px;font-size:9px;color:var(--sub2);line-height:1.8}
@@ -249,11 +331,19 @@ tr:nth-child(odd){background:var(--panel2)}
 
       <div class="benchmarks-grid" id="benchmarksGrid"></div>
 
-      <div class="limitations">
-        <div class="limitations-title">"Wait — it seems like bikes got MORE expensive?"</div>
-        <div class="limitations-body">
+      <div class="limitations" id="limitationsCard">
+        <button class="limitations-toggle" id="limitationsToggle" aria-expanded="false" aria-controls="limitationsBody">
+          <span class="limitations-title">"Wait — it seems like bikes got MORE expensive?"</span>
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="limitations-hint">Read more</span>
+            <span class="limitations-chevron" aria-hidden="true">▼</span>
+          </span>
+        </button>
+        <div class="limitations-reveal"><div>
+        <div class="limitations-body" id="limitationsBody">
           You're not wrong — and it's an important limitation of this data. The BLS "Sports Vehicles including Bicycles" CPI blends <em>every</em> bicycle type into one index: department-store bikes, kids' bikes, commuters, and $7,000 enduro machines. The index doesn't separate them — and no public data source does. High-performance bike-shop MTBs have inflated considerably faster than this blended average (see Key Findings #04). So read this dashboard as <span style="color:var(--orange);font-weight:600">"the price of bicycles as a category"</span> — not "the price of the bike you're riding or shopping for."
         </div>
+        </div></div>
       </div>
     </div>
   </div>
@@ -278,7 +368,7 @@ tr:nth-child(odd){background:var(--panel2)}
 
       <div class="extras-bar" id="extrasBar0"></div>
 
-      <div class="chart-wrap" style="height:300px">
+      <div class="chart-wrap chart-lg">
         <canvas id="chart0"></canvas>
       </div>
       <div id="extrasFootnote0" style="font-size:9px;color:var(--faint);margin-top:4px;line-height:1.7"></div>
@@ -295,7 +385,7 @@ tr:nth-child(odd){background:var(--panel2)}
         </div>
       </div>
       <div id="spreadChartContainer">
-        <div class="chart-wrap" style="height:150px"><canvas id="spreadChart"></canvas></div>
+        <div class="chart-wrap chart-xs"><canvas id="spreadChart"></canvas></div>
       </div>
       <div id="spreadSameNote" class="spread-same" style="display:none">
         <div>
@@ -309,13 +399,13 @@ tr:nth-child(odd){background:var(--panel2)}
     <section id="tab-1" class="tab-panel">
       <div class="sh"><div class="sh-title">Cumulative Price Level Since 2000 (Base = 100)</div></div>
       <div class="extras-bar" id="extrasBar1"></div>
-      <div class="chart-wrap" style="height:300px"><canvas id="chart1"></canvas></div>
+      <div class="chart-wrap chart-lg"><canvas id="chart1"></canvas></div>
 
       <div class="stat2x2" id="stat2x2Grid"></div>
 
       <div class="limitations" style="margin-top:18px">
         <div class="limitations-body">
-          <strong style="color:var(--text)">The counterintuitive headline:</strong> Despite constant debate about mountain bike prices, the BLS "Sports Vehicles including Bicycles" CPI has inflated at only <span style="color:var(--orange);font-weight:600">1.73%/year</span> since 1978 — well below the overall CPI average of 3.43%/year. Since 2000, bikes have risen only 28% while the broader economy rose 83%.
+          <strong style="color:var(--text)">The counterintuitive headline:</strong> Despite constant debate about mountain bike prices, the BLS "Sports Vehicles including Bicycles" CPI has inflated at only <span style="color:var(--orange);font-weight:600">1.73%/year</span> since 1978 — well below the overall CPI average of 3.43%/year. Since 2000, bikes have risen only <span id="proseBikeTotal">—</span> while the broader economy rose <span id="proseCpiTotal">—</span>.
         </div>
       </div>
     </section>
@@ -324,7 +414,7 @@ tr:nth-child(odd){background:var(--panel2)}
     <section id="tab-2" class="tab-panel">
       <div class="sh"><div class="sh-title">The COVID Rollercoaster: 2017–2025</div></div>
       <div class="extras-bar" id="extrasBar2"></div>
-      <div class="chart-wrap" style="height:260px"><canvas id="chart2"></canvas></div>
+      <div class="chart-wrap chart-md"><canvas id="chart2"></canvas></div>
 
       <div class="sh" style="margin-top:22px"><div class="sh-title">Key Industry Events</div></div>
       <div id="eventTimeline"></div>
@@ -347,7 +437,7 @@ tr:nth-child(odd){background:var(--panel2)}
         </div>
         <div class="tf-picker" id="lineTfPicker"></div>
       </div>
-      <div class="chart-wrap" style="height:290px;margin-bottom:6px"><canvas id="chart4line"></canvas></div>
+      <div class="chart-wrap chart-lg" style="margin-bottom:6px"><canvas id="chart4line"></canvas></div>
       <div style="font-size:9px;color:var(--faint2);margin-bottom:20px;line-height:1.6">
         † PPI series (PCU339920339920, PCU3399203399204) use approximate annual averages from BLS monthly data. PCE S&amp;R Price Index approximate pre-2020. PCE Sport Equip ($) is nominal spending (price × volume), not a pure price index. ‡ BEA NIPA estimates for PCE pre-2021.
       </div>
@@ -359,7 +449,7 @@ tr:nth-child(odd){background:var(--panel2)}
         </div>
         <div class="tf-picker" id="barTfPicker"></div>
       </div>
-      <div class="chart-wrap" style="height:220px;margin-bottom:6px"><canvas id="chart4bar"></canvas></div>
+      <div class="chart-wrap chart-sm" style="margin-bottom:6px"><canvas id="chart4bar"></canvas></div>
       <div style="font-size:9px;color:var(--faint2);margin-bottom:24px;line-height:1.6">
         PCE Sport Equip ($) is nominal spending growth — reflects both price increases AND more consumers buying. Metrics without sufficient historical data (PPI Sporting Retailers, PCE Other Sport, Real PCE) are omitted from this chart.
       </div>
@@ -385,7 +475,7 @@ tr:nth-child(odd){background:var(--panel2)}
         <div class="sh-title">Hours-to-Buy Index (2005 = 100)</div>
         <div class="sh-sub">Accounts for both price AND wage changes — falling line = more affordable; rising = less affordable</div>
       </div>
-      <div class="chart-wrap" style="height:270px;margin-bottom:6px"><canvas id="chart5a"></canvas></div>
+      <div class="chart-wrap chart-md" style="margin-bottom:6px"><canvas id="chart5a"></canvas></div>
       <div style="font-size:9px;color:var(--faint2);margin-bottom:22px;line-height:1.6">
         † 2020 wage data reflects a composition effect: COVID disproportionately eliminated lower-wage jobs, mathematically raising the average without actual individual wage growth. This creates the slight dip in affordability in 2020 before the true COVID MSRP surge hit in 2021–2022.
       </div>
@@ -394,7 +484,7 @@ tr:nth-child(odd){background:var(--panel2)}
         <div class="sh-title">Wages vs. Bike Prices — Both Indexed to 2005 = 100</div>
         <div class="sh-sub">When the wage line is ABOVE a price line, that bike became more affordable. When below, less affordable.</div>
       </div>
-      <div class="chart-wrap" style="height:240px;margin-bottom:6px"><canvas id="chart5b"></canvas></div>
+      <div class="chart-wrap chart-sm" style="margin-bottom:6px"><canvas id="chart5b"></canvas></div>
       <div style="font-size:9px;color:var(--faint2);margin-bottom:24px;line-height:1.6">
         Wages (blue dashed) grew ~91% since 2005. Entry MSRP grew 67% — wages won. Mid MSRP grew 94% — essentially tied. Premium MSRP grew 123% — prices pulled ahead, but a 2024 premium bike is categorically better than its 2005 equivalent in every dimension.
       </div>
@@ -432,7 +522,31 @@ tr:nth-child(odd){background:var(--panel2)}
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA — all values sourced from FRED / BLS / BEA. See sources box in Tab 4.
+//
+// TO UPDATE FOR A NEW YEAR: add the year key to the relevant object(s) below.
+// Charts, tables, scorecards and the header cards all read from here and will
+// pick the new year up automatically. Written commentary (Key Findings cards,
+// the Affordability hero cards) is hand-authored and will NOT update itself.
 // ═══════════════════════════════════════════════════════════════════════════
+
+// Numbers that are used in more than one place, or that are worth being able
+// to change in a single edit. Anything here was previously a bare number typed
+// into the middle of a function.
+const CONFIG = {
+  cumulativeBaseYear: 2000,   // "Since 2000 = 100" baseline for Tabs 0/1
+  affordBaseYear:     2005,   // wage + MSRP series start here; Tab 5 indexes to it
+  compareLatestYear:  2024,   // newest year with a complete row across Compare series
+  covidStartYear:     2017,   // Tab 2 zoom window
+  covidEndYear:       2025,
+  defaultWage:        30.34,  // FRED AHETPI average hourly earnings, 2024
+  chartAnimationMs:   200,    // Chart.js transition when data changes
+  lineTension:        0.15,   // curve smoothing on line charts
+  playDurationMs:     7000,   // full left-to-right sweep of the Play button
+  // Bar/scorecard colour thresholds, as a multiple of the US CPI baseline:
+  // above 1.05x = red (outpacing inflation), above 0.55x = amber, else green.
+  hotThreshold:       1.05,
+  midThreshold:       0.55,
+};
 
 const fredCPI = {
   2000:3.38,2001:2.83,2002:1.59,2003:2.27,2004:2.68,
@@ -456,21 +570,59 @@ const bikeCPI = {
   2020:2.40,2021:6.94,2022:4.65,2023:0.10,2024:-2.05,2025:-3.17
 };
 
+// Turn a series of ANNUAL PERCENT CHANGES into a CUMULATIVE PRICE INDEX.
+// Start at 100 in the first year, then multiply forward: a +5% year multiplies
+// the running total by 1.05, a -2% year by 0.98. This compounding is why a run
+// of small percentages ends up far from where simple addition would put it.
+// Note the value stored for year Y is the level at the START of that year, i.e.
+// before Y's own change is applied — so the last key is the level going into
+// the final year, not the level after it. Use totalChangePct() below for the
+// full "how much did this rise overall" figure.
 function buildCumulative(annualPct){
   let val = 100;
   const out = {};
   Object.keys(annualPct).map(Number).sort((a,b)=>a-b).forEach(y=>{
     out[y] = parseFloat(val.toFixed(2));
-    val = val*(1+annualPct[y]/100);
+    val = val*(1+annualPct[y]/100);   // compound this year's change forward
   });
   return out;
 }
+
+// Total percent change across an entire annual-percent-change series, with every
+// year's change compounded in (including the final year's).
+function totalChangePct(annualPct){
+  let factor = 1;
+  Object.keys(annualPct).map(Number).sort((a,b)=>a-b).forEach(y=>{ factor *= 1 + annualPct[y]/100; });
+  return (factor - 1) * 100;
+}
+
+// Total percent change across a series of raw INDEX LEVELS (not percentages):
+// simply the last level over the first.
+function totalChangeFromLevels(levels){
+  const years = Object.keys(levels).map(Number).sort((a,b)=>a-b);
+  return (levels[years[years.length-1]] / levels[years[0]] - 1) * 100;
+}
+
+// Format a percentage for display in a card, e.g. 27.7 -> "+28%"
+const fmtWhole = v => `${v>=0?"+":"−"}${Math.abs(v).toFixed(0)}%`;
 const fredCumulative = buildCumulative(fredCPI);
+// The bike series is published as raw index LEVELS rather than annual percents,
+// so instead of compounding we just rebase: every year divided by the base year,
+// times 100. Same shape of output as buildCumulative, different input format.
 const bikeCumulative = (()=>{
-  const b=bikeRawCPI[2000]; const o={};
-  Object.keys(bikeRawCPI).forEach(y=>{ o[Number(y)]=parseFloat((bikeRawCPI[y]/b*100).toFixed(2)); });
-  return o;
+  const base = bikeRawCPI[CONFIG.cumulativeBaseYear];
+  const out = {};
+  Object.keys(bikeRawCPI).forEach(y=>{ out[Number(y)] = parseFloat((bikeRawCPI[y]/base*100).toFixed(2)); });
+  return out;
 })();
+
+// Headline totals, computed once from the data above so that no card, chart or
+// sentence in the page can drift out of step with the series it describes.
+const TOTALS = {
+  usCpiSince2000:  totalChangePct(fredCPI),
+  bikeCpiSince2000: totalChangeFromLevels(bikeRawCPI),
+};
+TOTALS.gapPoints = TOTALS.usCpiSince2000 - TOTALS.bikeCpiSince2000;
 
 function buildRows(){
   const years=[...new Set([...Object.keys(fredCPI),...Object.keys(bikeCPI)])].map(Number).sort((a,b)=>a-b);
@@ -480,12 +632,12 @@ function buildRows(){
   }));
 }
 const allRows = buildRows();
-const covidRows = allRows.filter(r=>r.year>=2017&&r.year<=2025);
-const allYearsArr = allRows.map(r=>r.year);
-const covidYearsArr = covidRows.map(r=>r.year);
+const covidRows = allRows.filter(r=>r.year>=CONFIG.covidStartYear && r.year<=CONFIG.covidEndYear);
+const allYears = allRows.map(r=>r.year);
+const covidYears = covidRows.map(r=>r.year);
 
 // Compare-tab absolute index values, used to normalize to any base year
-const ABS = {
+const COMPARE_INDEX_LEVELS = {
   "US CPI": {
     2005:113.42,2006:117.09,2007:120.42,2008:125.05,2009:124.60,
     2010:126.64,2011:130.64,2012:133.34,2013:135.29,2014:137.48,
@@ -530,18 +682,18 @@ const ABS = {
   },
 };
 
-const LINE_KEYS = {
+const COMPARE_LINE_SERIES = {
   "US CPI":"US CPI", "Bikes CPI":"Bikes CPI", "PPI: Sport Mfg":"PPI Sport Mfg",
   "PCE Sport Equip ($)":"PCE Sport Equip", "PPI: Golf Equip":"PPI Golf Equip",
   "PCE S&R Price Idx":"PCE S&R Price", "Sporting Events":"Sporting Events",
 };
-const LINE_COLORS = {
-  "US CPI":"#60a5fa", "Bikes CPI":"#f97316", "PPI: Sport Mfg":"#a78bfa",
-  "PCE Sport Equip ($)":"#22c55e", "PPI: Golf Equip":"#f59e0b",
-  "PCE S&R Price Idx":"#34d399", "Sporting Events":"#fb7185",
+const COMPARE_LINE_COLORS = {
+  "US CPI":PALETTE.blue, "Bikes CPI":PALETTE.orange, "PPI: Sport Mfg":PALETTE.purple,
+  "PCE Sport Equip ($)":PALETTE.green, "PPI: Golf Equip":PALETTE.amber,
+  "PCE S&R Price Idx":PALETTE.mint, "Sporting Events":PALETTE.rose,
 };
 
-const M2ABS = {
+const METRIC_TO_COMPARE_KEY = {
   "FPCPITOTLZGUSA":"US CPI", "BLS-Bikes":"Bikes CPI", "PCU339920339920":"PPI Sport Mfg",
   "DSPGRC1A027NBEA":"PCE Sport Equip", "PCU3399203399204":"PPI Golf Equip",
   "PCU451110451110":null, "DODRRG3A086NBEA":"PCE S&R Price", "DORIRG3A086NBEA":null,
@@ -560,36 +712,67 @@ const BIKE_PRICES = {
   mid:{2005:1800,2006:1900,2007:2000,2008:2100,2009:2100,2010:2200,2011:2400,2012:2500,2013:2600,2014:2700,2015:2800,2016:2850,2017:2900,2018:3000,2019:3100,2020:3500,2021:4200,2022:4800,2023:3900,2024:3500},
   premium:{2005:3500,2006:3700,2007:3900,2008:4100,2009:4200,2010:4500,2011:4800,2012:5000,2013:5200,2014:5500,2015:5800,2016:6000,2017:6000,2018:6200,2019:6500,2020:7500,2021:9000,2022:10500,2023:8500,2024:7800},
 };
-const AFFORD_ROWS = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(y=>{
-  const w = WAGES[y];
-  const eh=BIKE_PRICES.entry[y]/w, mh=BIKE_PRICES.mid[y]/w, ph=BIKE_PRICES.premium[y]/w;
-  const be=BIKE_PRICES.entry[2005]/WAGES[2005], bm=BIKE_PRICES.mid[2005]/WAGES[2005], bp=BIKE_PRICES.premium[2005]/WAGES[2005];
+// ── HOURS-TO-BUY ───────────────────────────────────────────────────────────
+// The core affordability measure: bike price divided by hourly wage = how many
+// hours the average worker must work to buy that bike. Because it divides price
+// by wage, it moves when EITHER one moves — a bike can get more expensive in
+// dollars and still get more affordable if wages rose faster.
+//
+// Each tier is then indexed against the base year (2005 = 100) so the three
+// tiers, which are wildly different in absolute hours, can be read on one axis.
+// An index of 90 means "10% fewer hours of work than in 2005" = more affordable.
+const AFFORD_BASE_HOURS = {
+  entry:   BIKE_PRICES.entry[CONFIG.affordBaseYear]   / WAGES[CONFIG.affordBaseYear],
+  mid:     BIKE_PRICES.mid[CONFIG.affordBaseYear]     / WAGES[CONFIG.affordBaseYear],
+  premium: BIKE_PRICES.premium[CONFIG.affordBaseYear] / WAGES[CONFIG.affordBaseYear],
+};
+const AFFORD_ROWS = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(year=>{
+  const wage = WAGES[year];
+  const entryHours   = BIKE_PRICES.entry[year]   / wage;
+  const midHours     = BIKE_PRICES.mid[year]     / wage;
+  const premiumHours = BIKE_PRICES.premium[year] / wage;
+  const round1 = v => parseFloat(v.toFixed(1));
   return {
-    year:y, wage:w,
-    entryHrs:parseFloat(eh.toFixed(1)), midHrs:parseFloat(mh.toFixed(1)), premHrs:parseFloat(ph.toFixed(1)),
-    entryIdx:parseFloat((eh/be*100).toFixed(1)), midIdx:parseFloat((mh/bm*100).toFixed(1)), premIdx:parseFloat((ph/bp*100).toFixed(1)),
-    entryPrice:BIKE_PRICES.entry[y], midPrice:BIKE_PRICES.mid[y], premPrice:BIKE_PRICES.premium[y],
+    year, wage,
+    entryHrs: round1(entryHours), midHrs: round1(midHours), premHrs: round1(premiumHours),
+    // hours this year as a percentage of hours in the base year
+    entryIdx: round1(entryHours   / AFFORD_BASE_HOURS.entry   * 100),
+    midIdx:   round1(midHours     / AFFORD_BASE_HOURS.mid     * 100),
+    premIdx:  round1(premiumHours / AFFORD_BASE_HOURS.premium * 100),
+    entryPrice:BIKE_PRICES.entry[year], midPrice:BIKE_PRICES.mid[year], premPrice:BIKE_PRICES.premium[year],
   };
 });
-const WAGE_PRICE_IDX = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(y=>({
-  year:y,
-  wageIdx:parseFloat((WAGES[y]/WAGES[2005]*100).toFixed(1)),
-  entryIdx:parseFloat((BIKE_PRICES.entry[y]/BIKE_PRICES.entry[2005]*100).toFixed(1)),
-  midIdx:parseFloat((BIKE_PRICES.mid[y]/BIKE_PRICES.mid[2005]*100).toFixed(1)),
-  premIdx:parseFloat((BIKE_PRICES.premium[y]/BIKE_PRICES.premium[2005]*100).toFixed(1)),
-}));
+// Latest year available in the affordability series — drives the calculator
+// defaults and the hero cards, so adding a 2025 row updates them automatically.
+const AFFORD_LATEST = AFFORD_ROWS[AFFORD_ROWS.length - 1];
+const AFFORD_BASE   = AFFORD_ROWS[0];
+// Wages and prices each indexed to the base year = 100, plotted together.
+// Unlike AFFORD_ROWS these are NOT divided by each other — keeping them as
+// separate lines is the point: where the wage line sits above a price line,
+// pay outgrew that bike. Same base year, so the lines are directly comparable.
+const WAGE_PRICE_IDX = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(year=>{
+  const base = CONFIG.affordBaseYear;
+  const idx = (series, y) => parseFloat((series[y] / series[base] * 100).toFixed(1));
+  return {
+    year,
+    wageIdx:  idx(WAGES, year),
+    entryIdx: idx(BIKE_PRICES.entry, year),
+    midIdx:   idx(BIKE_PRICES.mid, year),
+    premIdx:  idx(BIKE_PRICES.premium, year),
+  };
+});
 
-const metrics = [
-  { id:"FPCPITOTLZGUSA", name:"US All-Items CPI", shortName:"US CPI", badge:"CPI", badgeCol:"#60a5fa", url:"https://fred.stlouisfed.org/series/FPCPITOTLZGUSA", recentVal:"+2.95%", recentNote:"Annual 2024", isBaseline:true, desc:"Economy-wide baseline" },
-  { id:"BLS-Bikes", name:"Sports Vehicles / Bikes CPI", shortName:"Bikes CPI (BLS)", badge:"CPI", badgeCol:"#f97316", url:null, recentVal:"−3.17%", recentNote:"Annual 2025", isBaseline:false, desc:"BLS CPI for all sport vehicles incl. bicycles" },
-  { id:"PCU339920339920", name:"PPI: Sporting Goods Mfg", shortName:"PPI Sport Goods Mfg", badge:"PPI", badgeCol:"#a78bfa", url:"https://fred.stlouisfed.org/series/PCU339920339920", recentVal:"182.4", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices: all athletic & sporting goods mfg (NAICS 339920)" },
-  { id:"DSPGRC1A027NBEA", name:"PCE: Sporting Equipment Spending", shortName:"PCE Sport Equip $", badge:"PCE", badgeCol:"#22c55e", url:"https://fred.stlouisfed.org/series/DSPGRC1A027NBEA", recentVal:"$126.9B", recentNote:"Nominal 2025", isBaseline:false, desc:"Consumer spending: sporting equip, supplies, guns & ammo (nominal $B)" },
-  { id:"PCU3399203399204", name:"PPI: Golf Equipment", shortName:"PPI Golf Equipment", badge:"PPI", badgeCol:"#f59e0b", url:"https://fred.stlouisfed.org/series/PCU3399203399204", recentVal:"84.6", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices for golf clubs, balls & bags — below 1985 base of 100" },
-  { id:"PCU451110451110", name:"PPI: Sporting Goods Retailers", shortName:"PPI Sport Retailers", badge:"PPI", badgeCol:"#e879f9", url:"https://fred.stlouisfed.org/series/PCU451110451110", recentVal:"+2.0%", recentNote:"YoY Mar 2025", isBaseline:false, desc:"Retail-level prices: bikes, camping gear, fitness equip & accessories" },
-  { id:"DODRRG3A086NBEA", name:"PCE Price Idx: Sports & Rec", shortName:"PCE S&R Price Idx", badge:"PCE", badgeCol:"#34d399", url:"https://fred.stlouisfed.org/series/DODRRG3A086NBEA", recentVal:"100.5", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: all sports & recreational goods spending" },
-  { id:"DORIRG3A086NBEA", name:"PCE Price Idx: Other Sport Gds", shortName:"PCE Other Sport", badge:"PCE", badgeCol:"#6ee7b7", url:"https://fred.stlouisfed.org/series/DORIRG3A086NBEA", recentVal:"95.3", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: other sporting & recreational goods" },
-  { id:"Sporting-Events", name:"Admission to Sporting Events", shortName:"Sporting Events CPI", badge:"CPI", badgeCol:"#fb7185", url:null, recentVal:"+9.69%", recentNote:"Annual 2024", isBaseline:false, desc:"Consumer prices for tickets to professional & amateur sporting events" },
-  { id:"DSPGRX1A020NBEA", name:"Real PCE: Sporting Equipment", shortName:"Real PCE Sport Equip", badge:"PCE", badgeCol:"#94a3b8", url:"https://fred.stlouisfed.org/series/DSPGRX1A020NBEA", recentVal:"~+11%", recentNote:"Est. real 2021→2024", isBaseline:false, desc:"Inflation-adjusted consumer spending on sporting equipment" },
+const COMPARE_METRICS = [
+  { id:"FPCPITOTLZGUSA", name:"US All-Items CPI", shortName:"US CPI", badge:"CPI", badgeCol:PALETTE.blue, url:"https://fred.stlouisfed.org/series/FPCPITOTLZGUSA", recentVal:"+2.95%", recentNote:"Annual 2024", isBaseline:true, desc:"Economy-wide baseline" },
+  { id:"BLS-Bikes", name:"Sports Vehicles / Bikes CPI", shortName:"Bikes CPI (BLS)", badge:"CPI", badgeCol:PALETTE.orange, url:null, recentVal:"−3.17%", recentNote:"Annual 2025", isBaseline:false, desc:"BLS CPI for all sport vehicles incl. bicycles" },
+  { id:"PCU339920339920", name:"PPI: Sporting Goods Mfg", shortName:"PPI Sport Goods Mfg", badge:"PPI", badgeCol:PALETTE.purple, url:"https://fred.stlouisfed.org/series/PCU339920339920", recentVal:"182.4", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices: all athletic & sporting goods mfg (NAICS 339920)" },
+  { id:"DSPGRC1A027NBEA", name:"PCE: Sporting Equipment Spending", shortName:"PCE Sport Equip $", badge:"PCE", badgeCol:PALETTE.green, url:"https://fred.stlouisfed.org/series/DSPGRC1A027NBEA", recentVal:"$126.9B", recentNote:"Nominal 2025", isBaseline:false, desc:"Consumer spending: sporting equip, supplies, guns & ammo (nominal $B)" },
+  { id:"PCU3399203399204", name:"PPI: Golf Equipment", shortName:"PPI Golf Equipment", badge:"PPI", badgeCol:PALETTE.amber, url:"https://fred.stlouisfed.org/series/PCU3399203399204", recentVal:"84.6", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices for golf clubs, balls & bags — below 1985 base of 100" },
+  { id:"PCU451110451110", name:"PPI: Sporting Goods Retailers", shortName:"PPI Sport Retailers", badge:"PPI", badgeCol:PALETTE.magenta, url:"https://fred.stlouisfed.org/series/PCU451110451110", recentVal:"+2.0%", recentNote:"YoY Mar 2025", isBaseline:false, desc:"Retail-level prices: bikes, camping gear, fitness equip & accessories" },
+  { id:"DODRRG3A086NBEA", name:"PCE Price Idx: Sports & Rec", shortName:"PCE S&R Price Idx", badge:"PCE", badgeCol:PALETTE.mint, url:"https://fred.stlouisfed.org/series/DODRRG3A086NBEA", recentVal:"100.5", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: all sports & recreational goods spending" },
+  { id:"DORIRG3A086NBEA", name:"PCE Price Idx: Other Sport Gds", shortName:"PCE Other Sport", badge:"PCE", badgeCol:PALETTE.mintPale, url:"https://fred.stlouisfed.org/series/DORIRG3A086NBEA", recentVal:"95.3", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: other sporting & recreational goods" },
+  { id:"Sporting-Events", name:"Admission to Sporting Events", shortName:"Sporting Events CPI", badge:"CPI", badgeCol:PALETTE.rose, url:null, recentVal:"+9.69%", recentNote:"Annual 2024", isBaseline:false, desc:"Consumer prices for tickets to professional & amateur sporting events" },
+  { id:"DSPGRX1A020NBEA", name:"Real PCE: Sporting Equipment", shortName:"Real PCE Sport Equip", badge:"PCE", badgeCol:PALETTE.slate, url:"https://fred.stlouisfed.org/series/DSPGRX1A020NBEA", recentVal:"~+11%", recentNote:"Est. real 2021→2024", isBaseline:false, desc:"Inflation-adjusted consumer spending on sporting equipment" },
 ];
 
 const TF_OPTIONS = [
@@ -603,78 +786,77 @@ const ALL_YEARS = [2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2
 
 // Optional comparison series (annual % change), approximate annual averages from FRED monthly data †
 const EXTRA_SERIES = {
-  vehicles:{ label:"New Vehicles CPI", color:"#e879f9", fred:"CUUR0000SETA01",
+  vehicles:{ label:"New Vehicles CPI", color:PALETTE.magenta, fred:"CUUR0000SETA01",
     note:"Interesting contrast: cars stayed flat for 20 years (hedonic quality adjustment), then spiked 11.8% in 2022",
     data:{2000:0.0,2001:0.0,2002:-0.9,2003:-1.8,2004:0.6,2005:0.5,2006:-0.2,2007:-0.7,2008:-0.7,2009:0.9,2010:1.8,2011:2.4,2012:1.5,2013:1.1,2014:0.4,2015:0.4,2016:0.2,2017:-0.4,2018:-0.3,2019:0.4,2020:1.6,2021:6.6,2022:11.8,2023:4.0,2024:-0.9,2025:0.3} },
-  footwear:{ label:"Footwear CPI", color:"#34d399", fred:"CUUR0000SEAE",
+  footwear:{ label:"Footwear CPI", color:PALETTE.mint, fred:"CUUR0000SEAE",
     note:"Includes athletic shoes — decades of near-zero inflation from offshore manufacturing, mirroring bikes",
     data:{2000:-1.2,2001:-1.0,2002:-1.6,2003:-1.7,2004:-0.6,2005:-0.4,2006:0.7,2007:0.5,2008:1.2,2009:0.4,2010:0.5,2011:1.4,2012:2.7,2013:1.2,2014:0.6,2015:0.4,2016:0.9,2017:-0.4,2018:-0.5,2019:0.8,2020:-3.0,2021:4.9,2022:4.7,2023:1.2,2024:-1.0,2025:0.5} },
-  steel:{ label:"Steel Mill Products PPI", color:"#94a3b8", fred:"WPU1017",
+  steel:{ label:"Steel Mill Products PPI", color:PALETTE.slate, fred:"WPU1017",
     note:"Chromoly frame tubing is a steel mill product. Wildly volatile — +72% in 2021 alone",
     data:{2000:0.5,2001:-5.0,2002:3.0,2003:5.0,2004:35.0,2005:0.0,2006:8.0,2007:4.0,2008:25.0,2009:-25.0,2010:12.0,2011:10.0,2012:-4.0,2013:-3.0,2014:1.0,2015:-12.0,2016:-5.0,2017:8.0,2018:12.0,2019:-6.0,2020:-8.0,2021:72.0,2022:12.0,2023:-18.0,2024:-9.0,2025:0.0} },
-  aluminum:{ label:"Aluminum Sheet & Strip PPI", color:"#fbbf24", fred:"WPU10250105",
+  aluminum:{ label:"Aluminum Sheet & Strip PPI", color:PALETTE.gold, fred:"WPU10250105",
     note:"Closest FRED proxy for 6061-series alloy used in most MTB frames — +28% in 2021",
     data:{2000:2.0,2001:-4.0,2002:-2.0,2003:1.0,2004:8.0,2005:5.0,2006:15.0,2007:2.0,2008:3.0,2009:-12.0,2010:8.0,2011:7.0,2012:-3.0,2013:-2.0,2014:3.0,2015:-2.0,2016:-3.0,2017:6.0,2018:10.0,2019:-2.0,2020:-4.0,2021:28.0,2022:16.0,2023:-8.0,2024:-2.0,2025:3.0} },
-  titanium:{ label:"Titanium Mill Shapes PPI", color:"#22d3ee", fred:"WPU102505",
+  titanium:{ label:"Titanium Mill Shapes PPI", color:PALETTE.cyan, fred:"WPU102505",
     note:"Ti-6Al-4V frame tubing lives here. Steadier than steel/aluminum — aerospace demand sets the price, not bikes",
     data:{2000:1.0,2001:2.0,2002:-3.0,2003:-2.0,2004:5.0,2005:25.0,2006:30.0,2007:-5.0,2008:-8.0,2009:-15.0,2010:2.0,2011:6.0,2012:3.0,2013:-2.0,2014:-1.0,2015:-2.0,2016:-4.0,2017:1.0,2018:3.0,2019:2.0,2020:-3.0,2021:3.0,2022:12.0,2023:8.0,2024:4.0,2025:2.0} },
-  euEquip:{ label:"EU Sports Equipment", color:"#6ee7b7", fred:"Eurostat HICP CP0932",
+  euEquip:{ label:"EU Sports Equipment", color:PALETTE.mintPale, fred:"Eurostat HICP CP0932",
     note:"European HICP for sporting equipment — averaged just 0.9%/yr 2014–2024; same offshore-manufacturing deflation story as US bikes",
     data:{2000:1.0,2001:1.0,2002:0.5,2003:0.2,2004:0.0,2005:-0.2,2006:-0.3,2007:0.0,2008:0.5,2009:0.8,2010:0.3,2011:0.5,2012:0.8,2013:0.4,2014:0.2,2015:0.3,2016:0.4,2017:0.5,2018:0.3,2019:0.5,2020:1.0,2021:1.5,2022:3.8,2023:3.4,2024:1.0,2025:0.5} },
-  tickets:{ label:"Sports Tickets CPI", color:"#fb7185", fred:"BLS CUUR0000SS62031",
+  tickets:{ label:"Sports Tickets CPI", color:PALETTE.rose, fred:"BLS CUUR0000SS62031",
     note:"Admission to sporting events — the runaway inflation champion: −18% COVID collapse, then +8–10%/yr four years straight",
     data:{2000:3.5,2001:3.8,2002:3.5,2003:3.0,2004:3.2,2005:3.5,2006:4.6,2007:5.0,2008:4.8,2009:1.7,2010:-2.2,2011:5.2,2012:4.4,2013:4.7,2014:3.0,2015:1.5,2016:2.4,2017:1.4,2018:0.9,2019:3.3,2020:-18.2,2021:8.1,2022:8.3,2023:8.3,2024:9.7,2025:4.0} },
-  durables:{ label:"CPI: Durables (all goods)", color:"#a78bfa", fred:"CUSR0000SAD",
+  durables:{ label:"CPI: Durables (all goods)", color:PALETTE.purple, fred:"CUSR0000SAD",
     note:"Every durable good, not just sporting goods — two decades of mild deflation (the 'Walmart/China effect'), then the sharpest reversal since the 1970s in 2021–2022",
     data:{2000:1.5,2001:-1.1,2002:-2.6,2003:-2.3,2004:-2.3,2005:-1.6,2006:-1.6,2007:-1.6,2008:-0.8,2009:-2.5,2010:-0.9,2011:0.4,2012:-0.4,2013:-0.9,2014:-0.9,2015:-1.3,2016:-1.4,2017:-0.9,2018:-0.5,2019:-0.5,2020:-1.4,2021:5.2,2022:8.9,2023:4.1,2024:-0.8,2025:-1.6} },
-  sportRetail:{ label:"Sporting Goods Store Sales ($)", color:"#facc15", fred:"MRTSSM45111USN",
+  sportRetail:{ label:"Sporting Goods Store Sales ($)", color:PALETTE.yellow, fred:"MRTSSM45111USN",
     note:"Census retail sales — total dollars rung up at sporting goods stores nationally. Mixes price AND volume, not a pure price index",
     data:{2000:3.0,2001:3.9,2002:2.5,2003:2.5,2004:3.6,2005:3.5,2006:3.4,2007:2.2,2008:-2.1,2009:-5.4,2010:3.4,2011:3.3,2012:2.2,2013:1.1,2014:1.0,2015:1.0,2016:1.0,2017:-1.0,2018:1.0,2019:2.0,2020:8.9,2021:10.9,2022:-1.6,2023:-3.3,2024:-2.6,2025:-2.7} },
-  realSportRec:{ label:"Real PCE: Other Sport/Rec Goods", color:"#4ade80", fred:"DORIRX1A020NBEA",
+  realSportRec:{ label:"Real PCE: Other Sport/Rec Goods", color:PALETTE.greenPale, fred:"DORIRX1A020NBEA",
     note:"Inflation-adjusted VOLUME of sports/rec goods bought (chained 2017$), not price — 2020–2021 show people buying dramatically more, not just paying more. 2020–24 exact from FRED; earlier years approximate",
     data:{2007:3.5,2008:-1.1,2009:-5.3,2010:3.9,2011:3.8,2012:3.1,2013:3.0,2014:3.9,2015:3.8,2016:3.6,2017:3.5,2018:3.8,2019:4.1,2020:6.3,2021:13.5,2022:0.02,2023:6.0,2024:6.5} },
-  ppiOther:{ label:"PPI: Other Sporting/Athletic Goods", color:"#818cf8", fred:"PCU339920339920A",
+  ppiOther:{ label:"PPI: Other Sporting/Athletic Goods", color:PALETTE.indigo, fred:"PCU339920339920A",
     note:"Narrower BLS sub-index within sporting goods manufacturing, currently running hotter (190.4) than the broader index (182.4). Lowest-confidence series in this tool — shape approximated from the parent index",
     data:{2000:2.0,2001:1.5,2002:1.0,2003:2.0,2004:3.5,2005:2.5,2006:2.0,2007:2.0,2008:2.5,2009:-1.5,2010:3.0,2011:4.5,2012:2.5,2013:2.0,2014:3.0,2015:2.5,2016:1.0,2017:2.5,2018:2.5,2019:2.5,2020:-2.0,2021:8.0,2022:7.5,2023:2.0,2024:1.5,2025:1.8} },
 };
 const EXTRA_CUM = Object.fromEntries(Object.keys(EXTRA_SERIES).map(k=>[k, buildCumulative(EXTRA_SERIES[k].data)]));
 
 const SPREAD_OPTS = {
-  bikes:{ label:"Bikes CPI (BLS)", color:"#f97316", data:bikeCPI },
-  uscpi:{ label:"US CPI (FRED)", color:"#60a5fa", data:fredCPI },
+  bikes:{ label:"Bikes CPI (BLS)", color:PALETTE.orange, data:bikeCPI },
+  uscpi:{ label:"US CPI (FRED)", color:PALETTE.blue, data:fredCPI },
   ...Object.fromEntries(Object.entries(EXTRA_SERIES).map(([k,s])=>[k,{label:s.label,color:s.color,data:s.data}])),
 };
 
-const benchmarks = [
+// Header scorecards. The US CPI and Bikes CPI figures are CALCULATED from the
+// series above rather than typed in, so they can never disagree with the charts
+// that use the same numbers. The remaining three come from outside sources that
+// aren't series in this file, so they stay as written values with their source
+// named in `note`.
+const HEADER_BENCHMARKS = [
   { label:"Sports Tickets", value:"+158%", since:"1997–2026", note:"+9.7% in 2024 alone", hl:false },
-  { label:"US All-Items CPI", value:"+83%", since:"2000–2025", note:"FRED FPCPITOTLZGUSA", hl:false },
-  { label:"Sports Vehicles/Bikes", value:"+28%", since:"2000–2025", note:"BLS CPI (all bike types)", hl:true, cls:"orange" },
+  { label:"US All-Items CPI", value:fmtWhole(TOTALS.usCpiSince2000), since:"2000–2024",
+    note:"FRED FPCPITOTLZGUSA", hl:false },
+  { label:"Sports Vehicles/Bikes", value:fmtWhole(TOTALS.bikeCpiSince2000), since:"2000–2025",
+    note:"BLS CPI (all bike types)", hl:true, cls:"orange" },
   { label:"EU Sport Equipment", value:"+~9%", since:"2014–2024", note:"EU HICP avg 0.9%/yr", hl:false },
   { label:"MTB MSRP Surge", value:"+40–50%", since:"2019–2022", note:"Bicycle Association data", hl:false, cls:"red" },
 ];
-
-const THEME_DOTS = [
-  { key:"s10", name:"S-10 (default)", dot:"#e7e9ec" },
-  { key:"f150", name:"F-150", dot:"#2d3542" },
-  { key:"1500", name:"1500", dot:"#453f38" },
-];
-
-const TABS = ["Annual % Change","Cumulative Index","COVID Era","Key Findings","Compare","Affordability"];
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
-// STATE
+// STATE — everything the UI can change at runtime lives here, nowhere else.
 // ═══════════════════════════════════════════════════════════════════════════
 const state = {
   tab: 0,
-  theme: "s10",
-  lineTf: 2021,
-  barTf: 2021,
-  myWage: 30.34,
+  theme: THEMES[0].key,
+  lineTf: 2021,              // base year for the Compare line chart
+  barTf: 2021,               // base year for the Compare bar chart
+  myWage: CONFIG.defaultWage,
   playing: false,
-  playYear: 2025,
-  playTimer: null,
-  extras: {},          // key -> bool, shared across tabs 0/1/2
+  playProgress: 1,           // 0 = start of the sweep, 1 = fully drawn
+  playFrame: null,           // requestAnimationFrame handle
+  extras: {},                // series key -> bool, shared across tabs 0/1/2
   spreadA: "bikes",
   spreadB: "uscpi",
 };
@@ -682,10 +864,15 @@ const charts = {}; // Chart.js instance registry, keyed by canvas id
 
 const $ = id => document.getElementById(id);
 const fmtPct = v => (v==null ? "—" : `${v>0?"+":""}${v.toFixed(2)}%`);
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+function baseFont(size){ return { family:"'IBM Plex Mono', monospace", size: size ?? 10 }; }
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CUSTOM CHART.JS PLUGIN — draws horizontal/vertical reference lines
-// (replaces the ReferenceLine components from the React version)
+// CHART.JS PLUGIN — reference lines
+// Draws the horizontal/vertical marker lines (the zero line, the "2005
+// baseline" line, the COVID/PEAK/BUST year markers). Replaces the ReferenceLine
+// components from the original React version.
 // ═══════════════════════════════════════════════════════════════════════════
 const refLinesPlugin = {
   id: "refLines",
@@ -723,106 +910,210 @@ const refLinesPlugin = {
     ctx.restore();
   }
 };
-Chart.register(refLinesPlugin);
-
-// Shared Chart.js defaults matching the widget's aesthetic
-function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
-function baseFont(){ return { family:"'IBM Plex Mono', monospace", size:10 }; }
-
-function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// THEME SWITCHING
+// CHART.JS PLUGIN — reveal (drives the Play button)
+//
+// HOW THE PLAY ANIMATION WORKS, and why it's done this way:
+// The obvious approach is to hide later years by setting their values to null
+// and rebuilding the chart once per year. That's what this tool used to do, and
+// it looked choppy for three reasons — the whole chart was destroyed and
+// recreated 25 times, each rebuild restarted Chart.js's own 200ms transition,
+// and the line could only ever advance in whole-year jumps.
+//
+// Instead the chart is now built ONCE with all its data, and this plugin simply
+// clips the canvas so only the left-hand fraction of the plot area is painted.
+// Sliding that clip edge across at 60fps gives a continuous sweep, the axis
+// never rescales mid-play, and the gridlines and reference lines stay fully
+// visible because they're drawn outside the clipped region.
 // ═══════════════════════════════════════════════════════════════════════════
-function applyTheme(key){
-  state.theme = key;
-  document.body.className = "theme-" + key;
-  document.querySelectorAll(".theme-dot").forEach(d=>{
-    d.classList.toggle("active", d.dataset.key===key);
-  });
-  // Redraw whatever charts currently exist so gridlines/text pick up new CSS vars
-  Object.keys(charts).forEach(id=>{
-    const c = charts[id];
-    if(!c) return;
-    updateChartTheme(c);
-  });
-}
-function updateChartTheme(chart){
-  const grid = cssVar("--grid"), sub2 = cssVar("--sub2"), tooltip = cssVar("--tooltip"), border3 = cssVar("--border3"), text = cssVar("--text");
-  if(chart.options.scales?.x){
-    chart.options.scales.x.grid.color = grid;
-    chart.options.scales.x.ticks.color = sub2;
+const revealPlugin = {
+  id: "reveal",
+  beforeDatasetsDraw(chart, args, opts){
+    const p = opts?.progress;
+    if(p == null || p >= 1) return;
+    const {ctx, chartArea:{left,right,top,bottom}} = chart;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(left, top, Math.max(0, (right-left) * p), bottom - top);
+    ctx.clip();
+  },
+  afterDatasetsDraw(chart, args, opts){
+    const p = opts?.progress;
+    if(p == null || p >= 1) return;   // must mirror the guard above, or the
+    chart.ctx.restore();              // canvas save/restore stack goes wrong
   }
-  if(chart.options.scales?.y){
-    chart.options.scales.y.grid.color = grid;
-    chart.options.scales.y.ticks.color = sub2;
-  }
-  if(chart.options.plugins?.legend?.labels) chart.options.plugins.legend.labels.color = sub2;
-  if(chart.options.plugins?.tooltip){
-    chart.options.plugins.tooltip.backgroundColor = tooltip;
-    chart.options.plugins.tooltip.borderColor = border3;
-    chart.options.plugins.tooltip.titleColor = "#f97316";
-    chart.options.plugins.tooltip.bodyColor = text;
-  }
-  chart.update("none");
-}
+};
+
+Chart.register(refLinesPlugin, revealPlugin);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHARED CHART BUILDERS
+// Every chart in the tool used to repeat the same ~20 lines of Chart.js options
+// with one or two values changed. These two factories hold that boilerplate in
+// one place, so a new chart is a short call rather than another copy-paste, and
+// a styling change applies everywhere at once.
+// ═══════════════════════════════════════════════════════════════════════════
 
 function stdTooltip(extra){
   return {
     backgroundColor: cssVar("--tooltip"),
     borderColor: cssVar("--border3"),
     borderWidth: 1,
-    titleColor: "#f97316",
+    titleColor: PALETTE.orange,
     bodyColor: cssVar("--text"),
     titleFont: { family:"'IBM Plex Mono', monospace", size:11, weight:"700" },
-    bodyFont: { family:"'IBM Plex Mono', monospace", size:11 },
+    bodyFont: baseFont(11),
     padding: 10,
     boxPadding: 4,
     ...extra
   };
 }
-function stdScales(yTitle, xTicksFont){
+function stdLegend(){
+  return { labels:{ color:cssVar("--sub2"), font: baseFont(), boxWidth:12, padding:10 } };
+}
+// One axis, themed. `suffix` appends a unit to every tick, e.g. "%".
+function stdAxis({suffix, min, max, showGrid = true, tickColor, tickSize} = {}){
+  const ticks = { color: tickColor || cssVar("--sub2"), font: baseFont(tickSize) };
+  if(suffix) ticks.callback = v => v + suffix;
+  return { min, max, grid: showGrid ? {color:cssVar("--grid")} : {display:false}, ticks };
+}
+
+// A single line on a line chart. Keeps dataset styling consistent and means a
+// series is described by what it IS, not by twelve Chart.js properties.
+function lineDataset(label, data, color, opts = {}){
   return {
-    x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font: xTicksFont || baseFont()} },
-    y:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font: baseFont()} },
+    label, data,
+    borderColor: color,
+    backgroundColor: opts.fill ? withAlpha(color, "22") : color,
+    borderWidth: opts.width ?? 2,
+    borderDash: opts.dash,
+    pointRadius: opts.point ?? 0,
+    pointHoverRadius: opts.pointHover ?? 3,
+    tension: CONFIG.lineTension,
+    fill: opts.fill ?? false,
+    spanGaps: opts.spanGaps ?? false,
   };
 }
-function stdLegend(){
-  return { labels:{ color:cssVar("--sub2"), font: {family:"'IBM Plex Mono', monospace", size:10}, boxWidth:12, padding:10 } };
+// Convenience wrapper for the dashed "comparison series" style used by the
+// optional extra series on tabs 0, 1 and 2.
+function extraDataset(label, data, color, opts = {}){
+  return lineDataset(label, data, color, { width:1.8, dash:[5,3], ...opts });
+}
+
+function makeLineChart(canvasId, {
+  labels, datasets, yMin, yMax, ySuffix, tooltipCallbacks,
+  refLines = [], revealProgress = 1, showLegend = true,
+}){
+  destroyChart(canvasId);
+  charts[canvasId] = new Chart($(canvasId).getContext("2d"), {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      animation:{ duration: CONFIG.chartAnimationMs },
+      interaction:{ mode:"index", intersect:false },
+      scales:{ x: stdAxis(), y: stdAxis({suffix:ySuffix, min:yMin, max:yMax}) },
+      plugins:{
+        legend: showLegend ? stdLegend() : {display:false},
+        tooltip: stdTooltip(tooltipCallbacks ? {callbacks: tooltipCallbacks} : undefined),
+        refLines: { lines: refLines },
+        reveal: { progress: revealProgress },
+      }
+    }
+  });
+  return charts[canvasId];
+}
+
+function makeBarChart(canvasId, {
+  labels, data, colors, horizontal = false, valueSuffix = "%",
+  tooltipCallbacks, refLines = [], borderRadius = 2,
+}){
+  destroyChart(canvasId);
+  const valueAxis = stdAxis({suffix: valueSuffix});
+  const labelAxis = horizontal
+    ? stdAxis({showGrid:false, tickColor:cssVar("--text2"), tickSize:9.5})
+    : stdAxis();
+  charts[canvasId] = new Chart($(canvasId).getContext("2d"), {
+    type: "bar",
+    data: { labels, datasets:[{ data, backgroundColor: colors, borderRadius, borderSkipped:false }] },
+    options: {
+      indexAxis: horizontal ? "y" : "x",
+      responsive:true, maintainAspectRatio:false,
+      animation:{ duration: CONFIG.chartAnimationMs },
+      scales: horizontal ? { x: valueAxis, y: labelAxis } : { x: labelAxis, y: valueAxis },
+      plugins:{
+        legend:{display:false},
+        tooltip: stdTooltip(tooltipCallbacks ? {callbacks: tooltipCallbacks} : undefined),
+        refLines: { lines: refLines },
+      }
+    }
+  });
+  return charts[canvasId];
+}
+
+// Pick a sensible y-axis range: the data's own min/max plus a little breathing
+// room, rounded outward to whole numbers.
+function domainFrom(vals, pad){
+  pad = pad ?? 1.5;
+  const v = vals.filter(x=>x!=null);
+  return { min: Math.floor(Math.min(...v)-pad), max: Math.ceil(Math.max(...v)+pad) };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TAB SWITCHING
+// THEME SWITCHING — reads THEMES from the head script; nothing hardcoded here.
 // ═══════════════════════════════════════════════════════════════════════════
-function showTab(idx){
-  state.tab = idx;
-  document.querySelectorAll(".tab-btn").forEach((b,i)=>b.classList.toggle("active", i===idx));
-  document.querySelectorAll(".tab-panel").forEach((p,i)=>p.classList.toggle("active", i===idx));
-  // Lazy-init charts for this tab the first time it's shown
-  if(idx===0 && !charts.chart0) initTab0();
-  if(idx===1 && !charts.chart1) initTab1();
-  if(idx===2 && !charts.chart2) initTab2();
-  if(idx===3 && !document.getElementById("findingsGrid").children.length) initTab3();
-  if(idx===4 && !charts.chart4line) initTab4();
-  if(idx===5 && !charts.chart5a) initTab5();
+function applyTheme(key){
+  state.theme = key;
+  document.body.className = "theme-" + key;
+  document.querySelectorAll(".theme-dot").forEach(d=>{
+    d.classList.toggle("active", d.dataset.key === key);
+  });
+  // Existing charts hold resolved colour strings, so re-read the CSS variables
+  // and push the new values in rather than rebuilding every chart.
+  Object.values(charts).forEach(c => { if(c) updateChartTheme(c); });
+}
+function updateChartTheme(chart){
+  const grid = cssVar("--grid"), sub2 = cssVar("--sub2"),
+        tooltip = cssVar("--tooltip"), border3 = cssVar("--border3"), text = cssVar("--text");
+  ["x","y"].forEach(axis=>{
+    const sc = chart.options.scales?.[axis];
+    if(!sc) return;
+    if(sc.grid?.color) sc.grid.color = grid;
+    if(sc.ticks) sc.ticks.color = (axis==="y" && chart.options.indexAxis==="y") ? cssVar("--text2") : sub2;
+  });
+  if(chart.options.plugins?.legend?.labels) chart.options.plugins.legend.labels.color = sub2;
+  if(chart.options.plugins?.tooltip){
+    Object.assign(chart.options.plugins.tooltip, {
+      backgroundColor: tooltip, borderColor: border3,
+      titleColor: PALETTE.orange, bodyColor: text,
+    });
+  }
+  chart.update("none");
 }
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
-// TAB 0 — ANNUAL % CHANGE (play button, extras toggles, configurable spread)
+// TAB 0 — ANNUAL % CHANGE (play sweep, extras toggles, configurable spread)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function activeExtras(){ return Object.keys(EXTRA_SERIES).filter(k=>state.extras[k]); }
+
+// The three "Compare with:" bars (tabs 0, 1 and 2) are the same control shown
+// in three places, so they're listed once here rather than named individually
+// at every call site.
+const EXTRAS_BARS = ["extrasBar0","extrasBar1","extrasBar2"];
 
 function renderExtrasBar(containerId){
   const el = $(containerId);
   el.innerHTML = `<span class="extras-label">Compare with:</span>`;
   Object.entries(EXTRA_SERIES).forEach(([key,s])=>{
+    const on = !!state.extras[key];
     const btn = document.createElement("button");
-    btn.className = "extra-chip" + (state.extras[key] ? " active" : "");
+    btn.className = "extra-chip" + (on ? " active" : "");
     btn.title = `${s.note} — Source: ${s.fred}`;
-    btn.textContent = (state.extras[key] ? "● " : "○ ") + s.label;
-    if(state.extras[key]){ btn.style.background = s.color+"22"; btn.style.borderColor = s.color; btn.style.color = s.color; }
+    btn.textContent = (on ? "● " : "○ ") + s.label;
+    if(on){ btn.style.background = withAlpha(s.color,"22"); btn.style.borderColor = s.color; btn.style.color = s.color; }
     btn.onclick = () => toggleExtra(key);
     el.appendChild(btn);
   });
@@ -830,71 +1121,93 @@ function renderExtrasBar(containerId){
 
 function toggleExtra(key){
   state.extras[key] = !state.extras[key];
-  renderExtrasBar("extrasBar0");
-  renderExtrasBar("extrasBar1");
-  renderExtrasBar("extrasBar2");
+  EXTRAS_BARS.forEach(renderExtrasBar);
   updateTab0Chart();
   updateTab1Chart();
   updateTab2Chart();
 }
 
-function domainFrom(vals, pad){
-  pad = pad ?? 1.5;
-  const v = vals.filter(x=>x!=null);
-  return { min: Math.floor(Math.min(...v)-pad), max: Math.ceil(Math.max(...v)+pad) };
-}
+// ── PLAY SWEEP ─────────────────────────────────────────────────────────────
+// state.playProgress runs 0 → 1 across the whole year range; the reveal plugin
+// turns it into a clip edge. Driven by requestAnimationFrame so it advances
+// once per screen refresh (~60fps) instead of in 25 discrete jumps.
+const PLAY_FIRST_YEAR = allYears[0];
+const PLAY_LAST_YEAR  = allYears[allYears.length - 1];
+const playYearAt = p => Math.round(PLAY_FIRST_YEAR + p * (PLAY_LAST_YEAR - PLAY_FIRST_YEAR));
 
 function renderPlayControls(){
   const el = $("playControls");
   el.innerHTML = "";
+  const finished = state.playProgress >= 1;
+
+  const main = document.createElement("button");
   if(state.playing){
-    const pause = document.createElement("button");
-    pause.className = "btn-pause"; pause.textContent = "⏸ Pause";
-    pause.onclick = pausePlay;
-    el.appendChild(pause);
+    main.className = "btn-pause"; main.textContent = "⏸ Pause"; main.onclick = pausePlay;
   } else {
-    const play = document.createElement("button");
-    play.className = "btn-play"; play.textContent = "▶ Play";
-    play.onclick = startPlay;
-    el.appendChild(play);
+    main.className = "btn-play"; main.textContent = finished ? "▶ Play" : "▶ Resume"; main.onclick = startPlay;
   }
-  if(state.playYear < 2025){
+  el.appendChild(main);
+
+  if(!finished){
     const reset = document.createElement("button");
-    reset.className = "btn-reset"; reset.textContent = "↺ Reset";
-    reset.onclick = resetPlay;
+    reset.className = "btn-reset"; reset.textContent = "↺ Reset"; reset.onclick = resetPlay;
     el.appendChild(reset);
-  }
-  if(state.playing || state.playYear < 2025){
+
     const yr = document.createElement("span");
-    yr.className = "play-year"; yr.textContent = state.playYear;
+    yr.className = "play-year"; yr.id = "playYear"; yr.textContent = playYearAt(state.playProgress);
     el.appendChild(yr);
   }
 }
+
+// Push the current sweep position into the chart and update the year readout.
+// Called once per animation frame, so it deliberately avoids rebuilding the
+// chart or touching the DOM more than necessary.
+function applyRevealProgress(){
+  const chart = charts.chart0;
+  if(chart){
+    chart.options.plugins.reveal.progress = state.playProgress;
+    chart.update("none");   // "none" = redraw with no Chart.js transition
+  }
+  const readout = $("playYear");
+  if(readout){
+    const y = playYearAt(state.playProgress);
+    if(readout.textContent !== String(y)) readout.textContent = y;
+  }
+}
+
 function startPlay(){
-  state.playYear = 2000; state.playing = true;
-  renderPlayControls();
-  updateTab0Chart();
-  state.playTimer = setInterval(()=>{
-    state.playYear++;
-    if(state.playYear >= 2025){
-      state.playYear = 2025; state.playing = false;
-      clearInterval(state.playTimer);
+  if(state.playProgress >= 1) state.playProgress = 0;   // finished → start over
+  state.playing = true;
+  const from = state.playProgress;
+  const durationLeft = CONFIG.playDurationMs * (1 - from);
+  const startedAt = performance.now();
+
+  const step = now => {
+    if(!state.playing) return;
+    const elapsed = (now - startedAt) / durationLeft;
+    state.playProgress = Math.min(1, from + (1 - from) * elapsed);
+    applyRevealProgress();
+    if(state.playProgress < 1){
+      state.playFrame = requestAnimationFrame(step);
+    } else {
+      state.playing = false;
+      renderPlayControls();
     }
-    renderPlayControls();
-    updateTab0Chart();
-  }, 400);
+  };
+  renderPlayControls();
+  state.playFrame = requestAnimationFrame(step);
 }
 function pausePlay(){
   state.playing = false;
-  clearInterval(state.playTimer);
+  cancelAnimationFrame(state.playFrame);
   renderPlayControls();
 }
 function resetPlay(){
   state.playing = false;
-  clearInterval(state.playTimer);
-  state.playYear = 2025;
+  cancelAnimationFrame(state.playFrame);
+  state.playProgress = 1;      // 1 = nothing hidden, chart fully drawn
   renderPlayControls();
-  updateTab0Chart();
+  applyRevealProgress();
 }
 
 function initTab0(){
@@ -906,40 +1219,26 @@ function initTab0(){
 }
 
 function buildTab0Chart(){
-  const ctx = $("chart0").getContext("2d");
   const extras = activeExtras();
-  const dom = domainFrom([...Object.values(fredCPI), ...Object.values(bikeCPI),
-    ...extras.flatMap(k=>Object.values(EXTRA_SERIES[k].data))]);
+  // Range is taken from the FULL series, not just the revealed part, so the
+  // y-axis stays put while the sweep runs.
+  const dom = domainFrom([
+    ...Object.values(fredCPI), ...Object.values(bikeCPI),
+    ...extras.flatMap(k => Object.values(EXTRA_SERIES[k].data))
+  ]);
 
   const datasets = [
-    { label:"US CPI (FRED)", data: allYearsArr.map(y => y<=state.playYear ? fredCPI[y] ?? null : null),
-      borderColor:"#60a5fa", backgroundColor:"#60a5fa", borderWidth:2, pointRadius:0, pointHoverRadius:3, tension:0.15 },
-    { label:"Sports Vehicles / Bikes (BLS)", data: allYearsArr.map(y => y<=state.playYear ? bikeCPI[y] ?? null : null),
-      borderColor:"#f97316", backgroundColor:"#f97316", borderWidth:2.5, pointRadius:0, pointHoverRadius:3, tension:0.15 },
+    lineDataset("US CPI (FRED)", allYears.map(y=>fredCPI[y] ?? null), PALETTE.blue),
+    lineDataset("Sports Vehicles / Bikes (BLS)", allYears.map(y=>bikeCPI[y] ?? null), PALETTE.orange, {width:2.5}),
+    ...extras.map(k => extraDataset(EXTRA_SERIES[k].label, allYears.map(y=>EXTRA_SERIES[k].data[y] ?? null), EXTRA_SERIES[k].color)),
   ];
-  extras.forEach(k=>{
-    const s = EXTRA_SERIES[k];
-    datasets.push({ label:s.label, data: allYearsArr.map(y => y<=state.playYear ? s.data[y] ?? null : null),
-      borderColor:s.color, backgroundColor:s.color, borderWidth:1.8, borderDash:[5,3], pointRadius:0, pointHoverRadius:3, tension:0.15 });
-  });
 
-  destroyChart("chart0");
-  charts.chart0 = new Chart(ctx, {
-    type:"line",
-    data:{ labels: allYearsArr, datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:{duration:200},
-      interaction:{mode:"index", intersect:false},
-      scales:{
-        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-        y:{ min:dom.min, max:dom.max, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont(), callback:v=>v+"%"} },
-      },
-      plugins:{
-        legend: stdLegend(),
-        tooltip: stdTooltip({ callbacks:{ label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}` } }),
-        refLines:{ lines:[{type:"horizontal", value:0, color:cssVar("--faint2"), width:1.5}] },
-      }
-    }
+  makeLineChart("chart0", {
+    labels: allYears, datasets,
+    yMin: dom.min, yMax: dom.max, ySuffix: "%",
+    revealProgress: state.playProgress,
+    tooltipCallbacks: { label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}` },
+    refLines: [{type:"horizontal", value:0, color:cssVar("--faint2"), width:1.5}],
   });
   renderExtrasFootnote();
 }
@@ -955,7 +1254,9 @@ function renderExtrasFootnote(){
   }).join("") + `<div style="margin-top:3px">† Annual averages approximated from FRED monthly series.</div>`;
 }
 
-// ── Configurable spread chart ──
+// ── Configurable spread chart ──────────────────────────────────────────────
+// Plots series A minus series B, year by year. A positive bar means the first
+// series inflated faster than the second that year.
 function buildSpreadUI(){
   const optsHtml = Object.entries(SPREAD_OPTS).map(([k,o])=>`<option value="${k}">${o.label}</option>`).join("");
   const selA = $("spreadASelect"), selB = $("spreadBSelect");
@@ -978,34 +1279,20 @@ function buildSpreadChart(){
   $("spreadChartContainer").style.display = same ? "none" : "block";
   if(same){ destroyChart("spreadChart"); return; }
 
-  const rows = allYearsArr.map(y=>{
+  // Only years where BOTH series have a value can produce a difference.
+  const rows = allYears.map(y=>{
     const a = SPREAD_OPTS[state.spreadA].data[y];
     const b = SPREAD_OPTS[state.spreadB].data[y];
     return (a!=null && b!=null) ? { year:y, diff: parseFloat((a-b).toFixed(2)) } : null;
   }).filter(Boolean);
 
-  const ctx = $("spreadChart").getContext("2d");
-  destroyChart("spreadChart");
-  charts.spreadChart = new Chart(ctx, {
-    type:"bar",
-    data:{
-      labels: rows.map(r=>r.year),
-      datasets:[{ data: rows.map(r=>r.diff),
-        backgroundColor: rows.map(r=>r.diff>=0?"#f97316":"#60a5fa"),
-        borderRadius:2, borderSkipped:false }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:{duration:200},
-      scales:{
-        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-        y:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont(), callback:v=>v+"%"} },
-      },
-      plugins:{
-        legend:{display:false},
-        tooltip: stdTooltip({ callbacks:{ label: ctx => `${fmtPct(ctx.parsed.y)}  (${SPREAD_OPTS[state.spreadA].label} − ${SPREAD_OPTS[state.spreadB].label})` } }),
-        refLines:{ lines:[{type:"horizontal", value:0, color:cssVar("--faint"), width:1}] },
-      }
-    }
+  makeBarChart("spreadChart", {
+    labels: rows.map(r=>r.year),
+    data: rows.map(r=>r.diff),
+    colors: rows.map(r => r.diff >= 0 ? PALETTE.orange : PALETTE.blue),
+    tooltipCallbacks: { label: ctx =>
+      `${fmtPct(ctx.parsed.y)}  (${SPREAD_OPTS[state.spreadA].label} − ${SPREAD_OPTS[state.spreadB].label})` },
+    refLines: [{type:"horizontal", value:0, color:cssVar("--faint"), width:1}],
   });
 }
 </script>
@@ -1026,45 +1313,33 @@ function buildTab1Chart(){
   ], 5);
 
   const datasets = [
-    { label:"US CPI (FRED)", data: allRows.map(r=>r.fredIdx), borderColor:"#60a5fa", backgroundColor:"#60a5fa22",
-      borderWidth:2.5, pointRadius:0, pointHoverRadius:3, tension:0.15, fill:true },
-    { label:"Sports Vehicles / Bikes (BLS)", data: allRows.map(r=>r.bikeIdx), borderColor:"#f97316", backgroundColor:"#f9731622",
-      borderWidth:2.5, pointRadius:0, pointHoverRadius:3, tension:0.15, fill:true },
+    lineDataset("US CPI (FRED)", allRows.map(r=>r.fredIdx), PALETTE.blue, {width:2.5, fill:true}),
+    lineDataset("Sports Vehicles / Bikes (BLS)", allRows.map(r=>r.bikeIdx), PALETTE.orange, {width:2.5, fill:true}),
+    ...extras.map(k => extraDataset(EXTRA_SERIES[k].label, allYears.map(y=>EXTRA_CUM[k][y] ?? null), EXTRA_SERIES[k].color)),
   ];
-  extras.forEach(k=>{
-    const s = EXTRA_SERIES[k];
-    datasets.push({ label:s.label, data: allYearsArr.map(y=>EXTRA_CUM[k][y] ?? null), borderColor:s.color,
-      backgroundColor:"transparent", borderWidth:1.8, borderDash:[5,3], pointRadius:0, pointHoverRadius:3, tension:0.15, fill:false });
-  });
 
-  const ctx = $("chart1").getContext("2d");
-  destroyChart("chart1");
-  charts.chart1 = new Chart(ctx, {
-    type:"line",
-    data:{ labels: allYearsArr, datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:{duration:200},
-      interaction:{mode:"index", intersect:false},
-      scales:{
-        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-        y:{ min:dom.min, max:dom.max, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-      },
-      plugins:{
-        legend: stdLegend(),
-        tooltip: stdTooltip({ callbacks:{ label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} (2000=100)` } }),
-        refLines:{ lines:[{type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[4,3]}] },
-      }
-    }
+  makeLineChart("chart1", {
+    labels: allYears, datasets,
+    yMin: dom.min, yMax: dom.max,
+    tooltipCallbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} (${CONFIG.cumulativeBaseYear}=100)` },
+    refLines: [{type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[4,3]}],
   });
 }
 function updateTab1Chart(){ if(charts.chart1) buildTab1Chart(); }
 
 function renderStat2x2(){
+  // The first three figures are computed from the series so they always agree
+  // with the chart directly above them. The fourth covers 1978–2026, which is
+  // outside the range of data held in this file, so it stays hand-entered.
   const cards = [
-    {label:"US CPI grew since 2000", val:"+83%", sub:"FRED FPCPITOTLZGUSA, 2000–2024", col:"#60a5fa"},
-    {label:"Bikes/Sports Vehicle CPI grew since 2000", val:"+28%", sub:"BLS CPI, 2000–2025", col:"#f97316"},
-    {label:"Gap: Bikes underperformed CPI by", val:"−55 pts", sub:"Bikes are cheaper in real terms", col:"#22c55e"},
-    {label:"Long-run avg bike CPI (1978–2026)", val:"1.73%/yr", sub:"vs. overall CPI avg 3.43%/yr", col:"#a78bfa"},
+    {label:`US CPI grew since ${CONFIG.cumulativeBaseYear}`, val:fmtWhole(TOTALS.usCpiSince2000),
+     sub:"FRED FPCPITOTLZGUSA, 2000–2024", col:PALETTE.blue},
+    {label:`Bikes/Sports Vehicle CPI grew since ${CONFIG.cumulativeBaseYear}`, val:fmtWhole(TOTALS.bikeCpiSince2000),
+     sub:"BLS CPI, 2000–2025", col:PALETTE.orange},
+    {label:"Gap: Bikes underperformed CPI by", val:`−${TOTALS.gapPoints.toFixed(0)} pts`,
+     sub:"Bikes are cheaper in real terms", col:PALETTE.green},
+    {label:"Long-run avg bike CPI (1978–2026)", val:"1.73%/yr",
+     sub:"vs. overall CPI avg 3.43%/yr", col:PALETTE.purple},
   ];
   $("stat2x2Grid").innerHTML = cards.map(k=>`
     <div class="stat2x2-card" style="border-left:3px solid ${k.col}">
@@ -1086,56 +1361,38 @@ function buildTab2Chart(){
   const extras = activeExtras();
   const dom = domainFrom([
     ...covidRows.map(r=>r.fredPct), ...covidRows.map(r=>r.bikePct),
-    ...extras.flatMap(k=>covidYearsArr.map(y=>EXTRA_SERIES[k].data[y]).filter(v=>v!=null))
+    ...extras.flatMap(k=>covidYears.map(y=>EXTRA_SERIES[k].data[y]).filter(v=>v!=null))
   ]);
 
   const datasets = [
-    { label:"US CPI (FRED)", data: covidRows.map(r=>r.fredPct), borderColor:"#60a5fa", backgroundColor:"#60a5fa",
-      borderWidth:2.5, pointRadius:3, pointHoverRadius:4, tension:0.15 },
-    { label:"Bikes CPI (BLS)", data: covidRows.map(r=>r.bikePct), borderColor:"#f97316", backgroundColor:"#f97316",
-      borderWidth:2.5, pointRadius:3, pointHoverRadius:4, tension:0.15 },
+    lineDataset("US CPI (FRED)", covidRows.map(r=>r.fredPct), PALETTE.blue, {width:2.5, point:3, pointHover:4}),
+    lineDataset("Bikes CPI (BLS)", covidRows.map(r=>r.bikePct), PALETTE.orange, {width:2.5, point:3, pointHover:4}),
+    ...extras.map(k => extraDataset(EXTRA_SERIES[k].label, covidYears.map(y=>EXTRA_SERIES[k].data[y] ?? null),
+                                    EXTRA_SERIES[k].color, {point:2.5, pointHover:4})),
   ];
-  extras.forEach(k=>{
-    const s = EXTRA_SERIES[k];
-    datasets.push({ label:s.label, data: covidYearsArr.map(y=>s.data[y] ?? null), borderColor:s.color, backgroundColor:s.color,
-      borderWidth:1.8, borderDash:[5,3], pointRadius:2.5, pointHoverRadius:4, tension:0.15 });
-  });
 
-  const ctx = $("chart2").getContext("2d");
-  destroyChart("chart2");
-  charts.chart2 = new Chart(ctx, {
-    type:"line",
-    data:{ labels: covidYearsArr, datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:{duration:200},
-      interaction:{mode:"index", intersect:false},
-      scales:{
-        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-        y:{ min:dom.min, max:dom.max, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont(), callback:v=>v+"%"} },
-      },
-      plugins:{
-        legend: stdLegend(),
-        tooltip: stdTooltip({ callbacks:{ label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}` } }),
-        refLines:{ lines:[
-          {type:"horizontal", value:0, color:cssVar("--faint"), width:1.5},
-          {type:"vertical", value:2020, color:"#ef444455", width:1, dash:[4,3], label:"COVID"},
-          {type:"vertical", value:2022, color:"#f9731655", width:1, dash:[4,3], label:"PEAK"},
-          {type:"vertical", value:2023, color:"#22c55e55", width:1, dash:[4,3], label:"BUST"},
-        ]},
-      }
-    }
+  makeLineChart("chart2", {
+    labels: covidYears, datasets,
+    yMin: dom.min, yMax: dom.max, ySuffix: "%",
+    tooltipCallbacks: { label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}` },
+    refLines: [
+      {type:"horizontal", value:0, color:cssVar("--faint"), width:1.5},
+      {type:"vertical", value:2020, color:withAlpha(PALETTE.red,"55"),    width:1, dash:[4,3], label:"COVID"},
+      {type:"vertical", value:2022, color:withAlpha(PALETTE.orange,"55"), width:1, dash:[4,3], label:"PEAK"},
+      {type:"vertical", value:2023, color:withAlpha(PALETTE.green,"55"),  width:1, dash:[4,3], label:"BUST"},
+    ],
   });
 }
 function updateTab2Chart(){ if(charts.chart2) buildTab2Chart(); }
 
 function renderEventTimeline(){
   const events = [
-    {year:"2018",badge:"TARIFF",bc:"#ef4444",text:"Trump administration enacts 25% Section 301 tariffs on Chinese bicycles. Industry wins partial exclusions, but costs begin creeping."},
-    {year:"2020",badge:"BOOM",bc:"#f97316",text:"COVID lockdowns trigger an unprecedented bike boom. US retail bike sales jump ~50–75% YoY. Inventory dries up overnight."},
-    {year:"2021",badge:"SHOCK",bc:"#ef4444",text:"Ocean freight spikes 10× to $20,000/container. Raw materials up 20–400%. Lead times balloon to 300–400 days. Bike CPI surges to +6.94%."},
-    {year:"2022",badge:"PEAK",bc:"#f59e0b",text:"MSRP prices peak at 10–40% above 2019 levels. But overall CPI (+8.0%) outpaces bikes (+4.65%) — macro inflation catches up."},
-    {year:"2023–25",badge:"BUST",bc:"#22c55e",text:"COVID oversupply floods the market. Avg. $626 discount per bike. Industry bankruptcies. Bike CPI: flat → −2.05% → −3.17%."},
-    {year:"2025–26",badge:"REBOUND",bc:"#a78bfa",text:"New tariff wave: Chinese e-bikes face 45–56% cumulative duties. Specialized & Trek announce 10% surcharges. New 2026 bikes 5–35% more expensive."},
+    {year:"2018",badge:"TARIFF",bc:PALETTE.red,text:"Trump administration enacts 25% Section 301 tariffs on Chinese bicycles. Industry wins partial exclusions, but costs begin creeping."},
+    {year:"2020",badge:"BOOM",bc:PALETTE.orange,text:"COVID lockdowns trigger an unprecedented bike boom. US retail bike sales jump ~50–75% YoY. Inventory dries up overnight."},
+    {year:"2021",badge:"SHOCK",bc:PALETTE.red,text:"Ocean freight spikes 10× to $20,000/container. Raw materials up 20–400%. Lead times balloon to 300–400 days. Bike CPI surges to +6.94%."},
+    {year:"2022",badge:"PEAK",bc:PALETTE.amber,text:"MSRP prices peak at 10–40% above 2019 levels. But overall CPI (+8.0%) outpaces bikes (+4.65%) — macro inflation catches up."},
+    {year:"2023–25",badge:"BUST",bc:PALETTE.green,text:"COVID oversupply floods the market. Avg. $626 discount per bike. Industry bankruptcies. Bike CPI: flat → −2.05% → −3.17%."},
+    {year:"2025–26",badge:"REBOUND",bc:PALETTE.purple,text:"New tariff wave: Chinese e-bikes face 45–56% cumulative duties. Specialized & Trek announce 10% surcharges. New 2026 bikes 5–35% more expensive."},
   ];
   $("eventTimeline").innerHTML = events.map(e=>`
     <div class="event-row">
@@ -1150,16 +1407,16 @@ function renderEventTimeline(){
 // ═══════════════════════════════════════════════════════════════════════════
 function initTab3(){
   const findings = [
-    {num:"01",title:"Bikes Are Cheaper in Real Terms (Long Run)",col:"#22c55e",body:"Over 46 years, the BLS bike CPI rose only 127% vs. overall CPI's 265%. Annual rate 1.73% vs. 3.43%. Since 2000, bikes up 28% while the broader economy rose 83%."},
-    {num:"02",title:"COVID Was a Unique Shock, Not a New Normal",col:"#f97316",body:"Ocean freight spiked 10×, raw materials surged 20–400%, sales jumped from $6B to $8.4B. MTB MSRP rose 10–40% in 2019–2022. In 2022, overall CPI (+8.0%) outpaced bikes (+4.65%)."},
-    {num:"03",title:"The Post-COVID Bust Is Significant",col:"#60a5fa",body:"BLS bike CPI: flat (+0.1%), then −2.05%, then −3.17% in 2023–2025 — while overall CPI kept rising. Average market discounts of $626+ per bike. Bankruptcies across the industry."},
-    {num:"04",title:"Premium MTBs vs. Average Bikes: Two Stories",col:"#a78bfa",body:"BLS CPI tracks all bike types — budget bikes pull averages down. High-end MTBs went from $4–5k in 2010 to $6–12k MSRP in 2024, outpacing CPI by 3–4× at the premium tier.",links:[
+    {num:"01",title:"Bikes Are Cheaper in Real Terms (Long Run)",col:PALETTE.green,body:"Over 46 years, the BLS bike CPI rose only 127% vs. overall CPI's 265%. Annual rate 1.73% vs. 3.43%. Since 2000, bikes up 28% while the broader economy rose 83%."},
+    {num:"02",title:"COVID Was a Unique Shock, Not a New Normal",col:PALETTE.orange,body:"Ocean freight spiked 10×, raw materials surged 20–400%, sales jumped from $6B to $8.4B. MTB MSRP rose 10–40% in 2019–2022. In 2022, overall CPI (+8.0%) outpaced bikes (+4.65%)."},
+    {num:"03",title:"The Post-COVID Bust Is Significant",col:PALETTE.blue,body:"BLS bike CPI: flat (+0.1%), then −2.05%, then −3.17% in 2023–2025 — while overall CPI kept rising. Average market discounts of $626+ per bike. Bankruptcies across the industry."},
+    {num:"04",title:"Premium MTBs vs. Average Bikes: Two Stories",col:PALETTE.purple,body:"BLS CPI tracks all bike types — budget bikes pull averages down. High-end MTBs went from $4–5k in 2010 to $6–12k MSRP in 2024, outpacing CPI by 3–4× at the premium tier.",links:[
       {label:"Bicycle Retailer: Resilient Retailers Soldier On (2023)", url:"https://www.bicycleretailer.com/industry-news/2023/12/28/resilient-retailers-soldier-2024"},
       {label:"Jeff Brines: Discounts to Sticker Shock (2025)", url:"https://jeffbrines.com/2025/08/29/from-discounts-to-sticker-shock-the-changing-economics-of-the-bike-industry/"},
       {label:"The Bike Shop List: Pricing Out the Next Generation?", url:"https://thebikeshoplist.com/blog/f/are-we-pricing-out-the-next-generation-of-cyclists"},
     ]},
-    {num:"05",title:"Tariffs: A Layered and Growing Problem",col:"#ef4444",body:"Chinese e-bikes face ~45–56% cumulative tariffs in 2025. Specialized and Trek announced 10% surcharges. New bikes in 2026 expected 5–35% more expensive than without tariffs."},
-    {num:"06",title:"Compared to Other Sports: Bikes Are Mild",col:"#f59e0b",body:"Sporting event tickets rose +158% (1997–2026), +9.69% in 2024 alone. Golf equipment has DEFLATED to 84.6 (Dec 1985=100). Mountain biking, measured broadly, is one of the more deflationary sports goods categories."},
+    {num:"05",title:"Tariffs: A Layered and Growing Problem",col:PALETTE.red,body:"Chinese e-bikes face ~45–56% cumulative tariffs in 2025. Specialized and Trek announced 10% surcharges. New bikes in 2026 expected 5–35% more expensive than without tariffs."},
+    {num:"06",title:"Compared to Other Sports: Bikes Are Mild",col:PALETTE.amber,body:"Sporting event tickets rose +158% (1997–2026), +9.69% in 2024 alone. Golf equipment has DEFLATED to 84.6 (Dec 1985=100). Mountain biking, measured broadly, is one of the more deflationary sports goods categories."},
   ];
   $("findingsGrid").innerHTML = findings.map(f=>`
     <div class="finding-card" style="border-top-color:${f.col}">
@@ -1180,7 +1437,7 @@ function initTab3(){
     ["EU Sport Equipment (HICP)","~0.9%/yr (2014–24)","+3.8% (2022)","+3.4%, +1.0%","Below CPI ✓"],
   ];
   const headerRow = ["Category","Long-run avg.","COVID peak","2023–25","Verdict"];
-  const verdictColor = c => c.includes("✗✗") ? "#ef4444" : c.includes("✗") ? "#f97316" : c.includes("✓") ? "#22c55e" : cssVar("--sub");
+  const verdictColor = c => c.includes("✗✗") ? PALETTE.red : c.includes("✗") ? PALETTE.orange : c.includes("✓") ? PALETTE.green : cssVar("--sub");
   $("findingsTable").innerHTML = `
     <thead><tr>${headerRow.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
     <tbody>${tableRows.map(row=>`
@@ -1193,7 +1450,7 @@ function initTab3(){
 // TAB 4 — COMPARE (line chart + bar chart, each with independent base-year picker)
 // ═══════════════════════════════════════════════════════════════════════════
 function initTab4(){
-  wireTfPickersFixed();
+  wireTfPickers();
   buildTab4Line();
   buildTab4Bar();
   renderScorecards();
@@ -1210,121 +1467,110 @@ function renderTfPicker(containerId, activeYear, onClick){
     el.appendChild(btn);
   });
 }
-// Stable handler references so re-renders (which rebuild the buttons) keep working
-const lineTfHandler = (y)=>{ state.lineTf=y; renderTfPicker("lineTfPicker", state.lineTf, lineTfHandler); buildTab4Line(); };
-const barTfHandler = (y)=>{ state.barTf=y; renderTfPicker("barTfPicker", state.barTf, barTfHandler); buildTab4Bar(); };
-function wireTfPickersFixed(){
+// Named handlers rather than inline arrows, because each re-render rebuilds the
+// buttons and needs to re-attach the same handler to the new ones.
+const lineTfHandler = y => { state.lineTf = y; renderTfPicker("lineTfPicker", y, lineTfHandler); buildTab4Line(); };
+const barTfHandler  = y => { state.barTf  = y; renderTfPicker("barTfPicker",  y, barTfHandler);  buildTab4Bar();  };
+function wireTfPickers(){
   renderTfPicker("lineTfPicker", state.lineTf, lineTfHandler);
-  renderTfPicker("barTfPicker", state.barTf, barTfHandler);
+  renderTfPicker("barTfPicker",  state.barTf,  barTfHandler);
+}
+
+// Percent change in a Compare series between two years, or null if either year
+// is missing from that series.
+function compareChangePct(compareKey, fromYear, toYear){
+  const levels = COMPARE_INDEX_LEVELS[compareKey];
+  if(!levels?.[fromYear] || levels[toYear] == null) return null;
+  return parseFloat(((levels[toYear] / levels[fromYear] - 1) * 100).toFixed(1));
+}
+
+// Traffic-light colour for "did this outpace inflation?" — shared by the bar
+// chart and the scorecards so the two can never disagree. Thresholds live in
+// CONFIG rather than being repeated as bare numbers in both places.
+function vsCpiColor(changePct, cpiChangePct, isBaseline){
+  if(isBaseline) return PALETTE.blue;
+  if(changePct == null) return cssVar("--faint");
+  if(changePct > cpiChangePct * CONFIG.hotThreshold) return PALETTE.red;
+  if(changePct > cpiChangePct * CONFIG.midThreshold) return PALETTE.amber;
+  return PALETTE.green;
+}
+function vsCpiLabel(changePct, cpiChangePct, isBaseline){
+  if(isBaseline) return "BASELINE";
+  if(changePct == null) return "NO HIST.";
+  if(changePct > cpiChangePct * CONFIG.hotThreshold) return "▲ ABOVE";
+  if(changePct > cpiChangePct * CONFIG.midThreshold) return "~ MID";
+  return "▼ BELOW";
 }
 
 function buildTab4Line(){
   const years = ALL_YEARS.filter(y => y >= state.lineTf);
-  const lineData = years.map(y=>{
-    const row = {};
-    Object.entries(LINE_KEYS).forEach(([chartKey, absKey])=>{
-      const base = ABS[absKey]?.[state.lineTf];
-      const cur = ABS[absKey]?.[y];
-      row[chartKey] = (base && cur!=null) ? parseFloat((cur/base*100).toFixed(2)) : null;
+  // Re-index every series so the chosen base year = 100. Without this the
+  // series can't share an axis — they're published on different base years.
+  const datasets = Object.entries(COMPARE_LINE_SERIES).map(([chartKey, compareKey])=>{
+    const levels = COMPARE_INDEX_LEVELS[compareKey];
+    const base = levels?.[state.lineTf];
+    const data = years.map(y => (base && levels[y] != null)
+      ? parseFloat((levels[y] / base * 100).toFixed(2)) : null);
+    return lineDataset(chartKey, data, COMPARE_LINE_COLORS[chartKey], {
+      width: (chartKey === "US CPI" || chartKey === "Sporting Events") ? 2.5 : 1.8,
+      dash: chartKey === "US CPI" ? [6,3] : undefined,
+      spanGaps: true,
     });
-    return row;
   });
 
-  const datasets = Object.keys(LINE_KEYS).map(key=>({
-    label:key, data: lineData.map(r=>r[key]),
-    borderColor: LINE_COLORS[key], backgroundColor: LINE_COLORS[key],
-    borderWidth: key==="US CPI" ? 2.5 : key==="Sporting Events" ? 2.5 : 1.8,
-    borderDash: key==="US CPI" ? [6,3] : undefined,
-    pointRadius:0, pointHoverRadius:3, tension:0.15, spanGaps:true,
-  }));
-
-  const vals = lineData.flatMap(r=>Object.values(r)).filter(v=>v!=null);
-  const dom = { min: Math.floor(Math.min(...vals)-3), max: Math.ceil(Math.max(...vals)+3) };
-
-  const ctx = $("chart4line").getContext("2d");
-  destroyChart("chart4line");
-  charts.chart4line = new Chart(ctx, {
-    type:"line",
-    data:{ labels: years, datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:{duration:200},
-      interaction:{mode:"index", intersect:false},
-      scales:{
-        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-        y:{ min:dom.min, max:dom.max, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-      },
-      plugins:{
-        legend: stdLegend(),
-        tooltip: stdTooltip({ callbacks:{
-          title: items => `${items[0].label} (${state.lineTf}=100)`,
-          label: ctx => ctx.parsed.y!=null ? `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}` : null
-        } }),
-        refLines:{ lines:[{type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[4,3]}] },
-      }
-    }
+  const vals = datasets.flatMap(d=>d.data).filter(v=>v!=null);
+  makeLineChart("chart4line", {
+    labels: years, datasets,
+    yMin: Math.floor(Math.min(...vals)-3), yMax: Math.ceil(Math.max(...vals)+3),
+    tooltipCallbacks: {
+      title: items => `${items[0].label} (${state.lineTf}=100)`,
+      label: ctx => ctx.parsed.y!=null ? `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}` : null,
+    },
+    refLines: [{type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[4,3]}],
   });
 }
 
 function buildTab4Bar(){
-  const LATEST = 2024;
-  const usCpiChg = parseFloat(((ABS["US CPI"][LATEST]/ABS["US CPI"][state.barTf]-1)*100).toFixed(1));
+  const latest = CONFIG.compareLatestYear;
+  const usCpiChg = compareChangePct("US CPI", state.barTf, latest);
   $("barChartTitle").textContent = `% Change Since ${state.barTf} vs. US CPI (+${usCpiChg.toFixed(1)}%)`;
-  $("barChartSub").textContent = `${state.barTf}→2024 · Blue dashed = US CPI baseline · green below · amber moderate · red above`;
+  $("barChartSub").textContent = `${state.barTf}→${latest} · Blue dashed = US CPI baseline · green below · amber moderate · red above`;
 
-  const barData = metrics.map(m=>{
-    const absKey = M2ABS[m.id];
-    if(!absKey || !ABS[absKey]?.[state.barTf] || !ABS[absKey]?.[LATEST]) return null;
-    const chg = parseFloat(((ABS[absKey][LATEST]/ABS[absKey][state.barTf]-1)*100).toFixed(1));
-    return { name:m.shortName, chg, isBaseline:m.isBaseline };
+  const barData = COMPARE_METRICS.map(m=>{
+    const chg = compareChangePct(METRIC_TO_COMPARE_KEY[m.id], state.barTf, latest);
+    return chg==null ? null : { name:m.shortName, chg, isBaseline:m.isBaseline };
   }).filter(Boolean).sort((a,b)=>b.chg-a.chg);
 
-  const getColor = item => item.isBaseline ? "#60a5fa"
-    : item.chg > usCpiChg*1.05 ? "#ef4444"
-    : item.chg > usCpiChg*0.55 ? "#f59e0b"
-    : "#22c55e";
-
-  const ctx = $("chart4bar").getContext("2d");
-  destroyChart("chart4bar");
-  charts.chart4bar = new Chart(ctx, {
-    type:"bar",
-    data:{
-      labels: barData.map(d=>d.name),
-      datasets:[{ data: barData.map(d=>d.chg), backgroundColor: barData.map(getColor), borderRadius:3, borderSkipped:false }]
-    },
-    options:{
-      indexAxis:"y",
-      responsive:true, maintainAspectRatio:false, animation:{duration:200},
-      scales:{
-        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont(), callback:v=>v+"%"} },
-        y:{ grid:{display:false}, ticks:{color:cssVar("--text2"), font:{family:"'IBM Plex Mono', monospace", size:9.5}} },
-      },
-      plugins:{
-        legend:{display:false},
-        tooltip: stdTooltip({ callbacks:{
-          label: ctx => [`Change: +${ctx.parsed.x.toFixed(1)}%`, `US CPI baseline: +${usCpiChg.toFixed(1)}%`,
-            ctx.parsed.x>usCpiChg?"▲ above CPI":ctx.parsed.x>usCpiChg*0.6?"~ near CPI":"▼ below CPI"]
-        } }),
-        refLines:{ lines:[{type:"vertical", value:usCpiChg, color:"#60a5fa", width:2, dash:[6,3]}] },
-      }
-    }
+  makeBarChart("chart4bar", {
+    labels: barData.map(d=>d.name),
+    data: barData.map(d=>d.chg),
+    colors: barData.map(d => vsCpiColor(d.chg, usCpiChg, d.isBaseline)),
+    horizontal: true, borderRadius: 3,
+    tooltipCallbacks: { label: ctx => [
+      `Change: +${ctx.parsed.x.toFixed(1)}%`,
+      `US CPI baseline: +${usCpiChg.toFixed(1)}%`,
+      ctx.parsed.x > usCpiChg ? "▲ above CPI" : ctx.parsed.x > usCpiChg*0.6 ? "~ near CPI" : "▼ below CPI",
+    ]},
+    refLines: [{type:"vertical", value:usCpiChg, color:PALETTE.blue, width:2, dash:[6,3]}],
   });
 }
 
 function renderScorecards(){
-  const usCpi21 = 15.8;
-  $("scorecardsGrid").innerHTML = metrics.map(m=>{
-    const absKey = M2ABS[m.id];
-    const chg21 = (absKey && ABS[absKey]?.[2021] && ABS[absKey]?.[2024])
-      ? parseFloat(((ABS[absKey][2024]/ABS[absKey][2021]-1)*100).toFixed(1)) : null;
-    const statusCol = m.isBaseline ? "#60a5fa" : chg21==null ? cssVar("--faint")
-      : chg21 > usCpi21*1.05 ? "#ef4444" : chg21 > usCpi21*0.55 ? "#f59e0b" : "#22c55e";
-    const statusLabel = m.isBaseline ? "BASELINE" : chg21==null ? "NO HIST."
-      : chg21 > usCpi21*1.05 ? "▲ ABOVE" : chg21 > usCpi21*0.55 ? "~ MID" : "▼ BELOW";
+  // Scorecards always show the same window (2021 → latest) regardless of the
+  // pickers above, and the CPI baseline they're judged against is calculated
+  // from the same table the cards themselves read.
+  const from = 2021, to = CONFIG.compareLatestYear;
+  const usCpiChg = compareChangePct("US CPI", from, to);
+  $("scorecardsGrid").innerHTML = COMPARE_METRICS.map(m=>{
+    const chg = compareChangePct(METRIC_TO_COMPARE_KEY[m.id], from, to);
+    const statusCol = vsCpiColor(chg, usCpiChg, m.isBaseline);
+    const statusLabel = vsCpiLabel(chg, usCpiChg, m.isBaseline);
+    const shortId = m.id.length > 18 ? m.id.slice(0,18)+"…" : m.id;
     return `
       <div class="scorecard" style="border-top-color:${statusCol}">
         <div class="sc-top">
-          <span class="sc-badge" style="background:${m.badgeCol}22;border:1px solid ${m.badgeCol}44;color:${m.badgeCol}">${m.badge}</span>
-          ${m.url ? `<a href="${m.url}" target="_blank" rel="noreferrer" class="sc-id">${m.id.length>18?m.id.slice(0,18)+"…":m.id}</a>` : `<span class="sc-id">${m.id}</span>`}
+          <span class="sc-badge" style="background:${withAlpha(m.badgeCol,"22")};border:1px solid ${withAlpha(m.badgeCol,"44")};color:${m.badgeCol}">${m.badge}</span>
+          ${m.url ? `<a href="${m.url}" target="_blank" rel="noreferrer" class="sc-id">${shortId}</a>` : `<span class="sc-id">${m.id}</span>`}
         </div>
         <div class="sc-name">${m.name}</div>
         <div class="sc-val" style="color:${statusCol}">${m.recentVal}</div>
@@ -1332,7 +1578,7 @@ function renderScorecards(){
         <div class="sc-desc">${m.desc}</div>
         <div class="sc-status-row">
           <span class="sc-status" style="color:${statusCol}">${statusLabel}</span>
-          ${chg21!=null ? `<span class="sc-chg">+${chg21}% (21→24)</span>` : ""}
+          ${chg!=null ? `<span class="sc-chg">+${chg}% (${String(from).slice(2)}→${String(to).slice(2)})</span>` : ""}
         </div>
       </div>`;
   }).join("");
@@ -1342,6 +1588,21 @@ function renderScorecards(){
 // ═══════════════════════════════════════════════════════════════════════════
 // TAB 5 — AFFORDABILITY (hours-to-buy charts + personal calculator)
 // ═══════════════════════════════════════════════════════════════════════════
+
+// The three bike tiers, defined once. Prices and hours are looked up from
+// BIKE_PRICES / AFFORD_ROWS rather than typed in, so adding a new year to the
+// data updates the calculator, the charts and the hero cards together.
+const BIKE_TIERS = [
+  { key:"entry",   label:"Entry Hardtail",      color:PALETTE.green,  hrsField:"entryHrs", idxField:"entryIdx",
+    note:"Trek Marlin / Rockhopper class" },
+  { key:"mid",     label:"Mid-Range Full-Sus",  color:PALETTE.orange, hrsField:"midHrs",   idxField:"midIdx",
+    note:"Stumpjumper Comp / Fuel EX class" },
+  { key:"premium", label:"Premium Enduro",      color:PALETTE.purple, hrsField:"premHrs",  idxField:"premIdx",
+    note:"Yeti SB150 / Megatower class" },
+];
+const FEDERAL_MIN_WAGE = 7.25;   // frozen since 2009
+const MIN_WAGE_2005     = 5.15;  // federal minimum in the affordability base year
+
 function initTab5(){
   renderAffordHero();
   buildTab5ChartA();
@@ -1349,22 +1610,42 @@ function initTab5(){
   renderWagePresets();
   renderCalculator();
   renderSnapshotTable();
-  $("wageInput").oninput = (e)=>{
-    state.myWage = parseFloat(e.target.value) || 30.34;
+  $("wageInput").oninput = e => {
+    state.myWage = parseFloat(e.target.value) || CONFIG.defaultWage;
     renderWagePresets();
     renderCalculator();
   };
 }
 
 function renderAffordHero(){
-  const cards = [
-    { label:"Entry hardtail", change:"-12.7%", detail:"24.7 hrs in 2024 vs. 28.3 hrs in 2005", col:"#22c55e", arrow:"▼", sub:"Cheapest it's been in 20 years" },
-    { label:"Mid-range full-sus", change:"+1.8%", detail:"115.4 hrs in 2024 vs. 113.3 hrs in 2005", col:"#f59e0b", arrow:"→", sub:"Essentially flat over 20 years" },
-    { label:"Premium enduro", change:"+16.7%", detail:"257.1 hrs in 2024 vs. 220.3 hrs in 2005", col:"#ef4444", arrow:"▲", sub:"More labor, but far more bike" },
-    { label:"COVID peak (2022)", change:"+37–76%", detail:"All tiers hit hardest ever", col:"#fb7185", arrow:"↑↑", sub:"Worst: premium at 387.7 hrs (+76%)" },
-  ];
+  const latest = AFFORD_LATEST, base = AFFORD_BASE;
+  // First three cards are derived: hours now vs. hours in the base year.
+  const cards = BIKE_TIERS.map(t=>{
+    const now = latest[t.hrsField], then = base[t.hrsField];
+    // Use the index (base year = 100) rather than dividing the two displayed
+    // hour figures — those are already rounded to 1dp, and rounding twice can
+    // shift the headline percentage (e.g. 1.8% becoming 1.9%).
+    const pct = latest[t.idxField] - 100;
+    const worse = pct > 0;
+    return {
+      label: {entry:"Entry hardtail", mid:"Mid-range full-sus", premium:"Premium enduro"}[t.key],
+      change: `${pct>=0?"+":"-"}${Math.abs(pct).toFixed(1)}%`,
+      arrow: Math.abs(pct) < 3 ? "→" : worse ? "▲" : "▼",
+      col: Math.abs(pct) < 3 ? PALETTE.amber : worse ? PALETTE.red : PALETTE.green,
+      detail: `${now} hrs in ${latest.year} vs. ${then} hrs in ${base.year}`,
+      sub: {
+        entry:"Cheapest it's been in 20 years",
+        mid:"Essentially flat over 20 years",
+        premium:"More labor, but far more bike",
+      }[t.key],
+    };
+  });
+  // Fourth card is a written takeaway about the peak year, not a calculation.
+  cards.push({ label:"COVID peak (2022)", change:"+37–76%", detail:"All tiers hit hardest ever",
+               col:PALETTE.rose, arrow:"↑↑", sub:"Worst: premium at 387.7 hrs (+76%)" });
+
   $("affordHeroGrid").innerHTML = cards.map(k=>`
-    <div class="afford-hero-card" style="border-color:${k.col}44;border-left-color:${k.col}">
+    <div class="afford-hero-card" style="border-color:${withAlpha(k.col,"44")};border-left-color:${k.col}">
       <div class="afford-hero-label">${k.label}</div>
       <div class="afford-hero-val" style="color:${k.col}">${k.arrow} ${k.change}</div>
       <div class="afford-hero-detail">${k.detail}</div>
@@ -1372,79 +1653,52 @@ function renderAffordHero(){
     </div>`).join("");
 }
 
+// Hours-to-buy, indexed to the base year = 100. Below 100 = more affordable.
 function buildTab5ChartA(){
-  const years = AFFORD_ROWS.map(r=>r.year);
-  const ctx = $("chart5a").getContext("2d");
-  destroyChart("chart5a");
-  charts.chart5a = new Chart(ctx, {
-    type:"line",
-    data:{ labels: years, datasets:[
-      { label:"Entry Hardtail", data: AFFORD_ROWS.map(r=>r.entryIdx), borderColor:"#22c55e", backgroundColor:"#22c55e", borderWidth:2.5, pointRadius:0, pointHoverRadius:4, tension:0.15 },
-      { label:"Mid-Range Full-Sus", data: AFFORD_ROWS.map(r=>r.midIdx), borderColor:"#f97316", backgroundColor:"#f97316", borderWidth:2.5, pointRadius:0, pointHoverRadius:4, tension:0.15 },
-      { label:"Premium Enduro", data: AFFORD_ROWS.map(r=>r.premIdx), borderColor:"#a78bfa", backgroundColor:"#a78bfa", borderWidth:2, pointRadius:0, pointHoverRadius:4, tension:0.15 },
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:{duration:200},
-      interaction:{mode:"index", intersect:false},
-      scales:{
-        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-        y:{ min:70, max:200, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
+  makeLineChart("chart5a", {
+    labels: AFFORD_ROWS.map(r=>r.year),
+    datasets: BIKE_TIERS.map(t =>
+      lineDataset(t.label, AFFORD_ROWS.map(r=>r[t.idxField]), t.color,
+                  {width: t.key==="premium" ? 2 : 2.5, pointHover:4})),
+    yMin: 70, yMax: 200,
+    tooltipCallbacks: {
+      title: items => `${items[0].label} (${CONFIG.affordBaseYear}=100)`,
+      label: ctx => {
+        const v = ctx.parsed.y;
+        const flag = v<100 ? " ▼ below baseline" : v>100 ? " ▲ above baseline" : "";
+        return `${ctx.dataset.label}: ${v.toFixed(1)}${flag}`;
       },
-      plugins:{
-        legend: stdLegend(),
-        tooltip: stdTooltip({ callbacks:{
-          title: items => `${items[0].label} (2005=100)`,
-          label: ctx => {
-            const v = ctx.parsed.y;
-            const flag = v<100 ? " ▼ below 2005 baseline" : v>100 ? " ▲ above baseline" : "";
-            return `${ctx.dataset.label}: ${v.toFixed(1)}${flag}`;
-          },
-          afterBody: items => { const y = items[0].label; return WAGES[y] ? `Wage $${WAGES[y]}/hr` : ""; }
-        } }),
-        refLines:{ lines:[
-          {type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[5,3], label:"2005 baseline"},
-          {type:"vertical", value:2022, color:"#ef444455", width:1, dash:[4,3], label:"PEAK"},
-        ]},
-      }
-    }
+      afterBody: items => { const y = items[0].label; return WAGES[y] ? `Wage $${WAGES[y]}/hr` : ""; }
+    },
+    refLines: [
+      {type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[5,3], label:`${CONFIG.affordBaseYear} baseline`},
+      {type:"vertical", value:2022, color:withAlpha(PALETTE.red,"55"), width:1, dash:[4,3], label:"PEAK"},
+    ],
   });
 }
 
+// Wages and prices as separate lines on a shared base year.
 function buildTab5ChartB(){
-  const years = WAGE_PRICE_IDX.map(r=>r.year);
-  const ctx = $("chart5b").getContext("2d");
-  destroyChart("chart5b");
-  charts.chart5b = new Chart(ctx, {
-    type:"line",
-    data:{ labels: years, datasets:[
-      { label:"Avg Hourly Wage (AHETPI)", data: WAGE_PRICE_IDX.map(r=>r.wageIdx), borderColor:"#60a5fa", backgroundColor:"#60a5fa", borderWidth:3, borderDash:[6,3], pointRadius:0, pointHoverRadius:3, tension:0.15 },
-      { label:"Entry Hardtail MSRP", data: WAGE_PRICE_IDX.map(r=>r.entryIdx), borderColor:"#22c55e", backgroundColor:"#22c55e", borderWidth:2, pointRadius:0, pointHoverRadius:3, tension:0.15 },
-      { label:"Mid-Range Full-Sus MSRP", data: WAGE_PRICE_IDX.map(r=>r.midIdx), borderColor:"#f97316", backgroundColor:"#f97316", borderWidth:2, pointRadius:0, pointHoverRadius:3, tension:0.15 },
-      { label:"Premium Enduro MSRP", data: WAGE_PRICE_IDX.map(r=>r.premIdx), borderColor:"#a78bfa", backgroundColor:"#a78bfa", borderWidth:2, pointRadius:0, pointHoverRadius:3, tension:0.15 },
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false, animation:{duration:200},
-      interaction:{mode:"index", intersect:false},
-      scales:{
-        x:{ grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-        y:{ min:80, max:260, grid:{color:cssVar("--grid")}, ticks:{color:cssVar("--sub2"), font:baseFont()} },
-      },
-      plugins:{
-        legend: stdLegend(),
-        tooltip: stdTooltip({ callbacks:{ label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} (2005=100)` } }),
-        refLines:{ lines:[{type:"horizontal", value:100, color:cssVar("--border3"), width:1}] },
-      }
-    }
+  makeLineChart("chart5b", {
+    labels: WAGE_PRICE_IDX.map(r=>r.year),
+    datasets: [
+      lineDataset("Avg Hourly Wage (AHETPI)", WAGE_PRICE_IDX.map(r=>r.wageIdx), PALETTE.blue, {width:3, dash:[6,3]}),
+      ...BIKE_TIERS.map(t =>
+        lineDataset(`${t.label} MSRP`, WAGE_PRICE_IDX.map(r=>r[t.idxField]), t.color, {width:2})),
+    ],
+    yMin: 80, yMax: 260,
+    tooltipCallbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} (${CONFIG.affordBaseYear}=100)` },
+    refLines: [{type:"horizontal", value:100, color:cssVar("--border3"), width:1}],
   });
 }
 
-const wagePresets = [
-  { label:"Min Wage", val:7.25, note:"Federal $7.25 (frozen since 2009)" },
-  { label:"Median", val:22.00, note:"~US median hourly 2024" },
-  { label:"Average", val:30.34, note:"AHETPI avg 2024 (FRED)" },
+const WAGE_PRESETS = [
+  { label:"Min Wage", val:FEDERAL_MIN_WAGE, note:`Federal $${FEDERAL_MIN_WAGE} (frozen since 2009)` },
+  { label:"Median",   val:22.00,            note:"~US median hourly 2024" },
+  { label:"Average",  val:CONFIG.defaultWage, note:"AHETPI avg 2024 (FRED)" },
 ];
 function renderWagePresets(){
-  $("wagePresets").innerHTML = wagePresets.map(p=>{
+  $("wagePresets").innerHTML = WAGE_PRESETS.map(p=>{
     const active = Math.abs(state.myWage - p.val) < 0.1;
     return `<button class="wage-preset${active?" active":""}" onclick="setWage(${p.val})">${p.label}<span class="note">${p.note}</span></button>`;
   }).join("");
@@ -1457,42 +1711,42 @@ function setWage(val){
 }
 
 function renderCalculator(){
-  const w = state.myWage;
-  const calcEntry = parseFloat((750/w).toFixed(1));
-  const calcMid = parseFloat((3500/w).toFixed(1));
-  const calcPrem = parseFloat((7800/w).toFixed(1));
-  const base05Entry = parseFloat((450/15.89).toFixed(1));
-  const base05Mid = parseFloat((1800/15.89).toFixed(1));
-  const base05Prem = parseFloat((3500/15.89).toFixed(1));
+  const wage = state.myWage;
+  const latestYear = AFFORD_LATEST.year, baseYear = AFFORD_BASE.year;
+  const tiers = BIKE_TIERS.map(t=>{
+    const price = BIKE_PRICES[t.key][latestYear];
+    return {
+      ...t,
+      price,
+      hrs:  parseFloat((price / wage).toFixed(1)),      // your hours at your wage
+      base: parseFloat(AFFORD_BASE_HOURS[t.key].toFixed(1)),  // base-year worker's hours
+    };
+  });
 
-  const tiers = [
-    { price:750, hrs:calcEntry, base:base05Entry, col:"#22c55e", label:"Entry Hardtail", note:"Trek Marlin / Rockhopper class" },
-    { price:3500, hrs:calcMid, base:base05Mid, col:"#f97316", label:"Mid-Range Full-Sus", note:"Stumpjumper Comp / Fuel EX class" },
-    { price:7800, hrs:calcPrem, base:base05Prem, col:"#a78bfa", label:"Premium Enduro", note:"Yeti SB150 / Megatower class" },
-  ];
   $("calcResults").innerHTML = tiers.map(t=>{
     const diff = t.hrs - t.base;
-    const pct = ((t.hrs/t.base)-1)*100;
-    const diffColor = diff<=0 ? "#22c55e" : diff<20 ? "#f59e0b" : "#ef4444";
+    const pct = ((t.hrs / t.base) - 1) * 100;
+    const diffColor = diff<=0 ? PALETTE.green : diff<20 ? PALETTE.amber : PALETTE.red;
     const diffText = diff<=0 ? `▼ ${Math.abs(diff).toFixed(1)} fewer hours` : `▲ ${diff.toFixed(1)} more hours`;
     return `
-      <div class="calc-tier" style="border-color:${t.col}33">
+      <div class="calc-tier" style="border-color:${withAlpha(t.color,"33")}">
         <div class="calc-tier-label">${t.label}</div>
-        <div class="calc-tier-hrs" style="color:${t.col}">${t.hrs} <span class="unit">hrs</span></div>
-        <div class="calc-tier-basis">at $${w.toFixed(2)}/hr for $${t.price.toLocaleString()} MSRP</div>
+        <div class="calc-tier-hrs" style="color:${t.color}">${t.hrs} <span class="unit">hrs</span></div>
+        <div class="calc-tier-basis">at $${wage.toFixed(2)}/hr for $${t.price.toLocaleString()} MSRP</div>
         <div class="calc-tier-vs">
-          <div class="calc-tier-vs-label">vs. 2005 average worker:</div>
+          <div class="calc-tier-vs-label">vs. ${baseYear} average worker:</div>
           <div class="calc-tier-vs-val" style="color:${diffColor}">${diffText} <span style="color:var(--faint);font-weight:400;font-size:9px">(${pct>=0?"+":""}${pct.toFixed(1)}%)</span></div>
-          <div class="calc-tier-baseline">2005 baseline: ${t.base} hrs @ $15.89/hr</div>
+          <div class="calc-tier-baseline">${baseYear} baseline: ${t.base} hrs @ $${WAGES[baseYear].toFixed(2)}/hr</div>
         </div>
       </div>`;
   }).join("");
 
+  // Extra context that only applies at or near the wage floor.
   const warn = $("minwageWarn");
-  if(w < 10){
-    const minWageEntry = (750/7.25).toFixed(1);
-    const minWageMid = (3500/7.25).toFixed(1);
-    warn.innerHTML = `⚠ At the federal minimum wage of $7.25/hr (frozen since 2009), an entry hardtail requires ${minWageEntry} hours of work and a mid-range bike requires ${minWageMid} hours. At $7.25/hr in 2005 ($5.15/hr then), the same entry bike cost ${(450/5.15).toFixed(0)} hours. The sport has become less accessible at the wage floor due to frozen federal minimum wage policy.`;
+  if(wage < 10){
+    const entryPrice = BIKE_PRICES.entry[latestYear], midPrice = BIKE_PRICES.mid[latestYear];
+    const entryBasePrice = BIKE_PRICES.entry[baseYear];
+    warn.innerHTML = `⚠ At the federal minimum wage of $${FEDERAL_MIN_WAGE}/hr (frozen since 2009), an entry hardtail requires ${(entryPrice/FEDERAL_MIN_WAGE).toFixed(1)} hours of work and a mid-range bike requires ${(midPrice/FEDERAL_MIN_WAGE).toFixed(1)} hours. At the ${baseYear} federal minimum of $${MIN_WAGE_2005}/hr, the same entry bike cost ${(entryBasePrice/MIN_WAGE_2005).toFixed(0)} hours. The sport has become less accessible at the wage floor due to frozen federal minimum wage policy.`;
     warn.classList.add("show");
   } else {
     warn.classList.remove("show");
@@ -1507,18 +1761,21 @@ function renderSnapshotTable(){
   };
   const years = [2005,2010,2015,2019,2021,2022,2023,2024];
   const headerRow = ["Year","Avg Wage","Entry Hrs ($)","Mid Hrs ($)","Premium Hrs ($)","Context"];
+  const PEAK_YEAR = 2022, BEST_YEAR = 2024;
   const rowsHtml = years.map((y,i)=>{
     const r = AFFORD_ROWS.find(d=>d.year===y);
-    const isPeak = y===2022, isBest = y===2024;
+    const isPeak = y===PEAK_YEAR, isBest = y===BEST_YEAR;
     const bg = isPeak ? "var(--tintRed)" : isBest ? "var(--tintGreen)" : (i%2===0 ? "var(--panel)" : "var(--panel2)");
-    const yearColor = isPeak ? "#ef4444" : isBest ? "#22c55e" : "var(--text)";
+    const yearColor = isPeak ? PALETTE.red : isBest ? PALETTE.green : "var(--text)";
     const marker = isPeak ? " 🔺" : isBest ? " ✓" : "";
+    const cell = (color, hrs, price) =>
+      `<td style="color:${color}">${hrs}h <span style="color:var(--faint)">($${price.toLocaleString()})</span></td>`;
     return `<tr style="background:${bg}">
       <td style="color:${yearColor};font-weight:600;font-family:'Oswald',sans-serif;font-size:13px">${y}${marker}</td>
-      <td style="color:#60a5fa">$${r.wage.toFixed(2)}</td>
-      <td style="color:#22c55e">${r.entryHrs}h <span style="color:var(--faint)">($${r.entryPrice})</span></td>
-      <td style="color:#f97316">${r.midHrs}h <span style="color:var(--faint)">($${r.midPrice.toLocaleString()})</span></td>
-      <td style="color:#a78bfa">${r.premHrs}h <span style="color:var(--faint)">($${r.premPrice.toLocaleString()})</span></td>
+      <td style="color:${PALETTE.blue}">$${r.wage.toFixed(2)}</td>
+      ${cell(PALETTE.green,  r.entryHrs, r.entryPrice)}
+      ${cell(PALETTE.orange, r.midHrs,   r.midPrice)}
+      ${cell(PALETTE.purple, r.premHrs,  r.premPrice)}
       <td style="color:var(--faint);font-size:9px">${contextMap[y]}</td>
     </tr>`;
   }).join("");
@@ -1527,10 +1784,46 @@ function renderSnapshotTable(){
 </script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
+// TABS — the one place a tab is described.
+//
+// Adding a new tool, chart or view used to mean editing five separate places:
+// a <section> in the HTML, a title in a TABS array, a new init function, a new
+// build function, and a new line in an if-chain inside showTab(). The if-chain
+// grew by a line for every tab, forever.
+//
+// TO ADD A TAB: add a <section class="tab-panel" id="tab-6"> to the HTML above,
+// write an init function for it, then add one entry to this array. Nothing else
+// needs to change — the nav buttons and the lazy-loading both read from here.
+//
+// `init` runs the first time a tab is opened rather than on page load, so the
+// charts for tabs the visitor never looks at are never built. `_loaded` is set
+// automatically after the first run.
+// ═══════════════════════════════════════════════════════════════════════════
+const TAB_CONFIG = [
+  { title:"Annual % Change",  panelId:"tab-0", init:initTab0 },
+  { title:"Cumulative Index", panelId:"tab-1", init:initTab1 },
+  { title:"COVID Era",        panelId:"tab-2", init:initTab2 },
+  { title:"Key Findings",     panelId:"tab-3", init:initTab3 },
+  { title:"Compare",          panelId:"tab-4", init:initTab4 },
+  { title:"Affordability",    panelId:"tab-5", init:initTab5 },
+];
+
+function showTab(idx){
+  state.tab = idx;
+  document.querySelectorAll(".tab-btn").forEach((b,i)=>b.classList.toggle("active", i===idx));
+  TAB_CONFIG.forEach((tab,i)=>{
+    const panel = $(tab.panelId);
+    if(panel) panel.classList.toggle("active", i===idx);
+  });
+  const tab = TAB_CONFIG[idx];
+  if(tab && !tab._loaded){ tab.init(); tab._loaded = true; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // PAGE INITIALIZATION — header stat cards, theme dots, tabs nav
 // ═══════════════════════════════════════════════════════════════════════════
 function renderBenchmarks(){
-  $("benchmarksGrid").innerHTML = benchmarks.map(b=>`
+  $("benchmarksGrid").innerHTML = HEADER_BENCHMARKS.map(b=>`
     <div class="stat-card${b.hl?" hl":""}">
       <div class="stat-label">${b.label}</div>
       <div class="stat-val${b.cls?" "+b.cls:""}">${b.value}</div>
@@ -1539,8 +1832,17 @@ function renderBenchmarks(){
     </div>`).join("");
 }
 
+// Fill the two figures embedded in the Tab 1 paragraph from the same computed
+// totals the header cards use, so the prose can't contradict the chart.
+function renderProseFigures(){
+  const bike = $("proseBikeTotal"), cpi = $("proseCpiTotal");
+  if(bike) bike.textContent = fmtWhole(TOTALS.bikeCpiSince2000);
+  if(cpi)  cpi.textContent  = fmtWhole(TOTALS.usCpiSince2000);
+}
+
+// Theme dots build themselves from THEMES — add a theme there and a dot appears.
 function renderThemeDots(){
-  $("themeDots").innerHTML = THEME_DOTS.map(t=>
+  $("themeDots").innerHTML = THEMES.map(t=>
     `<button class="theme-dot${state.theme===t.key?" active":""}" data-key="${t.key}" style="background:${t.dot}" title="${t.name}" aria-label="Switch to ${t.name} theme"></button>`
   ).join("");
   document.querySelectorAll(".theme-dot").forEach(btn=>{
@@ -1549,12 +1851,23 @@ function renderThemeDots(){
 }
 
 function renderTabsNav(){
-  $("tabsNav").innerHTML = TABS.map((t,i)=>
-    `<button class="tab-btn${i===0?" active":""}" data-idx="${i}">${t}</button>`
+  $("tabsNav").innerHTML = TAB_CONFIG.map((t,i)=>
+    `<button class="tab-btn${i===0?" active":""}" data-idx="${i}">${t.title}</button>`
   ).join("");
   document.querySelectorAll(".tab-btn").forEach(btn=>{
     btn.onclick = () => showTab(parseInt(btn.dataset.idx));
   });
+}
+
+// The "Wait — bikes got MORE expensive?" callout. Collapsed on load so the
+// charts sit higher up the page; the whole title row is the toggle.
+function wireLimitationsToggle(){
+  const card = $("limitationsCard"), btn = $("limitationsToggle");
+  if(!card || !btn) return;
+  btn.onclick = () => {
+    const open = card.classList.toggle("open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1562,9 +1875,11 @@ function renderTabsNav(){
 // ═══════════════════════════════════════════════════════════════════════════
 document.addEventListener("DOMContentLoaded", ()=>{
   renderBenchmarks();
+  renderProseFigures();
   renderThemeDots();
   renderTabsNav();
-  initTab0(); // first tab loads immediately since it's visible on page load
+  wireLimitationsToggle();
+  showTab(0); // first tab is visible on load, so build it immediately
 });
 </script>
 </body>
