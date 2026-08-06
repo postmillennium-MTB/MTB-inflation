@@ -55,6 +55,23 @@ Not every number here carries the same confidence:
 Series coverage runs through 2024–2025 depending on the metric; written commentary is
 current to May 2026.
 
+### Optional comparison series
+
+Beyond the 10 core series above, the "Compare with:" chips on the Annual % Change,
+Cumulative Index, and COVID Era tabs let you overlay 16 additional series — steel,
+aluminum, titanium, footwear, durables, and others. Five were added most recently:
+
+| Series | FRED ID | What it adds |
+|---|---|---|
+| Import Price: Sport/Athletic Goods | [IZ33992](https://fred.stlouisfed.org/series/IZ33992) | Isolates the import-price layer, closest proxy for tariff impact |
+| PPI: Rubber & Plastic Products | [WPU07](https://fred.stlouisfed.org/series/WPU07) | Tires, grips, bushings — the input cost the frame-material series don't cover |
+| CPI: Recreation (parent category) | [CPIRECSL](https://fred.stlouisfed.org/series/CPIRECSL) | The broader basket bikes and sporting-event tickets both sit inside |
+| Employment Cost Index: Wages (Private) | [ECIWAG](https://fred.stlouisfed.org/series/ECIWAG) | BLS's job-mix-adjusted wage measure, a second read alongside AHETPI |
+| CPI: Used Cars & Trucks | [CUSR0000SETA02](https://fred.stlouisfed.org/series/CUSR0000SETA02) | A durable good with a far more extreme COVID boom/bust than bikes |
+
+All five are annual averages of FRED's monthly data, computed the same way as the
+tool's other extras (see the † footnote under the Annual % Change chart).
+
 ### On the headline "US CPI since 2000" figure
 
 The dashboard reports US CPI growth since 2000 as **+89%**, calculated by compounding the
