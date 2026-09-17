@@ -618,6 +618,9 @@ const CONFIG = {
   chartAnimationMs:   200,    // Chart.js transition when data changes
   lineTension:        0.15,   // curve smoothing on line charts
   playDurationMs:     7000,   // full left-to-right sweep of the Play button
+  drawOnMs:            700,   // left-to-right wipe when a Compare series is switched ON.
+                              // Raise it to draw more slowly; 0 would make the line
+                              // appear instantly, as it did before this existed.
   // Bar/scorecard colour thresholds, as a multiple of the US CPI baseline:
   // above 1.05x = red (outpacing inflation), above 0.55x = amber, else green.
   hotThreshold:       1.05,
@@ -953,6 +956,8 @@ const state = {
   playing: false,
   playProgress: 1,           // 0 = start of the sweep, 1 = fully drawn
   playFrame: null,           // requestAnimationFrame handle
+  drawOn: null,              // {index, progress} while a newly added series wipes in
+  drawOnFrame: null,         // requestAnimationFrame handle for that wipe
   extras: {},                // series key -> bool, shared across tabs 0/1/2
   spreadA: "bikes",
   spreadB: "uscpi",
@@ -1009,7 +1014,7 @@ const refLinesPlugin = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CHART.JS PLUGIN — reveal (drives the Play button)
+// CHART.JS PLUGIN — reveal (drives the Play button and the series draw-on)
 //
 // HOW THE PLAY ANIMATION WORKS, and why it's done this way:
 // The obvious approach is to hide later years by setting their values to null
@@ -1023,22 +1028,63 @@ const refLinesPlugin = {
 // Sliding that clip edge across at 60fps gives a continuous sweep, the axis
 // never rescales mid-play, and the gridlines and reference lines stay fully
 // visible because they're drawn outside the clipped region.
+//
+// The same clip earns its keep a second time. Switching a "Compare with:" chip
+// ON rebuilds the chart from scratch, so without help the new line would simply
+// be there on the next frame with no sense of where it came from. The `drawOn`
+// option clips ONE dataset — the one just added — to a left-hand fraction of
+// its own, so it wipes in left to right, year by year, while the established
+// lines stay fully painted and still.
+//
+// Both clips can be live at once (Play sweeping while a chip is toggled). The
+// per-dataset save/clip nests inside the whole-chart one because Chart.js runs
+// beforeDatasetsDraw → [beforeDatasetDraw … afterDatasetDraw] → afterDatasetsDraw,
+// and two nested clips intersect, which is exactly the right answer: the new
+// line is bounded by the Play edge AND by its own draw-on edge.
 // ═══════════════════════════════════════════════════════════════════════════
+
+// Clip the canvas to the leftmost `p` fraction of the plot area. Every caller
+// owes a matching ctx.restore() — see the guard note below.
+function clipPlotAreaTo(chart, p){
+  const {ctx, chartArea:{left,right,top,bottom}} = chart;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(left, top, Math.max(0, (right-left) * p), bottom - top);
+  ctx.clip();
+}
+
+// The before/after hook pairs below MUST agree about whether a clip was pushed,
+// or the canvas save/restore stack goes wrong and the rest of the chart paints
+// into a stale clip. The original single-clip version carried a comment warning
+// that its two guards had to stay mirrored by hand; with two pairs to keep in
+// step that is a trap worth closing, so each pair now asks one shared function
+// rather than repeating the condition.
+const sweepProgress = opts => {
+  const p = opts?.progress;
+  return (p == null || p >= 1) ? null : p;
+};
+const drawOnProgress = (opts, datasetIndex) => {
+  const d = opts?.drawOn;
+  return (!d || d.index !== datasetIndex || d.progress >= 1) ? null : d.progress;
+};
+
 const revealPlugin = {
   id: "reveal",
+  // Whole-chart clip — the Play sweep.
   beforeDatasetsDraw(chart, args, opts){
-    const p = opts?.progress;
-    if(p == null || p >= 1) return;
-    const {ctx, chartArea:{left,right,top,bottom}} = chart;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(left, top, Math.max(0, (right-left) * p), bottom - top);
-    ctx.clip();
+    const p = sweepProgress(opts);
+    if(p != null) clipPlotAreaTo(chart, p);
   },
   afterDatasetsDraw(chart, args, opts){
-    const p = opts?.progress;
-    if(p == null || p >= 1) return;   // must mirror the guard above, or the
-    chart.ctx.restore();              // canvas save/restore stack goes wrong
+    if(sweepProgress(opts) != null) chart.ctx.restore();
+  },
+  // Single-dataset clip — the draw-on for a newly added Compare series.
+  beforeDatasetDraw(chart, args, opts){
+    const p = drawOnProgress(opts, args.index);
+    if(p != null) clipPlotAreaTo(chart, p);
+  },
+  afterDatasetDraw(chart, args, opts){
+    if(drawOnProgress(opts, args.index) != null) chart.ctx.restore();
   }
 };
 
@@ -1100,7 +1146,7 @@ function extraDataset(label, data, color, opts = {}){
 
 function makeLineChart(canvasId, {
   labels, datasets, yMin, yMax, ySuffix, tooltipCallbacks,
-  refLines = [], revealProgress = 1, showLegend = true,
+  refLines = [], revealProgress = 1, showLegend = true, drawOn = null,
 }){
   destroyChart(canvasId);
   charts[canvasId] = new Chart($(canvasId).getContext("2d"), {
@@ -1115,7 +1161,9 @@ function makeLineChart(canvasId, {
         legend: showLegend ? stdLegend() : {display:false},
         tooltip: stdTooltip(tooltipCallbacks ? {callbacks: tooltipCallbacks} : undefined),
         refLines: { lines: refLines },
-        reveal: { progress: revealProgress },
+        // `drawOn` is the live state.drawOn object, not a copy, so every chart
+        // built during a wipe watches the same advancing progress value.
+        reveal: { progress: revealProgress, drawOn },
       }
     }
   });
@@ -1216,12 +1264,70 @@ function renderExtrasBar(containerId){
   });
 }
 
+// ── SERIES DRAW-ON ─────────────────────────────────────────────────────────
+// Switching a chip ON rebuilds all three charts, and a rebuilt chart paints its
+// lines in one go. That reads as the line having always been there. This drives
+// state.drawOn.progress 0 -> 1 so the reveal plugin can wipe the new line in
+// instead, using the same requestAnimationFrame shape as the Play sweep.
+//
+// Tabs 0, 1 and 2 all build their datasets as [two base series, ...activeExtras()]
+// in that order, so ONE dataset index is correct for all three charts. If a tab
+// ever gains or loses a base series, BASE_SERIES_COUNT is the thing to fix.
+const BASE_SERIES_COUNT = 2;   // US CPI + Sports Vehicles / Bikes, always first
+const DRAW_ON_CHARTS = ["chart0","chart1","chart2"];
+
+// Respect the OS "reduce motion" setting: those users get the old instant
+// appearance rather than a 700ms wipe they did not ask for.
+const prefersReducedMotion = () =>
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+
 function toggleExtra(key){
-  state.extras[key] = !state.extras[key];
+  const turningOn = !state.extras[key];
+  state.extras[key] = turningOn;
   EXTRAS_BARS.forEach(renderExtrasBar);
+
+  // Set up the wipe BEFORE rebuilding, so the new line is already clipped to
+  // zero width on the very first frame it exists and is never seen whole.
+  cancelAnimationFrame(state.drawOnFrame);
+  state.drawOn = (turningOn && !prefersReducedMotion())
+    ? { index: BASE_SERIES_COUNT + activeExtras().indexOf(key), progress: 0 }
+    : null;
+
   updateTab0Chart();
   updateTab1Chart();
   updateTab2Chart();
+
+  if(state.drawOn) startDrawOn();
+}
+
+function startDrawOn(){
+  const startedAt = performance.now();
+  const step = now => {
+    if(!state.drawOn) return;   // a later toggle already took over
+    const t = Math.min(1, (now - startedAt) / CONFIG.drawOnMs);
+    // easeOutCubic: quick out of the gate, settling as it lands. A constant
+    // speed reads as a shutter opening; this reads as a stroke being drawn.
+    state.drawOn.progress = 1 - Math.pow(1 - t, 3);
+    applyDrawOnProgress();
+    if(t < 1){
+      state.drawOnFrame = requestAnimationFrame(step);
+    } else {
+      // progress is exactly 1 here, which the plugin treats as "no clip", so
+      // the charts are already whole and the handle can simply be dropped.
+      state.drawOn = null;
+    }
+  };
+  state.drawOnFrame = requestAnimationFrame(step);
+}
+
+function applyDrawOnProgress(){
+  DRAW_ON_CHARTS.forEach(id => {
+    const chart = charts[id];
+    // Only repaint the tab actually on screen. The hidden ones hold the same
+    // state.drawOn object, so whatever the wipe reached is what they draw the
+    // next time they are shown — and by then progress is 1, i.e. no clip.
+    if(chart && chart.canvas.offsetParent !== null) chart.update("none");
+  });
 }
 
 // ── PLAY SWEEP ─────────────────────────────────────────────────────────────
@@ -1333,7 +1439,7 @@ function buildTab0Chart(){
   makeLineChart("chart0", {
     labels: allYears, datasets,
     yMin: dom.min, yMax: dom.max, ySuffix: "%",
-    revealProgress: state.playProgress,
+    revealProgress: state.playProgress, drawOn: state.drawOn,
     tooltipCallbacks: { label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}` },
     refLines: [{type:"horizontal", value:0, color:cssVar("--faint2"), width:1.5}],
   });
@@ -1417,7 +1523,7 @@ function buildTab1Chart(){
 
   makeLineChart("chart1", {
     labels: allYears, datasets,
-    yMin: dom.min, yMax: dom.max,
+    yMin: dom.min, yMax: dom.max, drawOn: state.drawOn,
     tooltipCallbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)} (${CONFIG.cumulativeBaseYear}=100)` },
     refLines: [{type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[4,3]}],
   });
@@ -1470,7 +1576,7 @@ function buildTab2Chart(){
 
   makeLineChart("chart2", {
     labels: covidYears, datasets,
-    yMin: dom.min, yMax: dom.max, ySuffix: "%",
+    yMin: dom.min, yMax: dom.max, ySuffix: "%", drawOn: state.drawOn,
     tooltipCallbacks: { label: ctx => `${ctx.dataset.label}: ${fmtPct(ctx.parsed.y)}` },
     refLines: [
       {type:"horizontal", value:0, color:cssVar("--faint"), width:1.5},
