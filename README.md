@@ -16,7 +16,7 @@ Six tabs, all driven by the same underlying dataset:
 | **Cumulative Index** | Both series compounded forward from a 2000 = 100 baseline |
 | **COVID Era** | A 2017–2025 zoom-in with markers at the COVID, price-peak, and bust years, plus a timeline of the tariff/freight/demand events behind them |
 | **Key Findings** | Six written takeaways, plus a comparison table against golf equipment, sporting-event tickets, and EU sport equipment |
-| **Compare** | 10 adjacent FRED/BLS/BEA series, re-indexable to any base year, plus a ranked bar chart of % change since that year |
+| **Compare** | 10 adjacent FRED/BLS/BEA series as scorecards; the price series are re-indexable to any base year and ranked in a bar chart of % change since that year. PCE Sport Equip ($) is nominal spending, not a price, so it appears only as a grey "spending, not price" scorecard |
 | **Affordability** | Hours-of-work-to-buy a bike by tier (entry/mid/premium), a live calculator using your own hourly wage, and a year-by-year snapshot table |
 
 ## Data sources
@@ -74,15 +74,23 @@ tool's other extras (see the † footnote under the Annual % Change chart).
 
 ### On the headline "US CPI since 2000" figure
 
-The dashboard reports US CPI growth since 2000 as **+89%**, calculated by compounding the
-`fredCPI` series (FRED FPCPITOTLZGUSA) year by year. An earlier version of this tool
-displayed **+83%**, which came from CPI-U index levels — a different series than the one the
-Cumulative Index chart actually plots. The card and the chart beneath it therefore disagreed.
+The dashboard reports US CPI growth since 2000 as **+83%** and bike CPI growth as **+32%**,
+both over 2000–2024. Both come from the series the Cumulative Index chart plots, so the cards
+and the chart cannot disagree.
 
-Both figures are defensible; they just answer the question with different data. The tool now
-computes the number from the series it charts, so the two can't drift apart again. If the
-CPI-U basis is preferred, that's the value to change — see "Numbers that compute themselves"
-below.
+**Correction history.** An earlier version showed **+89%** for US CPI. That was a bug, not a
+second defensible basis: an annual figure for 2000 is the change from 1999 to 2000, which
+happened *before* the base year, and the old code compounded it in anyway (3.38% of extra
+growth). It also stored each CPI level at the *start* of its year, so the CPI line on the
+Cumulative chart ran one year behind the bike line. Both are fixed — "base year = 100" now means
+the end of the base year, and only later years' changes are compounded. The corrected +83%
+matches the CPI-U index-level calculation.
+
+**Same window for both series.** The bike series runs through 2025 but the CPI series stops at
+2024. The header cards, the Cumulative Index cards and Key Findings #01 all use the newest year
+*both* series have (`TOTALS.endYear`), so the "gap" compares like with like. The chart itself
+still draws the 2025 bike value. Add a 2025 value to `fredCPI` and every card moves to
+2000–2025 automatically.
 
 ## Tech notes
 
@@ -153,7 +161,7 @@ the charts, tables, and scorecards pick it up automatically.
 
 **Numbers that compute themselves** (no manual edit needed): the header stat cards for US CPI
 and Bikes CPI, the "gap" card and the two figures in the Cumulative Index paragraph (all from
-`TOTALS`), the Compare tab's CPI baselines and traffic-light colours, and the Affordability
+`TOTALS`, which runs over the newest year both series share), the Compare tab's CPI baselines and traffic-light colours, and the Affordability
 hero cards, calculator, and snapshot table (all from `AFFORD_ROWS` / `BIKE_PRICES`).
 
 **Numbers that do NOT update themselves** — revisit these if a new year changes the story:

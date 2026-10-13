@@ -480,14 +480,14 @@ tr:nth-child(odd){background:var(--panel2)}
     <section id="tab-4" class="tab-panel">
       <div class="spread-header" style="margin-top:0">
         <div class="sh" style="margin-bottom:0">
-          <div class="sh-title">10 Adjacent FRED &amp; BLS Metrics Compared</div>
+          <div class="sh-title">Adjacent FRED &amp; BLS Price Series Compared</div>
           <div class="sh-sub">All indexed to selected base year = 100 for like-for-like comparison</div>
         </div>
         <div class="tf-picker" id="lineTfPicker"></div>
       </div>
       <div class="chart-wrap chart-lg" style="margin-bottom:6px"><canvas id="chart4line"></canvas></div>
       <div style="font-size:9px;color:var(--faint2);margin-bottom:20px;line-height:1.6">
-        † PPI series (PCU339920339920, PCU3399203399204) use approximate annual averages from BLS monthly data. PCE S&amp;R Price Index approximate pre-2020. PCE Sport Equip ($) is nominal spending (price × volume), not a pure price index. ‡ BEA NIPA estimates for PCE pre-2021.
+        † PPI series (PCU339920339920, PCU3399203399204) use approximate annual averages from BLS monthly data. PCE S&amp;R Price Index approximate pre-2020. PCE Sport Equip ($) is nominal spending (price × volume), not a price index, so it is left off this chart and the bar chart below. ‡ BEA NIPA estimates for PCE pre-2021.
       </div>
 
       <div class="spread-header">
@@ -499,7 +499,7 @@ tr:nth-child(odd){background:var(--panel2)}
       </div>
       <div class="chart-wrap chart-sm" style="margin-bottom:6px"><canvas id="chart4bar"></canvas></div>
       <div style="font-size:9px;color:var(--faint2);margin-bottom:24px;line-height:1.6">
-        PCE Sport Equip ($) is nominal spending growth — reflects both price increases AND more consumers buying. Metrics without sufficient historical data (PPI Sporting Retailers, PCE Other Sport, Real PCE) are omitted from this chart.
+        Omitted from this chart: PCE Sport Equip ($), which is nominal spending (price and volume, not a price), and metrics without sufficient historical data (PPI Sporting Retailers, PCE Other Sport, Real PCE).
       </div>
 
       <div class="sh"><div class="sh-title">All 10 Metrics at a Glance</div><div class="sh-sub">Change shown: 2021→2024 for all cards</div></div>
@@ -650,36 +650,50 @@ const bikeCPI = {
 };
 
 // Turn a series of ANNUAL PERCENT CHANGES into a CUMULATIVE PRICE INDEX.
-// Start at 100 in the first year, then multiply forward: a +5% year multiplies
-// the running total by 1.05, a -2% year by 0.98. This compounding is why a run
-// of small percentages ends up far from where simple addition would put it.
-// Note the value stored for year Y is the level at the START of that year, i.e.
-// before Y's own change is applied — so the last key is the level going into
-// the final year, not the level after it. Use totalChangePct() below for the
-// full "how much did this rise overall" figure.
-function buildCumulative(annualPct){
+// Multiply forward: a +5% year multiplies the running total by 1.05, a -2% year
+// by 0.98. This compounding is why a run of small percentages ends up far from
+// where simple addition would put it.
+//
+// An annual figure for year Y is the change from Y-1 to Y. So "base year = 100"
+// means the level at the END of the base year, and the base year's own figure
+// (which happened BEFORE that point) must not be compounded in. The stored value
+// for year Y is therefore the level at the end of Y, directly comparable with an
+// index-level series (bikeCumulative below) in the same year. An earlier version
+// compounded the base year's own change and stored the level at the START of
+// each year: it overstated "US CPI since 2000" by 3.4 points of compounding
+// (+89% instead of +83%) and drew the CPI line one year late.
+//
+// A series that starts after the base year (several EXTRA_SERIES do) has no
+// base-year figure, so it is anchored at 100 the year BEFORE its first value.
+function buildCumulative(annualPct, baseYear = CONFIG.cumulativeBaseYear){
+  const years = Object.keys(annualPct).map(Number).sort((a,b)=>a-b);
+  const anchor = Math.max(baseYear, years[0] - 1);   // year whose end-level = 100
   let val = 100;
   const out = {};
-  Object.keys(annualPct).map(Number).sort((a,b)=>a-b).forEach(y=>{
+  if(anchor >= baseYear && anchor < years[0]) out[anchor] = 100;   // late-starting series: show its anchor point
+  years.forEach(y=>{
+    if(y < anchor) return;                // changes before the anchor happened before the base
+    if(y > anchor) val = val*(1+annualPct[y]/100);   // compound this year's change forward
     out[y] = parseFloat(val.toFixed(2));
-    val = val*(1+annualPct[y]/100);   // compound this year's change forward
   });
   return out;
 }
 
-// Total percent change across an entire annual-percent-change series, with every
-// year's change compounded in (including the final year's).
-function totalChangePct(annualPct){
+// Total percent change from the end of fromYear to the end of toYear: compounds
+// the annual figures for fromYear+1 … toYear only (see buildCumulative above for
+// why fromYear's own figure is excluded).
+function totalChangePct(annualPct, fromYear, toYear){
   let factor = 1;
-  Object.keys(annualPct).map(Number).sort((a,b)=>a-b).forEach(y=>{ factor *= 1 + annualPct[y]/100; });
+  Object.keys(annualPct).map(Number).sort((a,b)=>a-b).forEach(y=>{
+    if(y > fromYear && y <= toYear) factor *= 1 + annualPct[y]/100;
+  });
   return (factor - 1) * 100;
 }
 
 // Total percent change across a series of raw INDEX LEVELS (not percentages):
-// simply the last level over the first.
-function totalChangeFromLevels(levels){
-  const years = Object.keys(levels).map(Number).sort((a,b)=>a-b);
-  return (levels[years[years.length-1]] / levels[years[0]] - 1) * 100;
+// the level in toYear over the level in fromYear.
+function totalChangeFromLevels(levels, fromYear, toYear){
+  return (levels[toYear] / levels[fromYear] - 1) * 100;
 }
 
 // Format a percentage for display in a card, e.g. 27.7 -> "+28%"
@@ -697,11 +711,21 @@ const bikeCumulative = (()=>{
 
 // Headline totals, computed once from the data above so that no card, chart or
 // sentence in the page can drift out of step with the series it describes.
+//
+// Both totals run over the SAME window — base year to the newest year BOTH series
+// have — so the "gap" is like-for-like. The bike series runs one year longer than
+// US CPI (2025 vs 2024); comparing 2000–2025 bikes against 2000–2024 CPI would
+// flatter the gap by a year of CPI inflation the bikes were not measured against.
+// Add a 2025 value to fredCPI and the window — and every card — moves with it.
+const lastYearOf = series => Math.max(...Object.keys(series).map(Number));
 const TOTALS = {
-  usCpiSince2000:  totalChangePct(fredCPI),
-  bikeCpiSince2000: totalChangeFromLevels(bikeRawCPI),
+  startYear: CONFIG.cumulativeBaseYear,
+  endYear:   Math.min(lastYearOf(fredCPI), lastYearOf(bikeRawCPI)),
 };
+TOTALS.usCpiSince2000   = totalChangePct(fredCPI, TOTALS.startYear, TOTALS.endYear);
+TOTALS.bikeCpiSince2000 = totalChangeFromLevels(bikeRawCPI, TOTALS.startYear, TOTALS.endYear);
 TOTALS.gapPoints = TOTALS.usCpiSince2000 - TOTALS.bikeCpiSince2000;
+TOTALS.windowLabel = `${TOTALS.startYear}–${TOTALS.endYear}`;
 
 function buildRows(){
   const years=[...new Set([...Object.keys(fredCPI),...Object.keys(bikeCPI)])].map(Number).sort((a,b)=>a-b);
@@ -761,14 +785,18 @@ const COMPARE_INDEX_LEVELS = {
   },
 };
 
+// Price series only. PCE Sport Equip ($) is deliberately NOT here: it is nominal
+// SPENDING (price x volume), so on a "did prices outrun CPI?" chart it would
+// read as a price surge when part of it is simply more people buying. It still
+// appears as a scorecard, flagged as spending (see isSpending in COMPARE_METRICS).
 const COMPARE_LINE_SERIES = {
   "US CPI":"US CPI", "Bikes CPI":"Bikes CPI", "PPI: Sport Mfg":"PPI Sport Mfg",
-  "PCE Sport Equip ($)":"PCE Sport Equip", "PPI: Golf Equip":"PPI Golf Equip",
+  "PPI: Golf Equip":"PPI Golf Equip",
   "PCE S&R Price Idx":"PCE S&R Price", "Sporting Events":"Sporting Events",
 };
 const COMPARE_LINE_COLORS = {
   "US CPI":PALETTE.blue, "Bikes CPI":PALETTE.orange, "PPI: Sport Mfg":PALETTE.purple,
-  "PCE Sport Equip ($)":PALETTE.green, "PPI: Golf Equip":PALETTE.amber,
+  "PPI: Golf Equip":PALETTE.amber,
   "PCE S&R Price Idx":PALETTE.mint, "Sporting Events":PALETTE.rose,
 };
 
@@ -845,7 +873,7 @@ const COMPARE_METRICS = [
   { id:"FPCPITOTLZGUSA", name:"US All-Items CPI", shortName:"US CPI", badge:"CPI", badgeCol:PALETTE.blue, url:"https://fred.stlouisfed.org/series/FPCPITOTLZGUSA", recentVal:"+2.95%", recentNote:"Annual 2024", isBaseline:true, desc:"Economy-wide baseline" },
   { id:"BLS-Bikes", name:"Sports Vehicles / Bikes CPI", shortName:"Bikes CPI (BLS)", badge:"CPI", badgeCol:PALETTE.orange, url:null, recentVal:"−3.17%", recentNote:"Annual 2025", isBaseline:false, desc:"BLS CPI for all sport vehicles incl. bicycles" },
   { id:"PCU339920339920", name:"PPI: Sporting Goods Mfg", shortName:"PPI Sport Goods Mfg", badge:"PPI", badgeCol:PALETTE.purple, url:"https://fred.stlouisfed.org/series/PCU339920339920", recentVal:"182.4", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices: all athletic & sporting goods mfg (NAICS 339920)" },
-  { id:"DSPGRC1A027NBEA", name:"PCE: Sporting Equipment Spending", shortName:"PCE Sport Equip $", badge:"PCE", badgeCol:PALETTE.green, url:"https://fred.stlouisfed.org/series/DSPGRC1A027NBEA", recentVal:"$126.9B", recentNote:"Nominal 2025", isBaseline:false, desc:"Consumer spending: sporting equip, supplies, guns & ammo (nominal $B)" },
+  { id:"DSPGRC1A027NBEA", name:"PCE: Sporting Equipment Spending", shortName:"PCE Sport Equip $", badge:"PCE", badgeCol:PALETTE.green, url:"https://fred.stlouisfed.org/series/DSPGRC1A027NBEA", recentVal:"$126.9B", recentNote:"Nominal 2025", isBaseline:false, isSpending:true, desc:"Consumer spending: sporting equip, supplies, guns & ammo (nominal $B)" },
   { id:"PCU3399203399204", name:"PPI: Golf Equipment", shortName:"PPI Golf Equipment", badge:"PPI", badgeCol:PALETTE.amber, url:"https://fred.stlouisfed.org/series/PCU3399203399204", recentVal:"84.6", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices for golf clubs, balls & bags — below 1985 base of 100" },
   { id:"PCU451110451110", name:"PPI: Sporting Goods Retailers", shortName:"PPI Sport Retailers", badge:"PPI", badgeCol:PALETTE.magenta, url:"https://fred.stlouisfed.org/series/PCU451110451110", recentVal:"+2.0%", recentNote:"YoY Mar 2025", isBaseline:false, desc:"Retail-level prices: bikes, camping gear, fitness equip & accessories" },
   { id:"DODRRG3A086NBEA", name:"PCE Price Idx: Sports & Rec", shortName:"PCE S&R Price Idx", badge:"PCE", badgeCol:PALETTE.mint, url:"https://fred.stlouisfed.org/series/DODRRG3A086NBEA", recentVal:"100.5", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: all sports & recreational goods spending" },
@@ -935,9 +963,9 @@ const SPREAD_OPTS = {
 // named in `note`.
 const HEADER_BENCHMARKS = [
   { label:"Sports Tickets", value:"+158%", since:"1997–2026", note:"+9.7% in 2024 alone", hl:false },
-  { label:"US All-Items CPI", value:fmtWhole(TOTALS.usCpiSince2000), since:"2000–2024",
+  { label:"US All-Items CPI", value:fmtWhole(TOTALS.usCpiSince2000), since:TOTALS.windowLabel,
     note:"FRED FPCPITOTLZGUSA", hl:false },
-  { label:"Sports Vehicles/Bikes", value:fmtWhole(TOTALS.bikeCpiSince2000), since:"2000–2025",
+  { label:"Sports Vehicles/Bikes", value:fmtWhole(TOTALS.bikeCpiSince2000), since:TOTALS.windowLabel,
     note:"BLS CPI (all bike types)", hl:true, cls:"orange" },
   { label:"EU Sport Equipment", value:"+~9%", since:"2014–2024", note:"EU HICP avg 0.9%/yr", hl:false },
   { label:"MTB MSRP Surge", value:"+40–50%", since:"2019–2022", note:"Bicycle Association data", hl:false, cls:"red" },
@@ -1536,9 +1564,9 @@ function renderStat2x2(){
   // outside the range of data held in this file, so it stays hand-entered.
   const cards = [
     {label:`US CPI grew since ${CONFIG.cumulativeBaseYear}`, val:fmtWhole(TOTALS.usCpiSince2000),
-     sub:"FRED FPCPITOTLZGUSA, 2000–2024", col:PALETTE.blue},
+     sub:`FRED FPCPITOTLZGUSA, ${TOTALS.windowLabel}`, col:PALETTE.blue},
     {label:`Bikes/Sports Vehicle CPI grew since ${CONFIG.cumulativeBaseYear}`, val:fmtWhole(TOTALS.bikeCpiSince2000),
-     sub:"BLS CPI, 2000–2025", col:PALETTE.orange},
+     sub:`BLS CPI, ${TOTALS.windowLabel} (same window as US CPI)`, col:PALETTE.orange},
     {label:"Gap: Bikes underperformed CPI by", val:`−${TOTALS.gapPoints.toFixed(0)} pts`,
      sub:"Bikes are cheaper in real terms", col:PALETTE.green},
     {label:"Long-run avg bike CPI (1978–2026)", val:"1.73%/yr",
@@ -1610,7 +1638,7 @@ function renderEventTimeline(){
 // ═══════════════════════════════════════════════════════════════════════════
 function initTab3(){
   const findings = [
-    {num:"01",title:"Bikes Are Cheaper in Real Terms (Long Run)",col:PALETTE.green,body:"Over 46 years, the BLS bike CPI rose only 127% vs. overall CPI's 265%. Annual rate 1.73% vs. 3.43%. Since 2000, bikes up 28% while the broader economy rose 83%."},
+    {num:"01",title:"Bikes Are Cheaper in Real Terms (Long Run)",col:PALETTE.green,body:`Over 46 years, the BLS bike CPI rose only 127% vs. overall CPI's 265%. Annual rate 1.73% vs. 3.43%. Since ${CONFIG.cumulativeBaseYear}, bikes up ${TOTALS.bikeCpiSince2000.toFixed(0)}% while the broader economy rose ${TOTALS.usCpiSince2000.toFixed(0)}% (through ${TOTALS.endYear}).`},
     {num:"02",title:"COVID Was a Unique Shock, Not a New Normal",col:PALETTE.orange,body:"Ocean freight spiked 10×, raw materials surged 20–400%, sales jumped from $6B to $8.4B. MTB MSRP rose 10–40% in 2019–2022. In 2022, overall CPI (+8.0%) outpaced bikes (+4.65%)."},
     {num:"03",title:"The Post-COVID Bust Is Significant",col:PALETTE.blue,body:"BLS bike CPI: flat (+0.1%), then −2.05%, then −3.17% in 2023–2025 — while overall CPI kept rising. Average market discounts of $626+ per bike. Bankruptcies across the industry."},
     {num:"04",title:"Premium MTBs vs. Average Bikes: Two Stories",col:PALETTE.purple,body:"BLS CPI tracks all bike types — budget bikes pull averages down. High-end MTBs went from $4–5k in 2010 to $6–12k MSRP in 2024, outpacing CPI by 3–4× at the premium tier.",links:[
@@ -1739,7 +1767,7 @@ function buildTab4Bar(){
   $("barChartTitle").textContent = `% Change Since ${state.barTf} vs. US CPI (+${usCpiChg.toFixed(1)}%)`;
   $("barChartSub").textContent = `${state.barTf}→${latest} · Blue dashed = US CPI baseline · green below · amber moderate · red above`;
 
-  const barData = COMPARE_METRICS.map(m=>{
+  const barData = COMPARE_METRICS.filter(m=>!m.isSpending).map(m=>{
     const chg = compareChangePct(METRIC_TO_COMPARE_KEY[m.id], state.barTf, latest);
     return chg==null ? null : { name:m.shortName, chg, isBaseline:m.isBaseline };
   }).filter(Boolean).sort((a,b)=>b.chg-a.chg);
@@ -1766,8 +1794,10 @@ function renderScorecards(){
   const usCpiChg = compareChangePct("US CPI", from, to);
   $("scorecardsGrid").innerHTML = COMPARE_METRICS.map(m=>{
     const chg = compareChangePct(METRIC_TO_COMPARE_KEY[m.id], from, to);
-    const statusCol = vsCpiColor(chg, usCpiChg, m.isBaseline);
-    const statusLabel = vsCpiLabel(chg, usCpiChg, m.isBaseline);
+    // Spending is not a price, so it gets no above/below-CPI verdict — grey and
+    // labelled, with the % change still shown for reference.
+    const statusCol = m.isSpending ? cssVar("--faint") : vsCpiColor(chg, usCpiChg, m.isBaseline);
+    const statusLabel = m.isSpending ? "◆ SPENDING, NOT PRICE" : vsCpiLabel(chg, usCpiChg, m.isBaseline);
     const shortId = m.id.length > 18 ? m.id.slice(0,18)+"…" : m.id;
     return `
       <div class="scorecard" style="border-top-color:${statusCol}">
