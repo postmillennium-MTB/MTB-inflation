@@ -135,6 +135,11 @@ a{color:inherit}
 .theme-dot.active{border-color:var(--orange);transform:scale(1.15)}
 .pmr-btn{background:var(--orange);color:#000;font-family:'Oswald',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;padding:7px 14px;border-radius:5px;text-decoration:none;box-shadow:0 2px 8px rgba(249,115,22,.3);white-space:nowrap;display:inline-block}
 
+.share-btn{background:transparent;color:var(--orange);border:1px solid var(--orange);font-family:'Oswald',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;padding:6px 12px;border-radius:5px;cursor:pointer;white-space:nowrap}
+.share-btn:hover{background:var(--orange);color:#000}
+.share-toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,12px);max-width:92vw;background:var(--tooltip);color:var(--text);border:1px solid var(--border3);border-radius:6px;padding:9px 14px;font-size:11px;word-break:break-all;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50}
+.share-toast.show{opacity:1;transform:translate(-50%,0)}
+
 .benchmarks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:14px}
 .stat-card{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:10px 12px;transition:all .25s}
 .stat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(249,115,22,.15)}
@@ -173,6 +178,10 @@ a{color:inherit}
 .content{max-width:1100px;margin:0 auto;padding:20px 18px}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
+
+/* Plain-English takeaway at the top of each tab (text is built by TAB_CONFIG[i].takeaway). */
+.takeaway{margin-bottom:16px;padding:10px 14px;background:var(--panel2);border:1px solid var(--grid);border-left:3px solid var(--orange);border-radius:7px;font-size:12px;line-height:1.7;color:var(--text2)}
+.takeaway-label{display:block;font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:2px}
 
 .sh{margin-bottom:12px}
 .sh-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;color:var(--text);letter-spacing:.04em;line-height:1.35;text-transform:uppercase}
@@ -265,6 +274,11 @@ tr:nth-child(odd){background:var(--panel2)}
 .sc-status-row{margin-top:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .sc-status{font-size:9px;font-weight:600}
 .sc-chg{font-size:9px;color:var(--faint)}
+.sc-tier{margin-top:5px;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint2)}
+
+/* ── DATA-CONFIDENCE LINE KEY (under the "Compare with:" chips) ── */
+.tier-key{display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-basis:100%;margin-top:2px;font-size:9px;color:var(--sub2)}
+.tier-key-item{display:inline-flex;align-items:center;gap:5px}
 
 .sources-box{margin-top:14px;padding:12px 14px;background:var(--panel2);border:1px solid var(--grid);border-radius:7px;font-size:9px;color:var(--faint);line-height:1.8}
 .sources-label{color:var(--sub2);font-weight:600;text-transform:uppercase;letter-spacing:.1em}
@@ -301,10 +315,27 @@ tr:nth-child(odd){background:var(--panel2)}
 .minwage-warn{margin-top:14px;padding:10px 14px;background:var(--tintRed);border:1px solid var(--redSoft);border-radius:6px;font-size:10px;color:var(--red);line-height:1.7;display:none}
 .minwage-warn.show{display:block}
 
+.scenario-bar{margin-bottom:14px}
+.scenario-note{flex-basis:100%;font-size:9px;color:var(--sub2);line-height:1.7;margin-top:4px}
+.scenario-note strong{color:var(--amber)}
+
 .msrp-note{padding:12px 16px;background:var(--panel2);border:1px solid var(--grid);border-left:3px solid var(--amber);border-radius:7px;font-size:9px;color:var(--sub2);line-height:1.8}
 .msrp-note .lbl{color:var(--amber);font-weight:600}
 
 /* ── CORRELATION MATRIX (Tab 6) ── */
+.corr-mode-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.corr-toggle{display:inline-flex;align-items:center;gap:9px;background:var(--panel3);border:1px solid var(--border2);color:var(--sub);padding:6px 12px;border-radius:14px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:500}
+.corr-toggle.on{border-color:var(--orange);color:var(--orange);font-weight:700}
+.corr-toggle-track{width:26px;height:14px;border-radius:7px;background:var(--border2);position:relative;transition:background .15s;flex-shrink:0}
+.corr-toggle.on .corr-toggle-track{background:var(--orange)}
+.corr-toggle-knob{position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--bg);transition:transform .15s}
+.corr-toggle.on .corr-toggle-knob{transform:translateX(12px)}
+.corr-mode-note{font-size:9px;color:var(--faint);letter-spacing:.03em}
+.corr-cell.ns{opacity:.45}
+.corr-effect-table td.num{font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.corr-effect-table td.barcell{width:90px;padding:8px 4px}
+.corr-effect-table .sig{color:var(--orange);font-weight:700}
+.corr-bar{display:block;height:7px;border-radius:3px;min-width:2px}
 .corr-chip-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center}
 .corr-chip{background:var(--panel3);border:1px solid var(--border2);color:var(--sub);padding:5px 11px;border-radius:12px;font-size:10px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:400;transition:all .15s;user-select:none}
 .corr-chip.active{font-weight:600}
@@ -373,6 +404,7 @@ tr:nth-child(odd){background:var(--panel2)}
                postmillenniumrenaissance.com/MTB-inflation/. Without it the link
                loads the homepage INSIDE the frame, so the page changes but the
                browser's address bar still reads /MTB-inflation/. -->
+          <button class="share-btn" id="shareBtn" title="Copy a link to this exact view">LINK</button>
           <a href="https://postmillenniumrenaissance.com" target="_top" class="pmr-btn" title="Back to Post Millennium Renaissance">PMR</a>
         </div>
       </div>
@@ -487,7 +519,7 @@ tr:nth-child(odd){background:var(--panel2)}
       </div>
       <div class="chart-wrap chart-lg" style="margin-bottom:6px"><canvas id="chart4line"></canvas></div>
       <div style="font-size:9px;color:var(--faint2);margin-bottom:20px;line-height:1.6">
-        † PPI series (PCU339920339920, PCU3399203399204) use approximate annual averages from BLS monthly data. PCE S&amp;R Price Index approximate pre-2020. PCE Sport Equip ($) is nominal spending (price × volume), not a price index, so it is left off this chart and the bar chart below. ‡ BEA NIPA estimates for PCE pre-2021.
+        Line style: solid = exact · short dash † = approximate · dotted ‡ = estimated (US CPI is dashed as the baseline). † PPI series (PCU339920339920, PCU3399203399204) use approximate annual averages from BLS monthly data. PCE S&amp;R Price Index approximate pre-2020. PCE Sport Equip ($) is nominal spending (price × volume), not a price index, so it is left off this chart and the bar chart below. ‡ BEA NIPA estimates for PCE pre-2021.
       </div>
 
       <div class="spread-header">
@@ -515,8 +547,9 @@ tr:nth-child(odd){background:var(--panel2)}
     <section id="tab-5" class="tab-panel">
       <div class="sh">
         <div class="sh-title">Hours of Work to Buy a Mountain Bike</div>
-        <div class="sh-sub">FRED AHETPI (BLS) average hourly earnings · representative MSRP by tier · 2005–2024</div>
+        <div class="sh-sub">FRED AHETPI (BLS) average hourly earnings · representative MSRP by tier ‡ estimated, not a price index · 2005–2024</div>
       </div>
+      <div class="tf-picker scenario-bar" id="affordScenarioBar"></div>
       <div class="afford-hero-grid" id="affordHeroGrid"></div>
 
       <div class="sh">
@@ -533,9 +566,7 @@ tr:nth-child(odd){background:var(--panel2)}
         <div class="sh-sub">When the wage line is ABOVE a price line, that bike became more affordable. When below, less affordable.</div>
       </div>
       <div class="chart-wrap chart-sm" style="margin-bottom:6px"><canvas id="chart5b"></canvas></div>
-      <div style="font-size:9px;color:var(--faint2);margin-bottom:24px;line-height:1.6">
-        Wages (blue dashed) grew ~91% since 2005. Entry MSRP grew 67% — wages won. Mid MSRP grew 94% — essentially tied. Premium MSRP grew 123% — prices pulled ahead, but a 2024 premium bike is categorically better than its 2005 equivalent in every dimension.
-      </div>
+      <div id="afford5bNote" style="font-size:9px;color:var(--faint2);margin-bottom:24px;line-height:1.6"></div>
 
       <div class="sh"><div class="sh-title">Personal Affordability Calculator</div><div class="sh-sub">How many hours of work does a bike cost at your wage?</div></div>
       <div class="calc-box">
@@ -568,6 +599,14 @@ tr:nth-child(odd){background:var(--panel2)}
         <div class="sh-sub">How closely each series' annual % change moves with every other · click any cell for the year-by-year scatter</div>
       </div>
 
+      <div class="corr-mode-bar">
+        <button class="corr-toggle" id="corrExCovidBtn" role="switch" aria-checked="false">
+          <span class="corr-toggle-track" aria-hidden="true"><span class="corr-toggle-knob"></span></span>
+          <span id="corrExCovidLabel"></span>
+        </button>
+        <span class="corr-mode-note" id="corrModeNote"></span>
+      </div>
+
       <div class="corr-chip-bar" id="corrChipBar"></div>
       <div class="corr-count-note" id="corrCountNote"></div>
 
@@ -579,19 +618,23 @@ tr:nth-child(odd){background:var(--panel2)}
         <span>−1.0</span>
         <div class="corr-legend-bar"></div>
         <span>+1.0</span>
-        <span style="margin-left:6px">&nbsp;·&nbsp; Blue = move opposite &nbsp;·&nbsp; Orange = move together</span>
+        <span style="margin-left:6px">&nbsp;·&nbsp; Blue = move opposite &nbsp;·&nbsp; Orange = move together &nbsp;·&nbsp; Faded = not distinguishable from zero at 95%</span>
       </div>
 
       <div class="corr-detail" id="corrDetail">
         <div class="corr-detail-empty">Click any cell above to see the year-by-year scatter for that pair.</div>
       </div>
 
+      <div id="corrCovidEffect" style="margin-top:26px"></div>
+
       <div class="corr-excluded-note" id="corrExcludedNote"></div>
     </section>
 
   </div>
 
+  <div id="shareToast" class="share-toast" role="status" aria-live="polite"></div>
   <div class="footer">
+    <div id="footerFreshness" style="margin-bottom:4px"></div>
     DATA: FRED FPCPITOTLZGUSA · BLS CPI/PPI · BEA PCE · EU HICP · Industry Reports &nbsp;·&nbsp; Analysis current to May 2026
   </div>
 </div>
@@ -625,6 +668,15 @@ const CONFIG = {
   // above 1.05x = red (outpacing inflation), above 0.55x = amber, else green.
   hotThreshold:       1.05,
   midThreshold:       0.55,
+  // Years treated as "the COVID shock" by the Correlation tab's exclusion
+  // toggle. 2021–22 hit almost every series here at once; 2020 is the collapse
+  // that preceded it. Change this list and the toggle, its label and its
+  // takeaway follow.
+  covidShockYears:    [2020, 2021, 2022],
+  covidPeakYear:      2022,   // year the Affordability hero card calls "COVID peak"
+  // Affordability "transaction price" scenario: the first year discounting is
+  // applied from. Your MSRP note puts post-COVID bust discounts at 15–30%.
+  affordDiscountFromYear: 2023,
 };
 
 const fredCPI = {
@@ -698,6 +750,21 @@ function totalChangeFromLevels(levels, fromYear, toYear){
 
 // Format a percentage for display in a card, e.g. 27.7 -> "+28%"
 const fmtWhole = v => `${v>=0?"+":"−"}${Math.abs(v).toFixed(0)}%`;
+// Signed percent to `dp` decimals with a true minus sign, e.g. -3.168 -> "−3.17%".
+const fmtSigned = (v, dp = 2) => `${v>=0?"+":"−"}${Math.abs(v).toFixed(dp)}%`;
+
+// ── DATA CONFIDENCE TIERS ──────────────────────────────────────────────────
+// Every series carries one of these. The tier decides the line style on the
+// charts (dash pattern) AND a text mark in legends, chips and tooltips, so the
+// information never rests on line style alone. Tiers follow the README's
+// "A note on precision". To re-grade a series, change its `tier` — one word.
+const TIERS = {
+  exact:     { mark:"",   label:"Exact",       dash:[6,3],   blurb:"published values, or annual averages computed from monthly FRED data" },
+  approx:    { mark:"†",  label:"Approximate", dash:[3,3],   blurb:"annual averages approximated from monthly data" },
+  estimated: { mark:"‡",  label:"Estimated",   dash:[1.5,3], blurb:"shape or earlier years estimated, not read from a source series" },
+};
+// "Label †" — the series name with its tier mark, or the bare name for exact.
+const tierLabel = (label, tier) => TIERS[tier]?.mark ? `${label} ${TIERS[tier].mark}` : label;
 const fredCumulative = buildCumulative(fredCPI);
 // The bike series is published as raw index LEVELS rather than annual percents,
 // so instead of compounding we just rebase: every year divided by the base year,
@@ -794,6 +861,12 @@ const COMPARE_LINE_SERIES = {
   "PPI: Golf Equip":"PPI Golf Equip",
   "PCE S&R Price Idx":"PCE S&R Price", "Sporting Events":"Sporting Events",
 };
+// Tier of a Compare-chart series, looked up from its scorecard metric so the
+// grade is written once (tier on COMPARE_METRICS) and cannot drift.
+const compareTier = compareKey => {
+  const id = Object.keys(METRIC_TO_COMPARE_KEY).find(k => METRIC_TO_COMPARE_KEY[k] === compareKey);
+  return COMPARE_METRICS.find(m => m.id === id)?.tier ?? "exact";
+};
 const COMPARE_LINE_COLORS = {
   "US CPI":PALETTE.blue, "Bikes CPI":PALETTE.orange, "PPI: Sport Mfg":PALETTE.purple,
   "PPI: Golf Equip":PALETTE.amber,
@@ -828,58 +901,79 @@ const BIKE_PRICES = {
 // Each tier is then indexed against the base year (2005 = 100) so the three
 // tiers, which are wildly different in absolute hours, can be read on one axis.
 // An index of 90 means "10% fewer hours of work than in 2005" = more affordable.
-const AFFORD_BASE_HOURS = {
-  entry:   BIKE_PRICES.entry[CONFIG.affordBaseYear]   / WAGES[CONFIG.affordBaseYear],
-  mid:     BIKE_PRICES.mid[CONFIG.affordBaseYear]     / WAGES[CONFIG.affordBaseYear],
-  premium: BIKE_PRICES.premium[CONFIG.affordBaseYear] / WAGES[CONFIG.affordBaseYear],
-};
-const AFFORD_ROWS = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(year=>{
-  const wage = WAGES[year];
-  const entryHours   = BIKE_PRICES.entry[year]   / wage;
-  const midHours     = BIKE_PRICES.mid[year]     / wage;
-  const premiumHours = BIKE_PRICES.premium[year] / wage;
-  const round1 = v => parseFloat(v.toFixed(1));
-  return {
-    year, wage,
-    entryHrs: round1(entryHours), midHrs: round1(midHours), premHrs: round1(premiumHours),
-    // hours this year as a percentage of hours in the base year
-    entryIdx: round1(entryHours   / AFFORD_BASE_HOURS.entry   * 100),
-    midIdx:   round1(midHours     / AFFORD_BASE_HOURS.mid     * 100),
-    premIdx:  round1(premiumHours / AFFORD_BASE_HOURS.premium * 100),
-    entryPrice:BIKE_PRICES.entry[year], midPrice:BIKE_PRICES.mid[year], premPrice:BIKE_PRICES.premium[year],
-  };
-});
-// Latest year available in the affordability series — drives the calculator
-// defaults and the hero cards, so adding a 2025 row updates them automatically.
-const AFFORD_LATEST = AFFORD_ROWS[AFFORD_ROWS.length - 1];
-const AFFORD_BASE   = AFFORD_ROWS[0];
-// Wages and prices each indexed to the base year = 100, plotted together.
-// Unlike AFFORD_ROWS these are NOT divided by each other — keeping them as
-// separate lines is the point: where the wage line sits above a price line,
-// pay outgrew that bike. Same base year, so the lines are directly comparable.
-const WAGE_PRICE_IDX = Object.keys(WAGES).map(Number).sort((a,b)=>a-b).map(year=>{
+// BIKE_PRICES are representative MSRPs, tier ‡ (estimated): model-class prices,
+// not a price index. To tighten them, replace each tier's values with sourced
+// year-by-year MSRPs for named models and keep the tier note in BIKE_TIERS in step.
+//
+// TRANSACTION-PRICE SCENARIO. MSRP is not what people paid in the 2023–24 bust.
+// buildAffordModel(discountPct) re-prices every year from CONFIG.affordDiscountFromYear
+// onward at MSRP x (1 - discountPct/100). It is a what-if, not observed data:
+// the scenario buttons offer the 15% and 30% ends of the range in the MSRP note.
+const AFFORD_DISCOUNT_SCENARIOS = [
+  { pct:0,  label:"MSRP",   sub:"as listed" },
+  { pct:15, label:"−15%",   sub:"low end of bust discounts" },
+  { pct:30, label:"−30%",   sub:"high end of bust discounts" },
+];
+function buildAffordModel(discountPct){
   const base = CONFIG.affordBaseYear;
-  const idx = (series, y) => parseFloat((series[y] / series[base] * 100).toFixed(1));
-  return {
-    year,
-    wageIdx:  idx(WAGES, year),
-    entryIdx: idx(BIKE_PRICES.entry, year),
-    midIdx:   idx(BIKE_PRICES.mid, year),
-    premIdx:  idx(BIKE_PRICES.premium, year),
+  const priceOf = (tier, year) => Math.round(BIKE_PRICES[tier][year] *
+    (year >= CONFIG.affordDiscountFromYear ? 1 - discountPct/100 : 1));
+  const years = Object.keys(WAGES).map(Number).sort((a,b)=>a-b);
+  const baseHours = {
+    entry:   priceOf("entry", base)   / WAGES[base],
+    mid:     priceOf("mid", base)     / WAGES[base],
+    premium: priceOf("premium", base) / WAGES[base],
   };
-});
+  const round1 = v => parseFloat(v.toFixed(1));
+  const rows = years.map(year=>{
+    const wage = WAGES[year];
+    const entryHours   = priceOf("entry", year)   / wage;
+    const midHours     = priceOf("mid", year)     / wage;
+    const premiumHours = priceOf("premium", year) / wage;
+    return {
+      year, wage,
+      entryHrs: round1(entryHours), midHrs: round1(midHours), premHrs: round1(premiumHours),
+      // hours this year as a percentage of hours in the base year
+      entryIdx: round1(entryHours   / baseHours.entry   * 100),
+      midIdx:   round1(midHours     / baseHours.mid     * 100),
+      premIdx:  round1(premiumHours / baseHours.premium * 100),
+      entryPrice:priceOf("entry", year), midPrice:priceOf("mid", year), premPrice:priceOf("premium", year),
+    };
+  });
+  // Wages and prices each indexed to the base year = 100, plotted together.
+  // Unlike `rows` these are NOT divided by each other — keeping them as
+  // separate lines is the point: where the wage line sits above a price line,
+  // pay outgrew that bike. Same base year, so the lines are directly comparable.
+  const idx = (get, y) => parseFloat((get(y) / get(base) * 100).toFixed(1));
+  const wagePriceIdx = years.map(year=>({
+    year,
+    wageIdx:  idx(y=>WAGES[y], year),
+    entryIdx: idx(y=>priceOf("entry", y), year),
+    midIdx:   idx(y=>priceOf("mid", y), year),
+    premIdx:  idx(y=>priceOf("premium", y), year),
+  }));
+  return { discountPct, rows, baseHours, wagePriceIdx,
+           latest: rows[rows.length - 1], base: rows[0] };
+}
+// One model per scenario, built on first use. Latest year drives the calculator
+// defaults and hero cards, so adding a 2025 wage + price row updates them all.
+const AFFORD_MODEL_CACHE = {};
+function affordModel(){
+  const pct = state.affordDiscountPct;
+  return (AFFORD_MODEL_CACHE[pct] ??= buildAffordModel(pct));
+}
 
 const COMPARE_METRICS = [
-  { id:"FPCPITOTLZGUSA", name:"US All-Items CPI", shortName:"US CPI", badge:"CPI", badgeCol:PALETTE.blue, url:"https://fred.stlouisfed.org/series/FPCPITOTLZGUSA", recentVal:"+2.95%", recentNote:"Annual 2024", isBaseline:true, desc:"Economy-wide baseline" },
-  { id:"BLS-Bikes", name:"Sports Vehicles / Bikes CPI", shortName:"Bikes CPI (BLS)", badge:"CPI", badgeCol:PALETTE.orange, url:null, recentVal:"−3.17%", recentNote:"Annual 2025", isBaseline:false, desc:"BLS CPI for all sport vehicles incl. bicycles" },
-  { id:"PCU339920339920", name:"PPI: Sporting Goods Mfg", shortName:"PPI Sport Goods Mfg", badge:"PPI", badgeCol:PALETTE.purple, url:"https://fred.stlouisfed.org/series/PCU339920339920", recentVal:"182.4", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices: all athletic & sporting goods mfg (NAICS 339920)" },
-  { id:"DSPGRC1A027NBEA", name:"PCE: Sporting Equipment Spending", shortName:"PCE Sport Equip $", badge:"PCE", badgeCol:PALETTE.green, url:"https://fred.stlouisfed.org/series/DSPGRC1A027NBEA", recentVal:"$126.9B", recentNote:"Nominal 2025", isBaseline:false, isSpending:true, desc:"Consumer spending: sporting equip, supplies, guns & ammo (nominal $B)" },
-  { id:"PCU3399203399204", name:"PPI: Golf Equipment", shortName:"PPI Golf Equipment", badge:"PPI", badgeCol:PALETTE.amber, url:"https://fred.stlouisfed.org/series/PCU3399203399204", recentVal:"84.6", recentNote:"Dec 1985=100, Apr 2026", isBaseline:false, desc:"Producer prices for golf clubs, balls & bags — below 1985 base of 100" },
-  { id:"PCU451110451110", name:"PPI: Sporting Goods Retailers", shortName:"PPI Sport Retailers", badge:"PPI", badgeCol:PALETTE.magenta, url:"https://fred.stlouisfed.org/series/PCU451110451110", recentVal:"+2.0%", recentNote:"YoY Mar 2025", isBaseline:false, desc:"Retail-level prices: bikes, camping gear, fitness equip & accessories" },
-  { id:"DODRRG3A086NBEA", name:"PCE Price Idx: Sports & Rec", shortName:"PCE S&R Price Idx", badge:"PCE", badgeCol:PALETTE.mint, url:"https://fred.stlouisfed.org/series/DODRRG3A086NBEA", recentVal:"100.5", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: all sports & recreational goods spending" },
-  { id:"DORIRG3A086NBEA", name:"PCE Price Idx: Other Sport Gds", shortName:"PCE Other Sport", badge:"PCE", badgeCol:PALETTE.mintPale, url:"https://fred.stlouisfed.org/series/DORIRG3A086NBEA", recentVal:"95.3", recentNote:"2017=100, 2024", isBaseline:false, desc:"Chain-type price deflator: other sporting & recreational goods" },
-  { id:"Sporting-Events", name:"Admission to Sporting Events", shortName:"Sporting Events CPI", badge:"CPI", badgeCol:PALETTE.rose, url:null, recentVal:"+9.69%", recentNote:"Annual 2024", isBaseline:false, desc:"Consumer prices for tickets to professional & amateur sporting events" },
-  { id:"DSPGRX1A020NBEA", name:"Real PCE: Sporting Equipment", shortName:"Real PCE Sport Equip", badge:"PCE", badgeCol:PALETTE.slate, url:"https://fred.stlouisfed.org/series/DSPGRX1A020NBEA", recentVal:"~+11%", recentNote:"Est. real 2021→2024", isBaseline:false, desc:"Inflation-adjusted consumer spending on sporting equipment" },
+  { id:"FPCPITOTLZGUSA", name:"US All-Items CPI", shortName:"US CPI", badge:"CPI", badgeCol:PALETTE.blue, url:"https://fred.stlouisfed.org/series/FPCPITOTLZGUSA", recentVal:fmtSigned(fredCPI[lastYearOf(fredCPI)]), recentNote:`Annual ${lastYearOf(fredCPI)}`, tier:"exact", isBaseline:true, desc:"Economy-wide baseline" },
+  { id:"BLS-Bikes", name:"Sports Vehicles / Bikes CPI", shortName:"Bikes CPI (BLS)", badge:"CPI", badgeCol:PALETTE.orange, url:null, recentVal:fmtSigned(bikeCPI[lastYearOf(bikeCPI)]), recentNote:`Annual ${lastYearOf(bikeCPI)}`, tier:"exact", isBaseline:false, desc:"BLS CPI for all sport vehicles incl. bicycles" },
+  { id:"PCU339920339920", name:"PPI: Sporting Goods Mfg", shortName:"PPI Sport Goods Mfg", badge:"PPI", badgeCol:PALETTE.purple, url:"https://fred.stlouisfed.org/series/PCU339920339920", recentVal:"182.4", recentNote:"Dec 1985=100, Apr 2026", tier:"approx", isBaseline:false, desc:"Producer prices: all athletic & sporting goods mfg (NAICS 339920)" },
+  { id:"DSPGRC1A027NBEA", name:"PCE: Sporting Equipment Spending", shortName:"PCE Sport Equip $", badge:"PCE", badgeCol:PALETTE.green, url:"https://fred.stlouisfed.org/series/DSPGRC1A027NBEA", recentVal:`$${COMPARE_INDEX_LEVELS["PCE Sport Equip"][2025].toFixed(1)}B`, recentNote:"Nominal 2025", tier:"estimated", isBaseline:false, isSpending:true, desc:"Consumer spending: sporting equip, supplies, guns & ammo (nominal $B)" },
+  { id:"PCU3399203399204", name:"PPI: Golf Equipment", shortName:"PPI Golf Equipment", badge:"PPI", badgeCol:PALETTE.amber, url:"https://fred.stlouisfed.org/series/PCU3399203399204", recentVal:"84.6", recentNote:"Dec 1985=100, Apr 2026", tier:"approx", isBaseline:false, desc:"Producer prices for golf clubs, balls & bags — below 1985 base of 100" },
+  { id:"PCU451110451110", name:"PPI: Sporting Goods Retailers", shortName:"PPI Sport Retailers", badge:"PPI", badgeCol:PALETTE.magenta, url:"https://fred.stlouisfed.org/series/PCU451110451110", recentVal:"+2.0%", recentNote:"YoY Mar 2025", tier:"exact", isBaseline:false, desc:"Retail-level prices: bikes, camping gear, fitness equip & accessories" },
+  { id:"DODRRG3A086NBEA", name:"PCE Price Idx: Sports & Rec", shortName:"PCE S&R Price Idx", badge:"PCE", badgeCol:PALETTE.mint, url:"https://fred.stlouisfed.org/series/DODRRG3A086NBEA", recentVal:COMPARE_INDEX_LEVELS["PCE S&R Price"][2024].toFixed(1), recentNote:"2017=100, 2024", tier:"estimated", isBaseline:false, desc:"Chain-type price deflator: all sports & recreational goods spending" },
+  { id:"DORIRG3A086NBEA", name:"PCE Price Idx: Other Sport Gds", shortName:"PCE Other Sport", badge:"PCE", badgeCol:PALETTE.mintPale, url:"https://fred.stlouisfed.org/series/DORIRG3A086NBEA", recentVal:"95.3", recentNote:"2017=100, 2024", tier:"estimated", isBaseline:false, desc:"Chain-type price deflator: other sporting & recreational goods" },
+  { id:"Sporting-Events", name:"Admission to Sporting Events", shortName:"Sporting Events CPI", badge:"CPI", badgeCol:PALETTE.rose, url:null, recentVal:"+9.69%", recentNote:"Annual 2024", tier:"exact", isBaseline:false, desc:"Consumer prices for tickets to professional & amateur sporting events" },
+  { id:"DSPGRX1A020NBEA", name:"Real PCE: Sporting Equipment", shortName:"Real PCE Sport Equip", badge:"PCE", badgeCol:PALETTE.slate, url:"https://fred.stlouisfed.org/series/DSPGRX1A020NBEA", recentVal:"~+11%", recentNote:"Est. real 2021→2024", tier:"estimated", isBaseline:false, desc:"Inflation-adjusted consumer spending on sporting equipment" },
 ];
 
 const TF_OPTIONS = [
@@ -892,38 +986,54 @@ const TF_OPTIONS = [
 const ALL_YEARS = [2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
 
 // Optional comparison series (annual % change), approximate annual averages from FRED monthly data †
+// `tier` grades each one (see TIERS above): the 2-decimal series added later are
+// computed from the underlying monthly data (exact); the earlier one-decimal and
+// whole-number series are approximations (†); PPI: Other is the file's own
+// "lowest-confidence" series (‡). Steel, aluminum and titanium are whole-number
+// values — if you cannot trace them to monthly FRED data, move them to "estimated".
 const EXTRA_SERIES = {
   vehicles:{ label:"New Vehicles CPI", color:PALETTE.magenta, fred:"CUUR0000SETA01",
+    tier:"approx",
     note:"Interesting contrast: cars stayed flat for 20 years (hedonic quality adjustment), then spiked 11.8% in 2022",
     data:{2000:0.0,2001:0.0,2002:-0.9,2003:-1.8,2004:0.6,2005:0.5,2006:-0.2,2007:-0.7,2008:-0.7,2009:0.9,2010:1.8,2011:2.4,2012:1.5,2013:1.1,2014:0.4,2015:0.4,2016:0.2,2017:-0.4,2018:-0.3,2019:0.4,2020:1.6,2021:6.6,2022:11.8,2023:4.0,2024:-0.9,2025:0.3} },
   footwear:{ label:"Footwear CPI", color:PALETTE.mint, fred:"CUUR0000SEAE",
+    tier:"approx",
     note:"Includes athletic shoes — decades of near-zero inflation from offshore manufacturing, mirroring bikes",
     data:{2000:-1.2,2001:-1.0,2002:-1.6,2003:-1.7,2004:-0.6,2005:-0.4,2006:0.7,2007:0.5,2008:1.2,2009:0.4,2010:0.5,2011:1.4,2012:2.7,2013:1.2,2014:0.6,2015:0.4,2016:0.9,2017:-0.4,2018:-0.5,2019:0.8,2020:-3.0,2021:4.9,2022:4.7,2023:1.2,2024:-1.0,2025:0.5} },
   steel:{ label:"Steel Mill Products PPI", color:PALETTE.slate, fred:"WPU1017",
+    tier:"approx",
     note:"Chromoly frame tubing is a steel mill product. Wildly volatile — +72% in 2021 alone",
     data:{2000:0.5,2001:-5.0,2002:3.0,2003:5.0,2004:35.0,2005:0.0,2006:8.0,2007:4.0,2008:25.0,2009:-25.0,2010:12.0,2011:10.0,2012:-4.0,2013:-3.0,2014:1.0,2015:-12.0,2016:-5.0,2017:8.0,2018:12.0,2019:-6.0,2020:-8.0,2021:72.0,2022:12.0,2023:-18.0,2024:-9.0,2025:0.0} },
   aluminum:{ label:"Aluminum Sheet & Strip PPI", color:PALETTE.gold, fred:"WPU10250105",
+    tier:"approx",
     note:"Closest FRED proxy for 6061-series alloy used in most MTB frames — +28% in 2021",
     data:{2000:2.0,2001:-4.0,2002:-2.0,2003:1.0,2004:8.0,2005:5.0,2006:15.0,2007:2.0,2008:3.0,2009:-12.0,2010:8.0,2011:7.0,2012:-3.0,2013:-2.0,2014:3.0,2015:-2.0,2016:-3.0,2017:6.0,2018:10.0,2019:-2.0,2020:-4.0,2021:28.0,2022:16.0,2023:-8.0,2024:-2.0,2025:3.0} },
   titanium:{ label:"Titanium Mill Shapes PPI", color:PALETTE.cyan, fred:"WPU102505",
+    tier:"approx",
     note:"Ti-6Al-4V frame tubing lives here. Steadier than steel/aluminum — aerospace demand sets the price, not bikes",
     data:{2000:1.0,2001:2.0,2002:-3.0,2003:-2.0,2004:5.0,2005:25.0,2006:30.0,2007:-5.0,2008:-8.0,2009:-15.0,2010:2.0,2011:6.0,2012:3.0,2013:-2.0,2014:-1.0,2015:-2.0,2016:-4.0,2017:1.0,2018:3.0,2019:2.0,2020:-3.0,2021:3.0,2022:12.0,2023:8.0,2024:4.0,2025:2.0} },
   euEquip:{ label:"EU Sports Equipment", color:PALETTE.mintPale, fred:"Eurostat HICP CP0932",
+    tier:"approx",
     note:"European HICP for sporting equipment — averaged just 0.9%/yr 2014–2024; same offshore-manufacturing deflation story as US bikes",
     data:{2000:1.0,2001:1.0,2002:0.5,2003:0.2,2004:0.0,2005:-0.2,2006:-0.3,2007:0.0,2008:0.5,2009:0.8,2010:0.3,2011:0.5,2012:0.8,2013:0.4,2014:0.2,2015:0.3,2016:0.4,2017:0.5,2018:0.3,2019:0.5,2020:1.0,2021:1.5,2022:3.8,2023:3.4,2024:1.0,2025:0.5} },
   tickets:{ label:"Sports Tickets CPI", color:PALETTE.rose, fred:"BLS CUUR0000SS62031",
+    tier:"approx",
     note:"Admission to sporting events — the runaway inflation champion: −18% COVID collapse, then +8–10%/yr four years straight",
     data:{2000:3.5,2001:3.8,2002:3.5,2003:3.0,2004:3.2,2005:3.5,2006:4.6,2007:5.0,2008:4.8,2009:1.7,2010:-2.2,2011:5.2,2012:4.4,2013:4.7,2014:3.0,2015:1.5,2016:2.4,2017:1.4,2018:0.9,2019:3.3,2020:-18.2,2021:8.1,2022:8.3,2023:8.3,2024:9.7,2025:4.0} },
   durables:{ label:"CPI: Durables (all goods)", color:PALETTE.purple, fred:"CUSR0000SAD",
+    tier:"approx",
     note:"Every durable good, not just sporting goods — two decades of mild deflation (the 'Walmart/China effect'), then the sharpest reversal since the 1970s in 2021–2022",
     data:{2000:1.5,2001:-1.1,2002:-2.6,2003:-2.3,2004:-2.3,2005:-1.6,2006:-1.6,2007:-1.6,2008:-0.8,2009:-2.5,2010:-0.9,2011:0.4,2012:-0.4,2013:-0.9,2014:-0.9,2015:-1.3,2016:-1.4,2017:-0.9,2018:-0.5,2019:-0.5,2020:-1.4,2021:5.2,2022:8.9,2023:4.1,2024:-0.8,2025:-1.6} },
   sportRetail:{ label:"Sporting Goods Store Sales ($)", color:PALETTE.yellow, fred:"MRTSSM45111USN",
+    tier:"approx",
     note:"Census retail sales — total dollars rung up at sporting goods stores nationally. Mixes price AND volume, not a pure price index",
     data:{2000:3.0,2001:3.9,2002:2.5,2003:2.5,2004:3.6,2005:3.5,2006:3.4,2007:2.2,2008:-2.1,2009:-5.4,2010:3.4,2011:3.3,2012:2.2,2013:1.1,2014:1.0,2015:1.0,2016:1.0,2017:-1.0,2018:1.0,2019:2.0,2020:8.9,2021:10.9,2022:-1.6,2023:-3.3,2024:-2.6,2025:-2.7} },
   realSportRec:{ label:"Real PCE: Other Sport/Rec Goods", color:PALETTE.greenPale, fred:"DORIRX1A020NBEA",
+    tier:"approx",
     note:"Inflation-adjusted VOLUME of sports/rec goods bought (chained 2017$), not price — 2020–2021 show people buying dramatically more, not just paying more. 2020–24 exact from FRED; earlier years approximate",
     data:{2007:3.5,2008:-1.1,2009:-5.3,2010:3.9,2011:3.8,2012:3.1,2013:3.0,2014:3.9,2015:3.8,2016:3.6,2017:3.5,2018:3.8,2019:4.1,2020:6.3,2021:13.5,2022:0.02,2023:6.0,2024:6.5} },
   ppiOther:{ label:"PPI: Other Sporting/Athletic Goods", color:PALETTE.indigo, fred:"PCU339920339920A",
+    tier:"estimated",
     note:"Narrower BLS sub-index within sporting goods manufacturing, currently running hotter (190.4) than the broader index (182.4). Lowest-confidence series in this tool — shape approximated from the parent index",
     data:{2000:2.0,2001:1.5,2002:1.0,2003:2.0,2004:3.5,2005:2.5,2006:2.0,2007:2.0,2008:2.5,2009:-1.5,2010:3.0,2011:4.5,2012:2.5,2013:2.0,2014:3.0,2015:2.5,2016:1.0,2017:2.5,2018:2.5,2019:2.5,2020:-2.0,2021:8.0,2022:7.5,2023:2.0,2024:1.5,2025:1.8} },
   // ── Added at the user's request: five more FRED comparison series ──
@@ -933,18 +1043,23 @@ const EXTRA_SERIES = {
   // footnote. Series start where FRED's own history starts (IZ33992 in 2005,
   // ECIWAG in 2001); earlier years are simply absent, not zero.
   importSport:{ label:"Import Price: Sport/Athletic Goods", color:PALETTE.teal, fred:"IZ33992",
+    tier:"exact",
     note:"What US importers pay at the border for sporting goods — the series closest to isolating tariff impact, since PPI and CPI blend in domestic production and retail markup",
     data:{2006:0.8,2007:3.23,2008:7.3,2009:2.15,2010:-0.58,2011:1.52,2012:2.68,2013:1.05,2014:0.7,2015:-0.34,2016:-1.36,2017:0.75,2018:1.51,2019:2.83,2020:0.02,2021:3.31,2022:5.01,2023:4.52,2024:2.62,2025:0.43} },
   rubberPlastic:{ label:"PPI: Rubber & Plastic Products", color:PALETTE.stone, fred:"WPU07",
+    tier:"exact",
     note:"Covers tires, grips, and bushings — the input-cost line frame-material comparisons (steel/aluminum/titanium above) don't touch",
     data:{2001:1.39,2002:-0.28,2003:2.6,2004:2.81,2005:7.48,2006:6.94,2007:0.82,2008:7.0,2009:-0.45,2010:3.33,2011:7.07,2012:2.29,2013:1.11,2014:0.63,2015:-1.68,2016:-1.26,2017:2.4,2018:3.19,2019:0.47,2020:-0.91,2021:11.9,2022:16.41,2023:0.01,2024:0.05,2025:0.67} },
   recreation:{ label:"CPI: Recreation (parent category)", color:PALETTE.sky, fred:"CPIRECSL",
+    tier:"exact",
     note:"The broader recreation basket that bikes and sporting-event tickets both sit inside — shows whether bikes outrun their own category or just ride its trend",
     data:{2001:1.56,2002:1.26,2003:1.2,2004:1.05,2005:0.67,2006:1.42,2007:0.47,2008:1.63,2009:0.9,2010:-0.84,2011:0.04,2012:1.19,2013:0.49,2014:0.24,2015:0.35,2016:0.9,2017:1.3,2018:0.5,2019:1.28,2020:1.35,2021:2.4,2022:4.53,2023:4.02,2024:1.51,2025:2.1} },
   wagesECI:{ label:"Employment Cost Index: Wages (Private)", color:PALETTE.pink, fred:"ECIWAG",
+    tier:"exact",
     note:"BLS's preferred wage-inflation gauge — holds job mix constant, so it doesn't show the 2020 composition-effect dip that AHETPI (used in the Affordability tab) does",
     data:{2002:3.21,2003:2.84,2004:2.65,2005:2.48,2006:2.92,2007:3.38,2008:2.96,2009:1.59,2010:1.61,2011:1.63,2012:1.82,2013:1.9,2014:2.03,2015:2.24,2016:2.37,2017:2.55,2018:3.03,2019:2.96,2020:2.93,2021:4.01,2022:5.25,2023:4.62,2024:3.94,2025:3.47} },
   usedCars:{ label:"CPI: Used Cars & Trucks", color:PALETTE.lime, fred:"CUSR0000SETA02",
+    tier:"exact",
     note:"One of the most extreme COVID-era swings of any consumer good — +26.5% in 2021 alone, then a sharp multi-year reversal — a striking contrast to bikes' comparatively mild boom/bust",
     data:{2001:1.89,2002:-4.24,2003:-5.96,2004:-6.71,2005:4.56,2006:0.44,2007:-3.03,2008:-1.33,2009:-5.2,2010:12.71,2011:4.1,2012:0.88,2013:-0.27,2014:-0.51,2015:-1.27,2016:-2.58,2017:-3.9,2018:0.36,2019:1.01,2020:3.23,2021:26.5,2022:12.81,2023:-7.15,2024:-5.9,2025:2.81} },
 };
@@ -962,7 +1077,7 @@ const SPREAD_OPTS = {
 // aren't series in this file, so they stay as written values with their source
 // named in `note`.
 const HEADER_BENCHMARKS = [
-  { label:"Sports Tickets", value:"+158%", since:"1997–2026", note:"+9.7% in 2024 alone", hl:false },
+  { label:"Sports Tickets", value:"+158%", since:"1997–2026", note:`${fmtSigned(EXTRA_SERIES.tickets.data[2024], 1)} in 2024 alone`, hl:false },
   { label:"US All-Items CPI", value:fmtWhole(TOTALS.usCpiSince2000), since:TOTALS.windowLabel,
     note:"FRED FPCPITOTLZGUSA", hl:false },
   { label:"Sports Vehicles/Bikes", value:fmtWhole(TOTALS.bikeCpiSince2000), since:TOTALS.windowLabel,
@@ -989,6 +1104,8 @@ const state = {
   extras: {},                // series key -> bool, shared across tabs 0/1/2
   spreadA: "bikes",
   spreadB: "uscpi",
+  corrExCovid: false,        // Correlation tab: drop CONFIG.covidShockYears from every r
+  affordDiscountPct: 0,      // Affordability scenario: 0 = MSRP, else % off from CONFIG.affordDiscountFromYear
 };
 const charts = {}; // Chart.js instance registry, keyed by canvas id
 
@@ -1168,8 +1285,11 @@ function lineDataset(label, data, color, opts = {}){
 }
 // Convenience wrapper for the dashed "comparison series" style used by the
 // optional extra series on tabs 0, 1 and 2.
+// Pass `tier` and the dash pattern comes from TIERS, so a series' line style
+// tells you how much to trust it (long dash = exact, short = approximate, dotted
+// = estimated). Without a tier it falls back to the original dash.
 function extraDataset(label, data, color, opts = {}){
-  return lineDataset(label, data, color, { width:1.8, dash:[5,3], ...opts });
+  return lineDataset(label, data, color, { width:1.8, dash: TIERS[opts.tier]?.dash ?? [5,3], ...opts });
 }
 
 function makeLineChart(canvasId, {
@@ -1284,12 +1404,21 @@ function renderExtrasBar(containerId){
     const on = !!state.extras[key];
     const btn = document.createElement("button");
     btn.className = "extra-chip" + (on ? " active" : "");
-    btn.title = `${s.note} — Source: ${s.fred}`;
-    btn.textContent = (on ? "● " : "○ ") + s.label;
+    btn.title = `${s.note} — Source: ${s.fred} — ${TIERS[s.tier].label}: ${TIERS[s.tier].blurb}`;
+    btn.textContent = (on ? "● " : "○ ") + tierLabel(s.label, s.tier);
     if(on){ btn.style.background = withAlpha(s.color,"22"); btn.style.borderColor = s.color; btn.style.color = s.color; }
     btn.onclick = () => toggleExtra(key);
     el.appendChild(btn);
   });
+  el.insertAdjacentHTML("beforeend", tierKeyHtml());
+}
+
+// The line-style legend shown under the "Compare with:" chips. Each entry pairs
+// a drawn dash pattern with the tier's word and mark, so it reads without colour
+// or line style alone. Built from TIERS — re-grading or adding a tier updates it.
+function tierKeyHtml(){
+  const item = t => `<span class="tier-key-item"><svg width="28" height="6" aria-hidden="true"><line x1="0" y1="3" x2="28" y2="3" stroke="currentColor" stroke-width="2" stroke-dasharray="${t.dash.join(" ")}"/></svg>${t.label}${t.mark ? " "+t.mark : ""}</span>`;
+  return `<div class="tier-key"><span class="extras-label">Line style:</span>${Object.values(TIERS).map(item).join("")}</div>`;
 }
 
 // ── SERIES DRAW-ON ─────────────────────────────────────────────────────────
@@ -1326,6 +1455,7 @@ function toggleExtra(key){
   updateTab2Chart();
 
   if(state.drawOn) startDrawOn();
+  syncShareHash();
 }
 
 function startDrawOn(){
@@ -1461,7 +1591,7 @@ function buildTab0Chart(){
   const datasets = [
     lineDataset("US CPI (FRED)", allYears.map(y=>fredCPI[y] ?? null), PALETTE.blue),
     lineDataset("Sports Vehicles / Bikes (BLS)", allYears.map(y=>bikeCPI[y] ?? null), PALETTE.orange, {width:2.5}),
-    ...extras.map(k => extraDataset(EXTRA_SERIES[k].label, allYears.map(y=>EXTRA_SERIES[k].data[y] ?? null), EXTRA_SERIES[k].color)),
+    ...extras.map(k => extraDataset(tierLabel(EXTRA_SERIES[k].label, EXTRA_SERIES[k].tier), allYears.map(y=>EXTRA_SERIES[k].data[y] ?? null), EXTRA_SERIES[k].color, {tier:EXTRA_SERIES[k].tier})),
   ];
 
   makeLineChart("chart0", {
@@ -1481,8 +1611,8 @@ function renderExtrasFootnote(){
   if(!extras.length){ el.innerHTML=""; return; }
   el.innerHTML = extras.map(k=>{
     const s = EXTRA_SERIES[k];
-    return `<div><span style="color:${s.color};font-weight:600">• ${s.label}</span> (FRED: ${s.fred}†): ${s.note}</div>`;
-  }).join("") + `<div style="margin-top:3px">† Annual averages approximated from FRED monthly series.</div>`;
+    return `<div><span style="color:${s.color};font-weight:600">• ${tierLabel(s.label, s.tier)}</span> (FRED: ${s.fred}) — ${TIERS[s.tier].label}: ${s.note}</div>`;
+  }).join("") + `<div style="margin-top:3px">${Object.values(TIERS).filter(t=>t.mark).map(t=>`${t.mark} ${t.label}: ${t.blurb}.`).join(" ")}</div>`;
 }
 
 // ── Configurable spread chart ──────────────────────────────────────────────
@@ -1546,7 +1676,7 @@ function buildTab1Chart(){
   const datasets = [
     lineDataset("US CPI (FRED)", allRows.map(r=>r.fredIdx), PALETTE.blue, {width:2.5, fill:true}),
     lineDataset("Sports Vehicles / Bikes (BLS)", allRows.map(r=>r.bikeIdx), PALETTE.orange, {width:2.5, fill:true}),
-    ...extras.map(k => extraDataset(EXTRA_SERIES[k].label, allYears.map(y=>EXTRA_CUM[k][y] ?? null), EXTRA_SERIES[k].color)),
+    ...extras.map(k => extraDataset(tierLabel(EXTRA_SERIES[k].label, EXTRA_SERIES[k].tier), allYears.map(y=>EXTRA_CUM[k][y] ?? null), EXTRA_SERIES[k].color, {tier:EXTRA_SERIES[k].tier})),
   ];
 
   makeLineChart("chart1", {
@@ -1598,8 +1728,8 @@ function buildTab2Chart(){
   const datasets = [
     lineDataset("US CPI (FRED)", covidRows.map(r=>r.fredPct), PALETTE.blue, {width:2.5, point:3, pointHover:4}),
     lineDataset("Bikes CPI (BLS)", covidRows.map(r=>r.bikePct), PALETTE.orange, {width:2.5, point:3, pointHover:4}),
-    ...extras.map(k => extraDataset(EXTRA_SERIES[k].label, covidYears.map(y=>EXTRA_SERIES[k].data[y] ?? null),
-                                    EXTRA_SERIES[k].color, {point:2.5, pointHover:4})),
+    ...extras.map(k => extraDataset(tierLabel(EXTRA_SERIES[k].label, EXTRA_SERIES[k].tier), covidYears.map(y=>EXTRA_SERIES[k].data[y] ?? null),
+                                    EXTRA_SERIES[k].color, {point:2.5, pointHover:4, tier:EXTRA_SERIES[k].tier})),
   ];
 
   makeLineChart("chart2", {
@@ -1639,8 +1769,8 @@ function renderEventTimeline(){
 function initTab3(){
   const findings = [
     {num:"01",title:"Bikes Are Cheaper in Real Terms (Long Run)",col:PALETTE.green,body:`Over 46 years, the BLS bike CPI rose only 127% vs. overall CPI's 265%. Annual rate 1.73% vs. 3.43%. Since ${CONFIG.cumulativeBaseYear}, bikes up ${TOTALS.bikeCpiSince2000.toFixed(0)}% while the broader economy rose ${TOTALS.usCpiSince2000.toFixed(0)}% (through ${TOTALS.endYear}).`},
-    {num:"02",title:"COVID Was a Unique Shock, Not a New Normal",col:PALETTE.orange,body:"Ocean freight spiked 10×, raw materials surged 20–400%, sales jumped from $6B to $8.4B. MTB MSRP rose 10–40% in 2019–2022. In 2022, overall CPI (+8.0%) outpaced bikes (+4.65%)."},
-    {num:"03",title:"The Post-COVID Bust Is Significant",col:PALETTE.blue,body:"BLS bike CPI: flat (+0.1%), then −2.05%, then −3.17% in 2023–2025 — while overall CPI kept rising. Average market discounts of $626+ per bike. Bankruptcies across the industry."},
+    {num:"02",title:"COVID Was a Unique Shock, Not a New Normal",col:PALETTE.orange,body:`Ocean freight spiked 10×, raw materials surged 20–400%, sales jumped from $6B to $8.4B. MTB MSRP rose 10–40% in 2019–2022. In ${CONFIG.covidPeakYear}, overall CPI (${fmtSigned(fredCPI[CONFIG.covidPeakYear],1)}) outpaced bikes (${fmtSigned(bikeCPI[CONFIG.covidPeakYear])}).`},
+    {num:"03",title:"The Post-COVID Bust Is Significant",col:PALETTE.blue,body:`BLS bike CPI: flat (${fmtSigned(bikeCPI[CONFIG.covidPeakYear+1],1)}), then ${fmtSigned(bikeCPI[CONFIG.covidPeakYear+2])}, then ${fmtSigned(bikeCPI[CONFIG.covidPeakYear+3])} in ${CONFIG.covidPeakYear+1}–${CONFIG.covidPeakYear+3} — while overall CPI kept rising. Average market discounts of $626+ per bike. Bankruptcies across the industry.`},
     {num:"04",title:"Premium MTBs vs. Average Bikes: Two Stories",col:PALETTE.purple,body:"BLS CPI tracks all bike types — budget bikes pull averages down. High-end MTBs went from $4–5k in 2010 to $6–12k MSRP in 2024, outpacing CPI by 3–4× at the premium tier.",links:[
       {label:"Bicycle Retailer: Resilient Retailers Soldier On (2023)", url:"https://www.bicycleretailer.com/industry-news/2023/12/28/resilient-retailers-soldier-2024"},
       {label:"Jeff Brines: Discounts to Sticker Shock (2025)", url:"https://jeffbrines.com/2025/08/29/from-discounts-to-sticker-shock-the-changing-economics-of-the-bike-industry/"},
@@ -1700,8 +1830,8 @@ function renderTfPicker(containerId, activeYear, onClick){
 }
 // Named handlers rather than inline arrows, because each re-render rebuilds the
 // buttons and needs to re-attach the same handler to the new ones.
-const lineTfHandler = y => { state.lineTf = y; renderTfPicker("lineTfPicker", y, lineTfHandler); buildTab4Line(); };
-const barTfHandler  = y => { state.barTf  = y; renderTfPicker("barTfPicker",  y, barTfHandler);  buildTab4Bar();  };
+const lineTfHandler = y => { state.lineTf = y; renderTfPicker("lineTfPicker", y, lineTfHandler); buildTab4Line(); syncShareHash(); };
+const barTfHandler  = y => { state.barTf  = y; renderTfPicker("barTfPicker",  y, barTfHandler);  buildTab4Bar();  refreshTakeaway(); syncShareHash(); };
 function wireTfPickers(){
   renderTfPicker("lineTfPicker", state.lineTf, lineTfHandler);
   renderTfPicker("barTfPicker",  state.barTf,  barTfHandler);
@@ -1742,9 +1872,12 @@ function buildTab4Line(){
     const base = levels?.[state.lineTf];
     const data = years.map(y => (base && levels[y] != null)
       ? parseFloat((levels[y] / base * 100).toFixed(2)) : null);
-    return lineDataset(chartKey, data, COMPARE_LINE_COLORS[chartKey], {
+    return lineDataset(tierLabel(chartKey, compareTier(compareKey)), data, COMPARE_LINE_COLORS[chartKey], {
       width: (chartKey === "US CPI" || chartKey === "Sporting Events") ? 2.5 : 1.8,
-      dash: chartKey === "US CPI" ? [6,3] : undefined,
+      // US CPI keeps its dashed baseline look; exact series stay solid here (the
+      // extras on tabs 0-2 are all dashed, so there "exact" needs its own dash).
+      dash: chartKey === "US CPI" ? [6,3]
+            : compareTier(compareKey) === "exact" ? undefined : TIERS[compareTier(compareKey)].dash,
       spanGaps: true,
     });
   });
@@ -1813,6 +1946,7 @@ function renderScorecards(){
           <span class="sc-status" style="color:${statusCol}">${statusLabel}</span>
           ${chg!=null ? `<span class="sc-chg">+${chg}% (${String(from).slice(2)}→${String(to).slice(2)})</span>` : ""}
         </div>
+        <div class="sc-tier" title="${TIERS[m.tier].blurb}">${TIERS[m.tier].mark ? TIERS[m.tier].mark+" " : ""}${TIERS[m.tier].label}</div>
       </div>`;
   }).join("");
 }
@@ -1823,35 +1957,75 @@ function renderScorecards(){
 // ═══════════════════════════════════════════════════════════════════════════
 
 // The three bike tiers, defined once. Prices and hours are looked up from
-// BIKE_PRICES / AFFORD_ROWS rather than typed in, so adding a new year to the
+// BIKE_PRICES / affordModel() rather than typed in, so adding a new year to the
 // data updates the calculator, the charts and the hero cards together.
 const BIKE_TIERS = [
-  { key:"entry",   label:"Entry Hardtail",      color:PALETTE.green,  hrsField:"entryHrs", idxField:"entryIdx",
+  { key:"entry",   label:"Entry Hardtail",      heroLabel:"Entry hardtail",     color:PALETTE.green,  hrsField:"entryHrs", idxField:"entryIdx", priceField:"entryPrice",
     note:"Trek Marlin / Rockhopper class" },
-  { key:"mid",     label:"Mid-Range Full-Sus",  color:PALETTE.orange, hrsField:"midHrs",   idxField:"midIdx",
+  { key:"mid",     label:"Mid-Range Full-Sus",  heroLabel:"Mid-range full-sus", color:PALETTE.orange, hrsField:"midHrs",   idxField:"midIdx",   priceField:"midPrice",
     note:"Stumpjumper Comp / Fuel EX class" },
-  { key:"premium", label:"Premium Enduro",      color:PALETTE.purple, hrsField:"premHrs",  idxField:"premIdx",
+  { key:"premium", label:"Premium Enduro",      heroLabel:"Premium enduro",     color:PALETTE.purple, hrsField:"premHrs",  idxField:"premIdx",  priceField:"premPrice",
     note:"Yeti SB150 / Megatower class" },
 ];
 const FEDERAL_MIN_WAGE = 7.25;   // frozen since 2009
 const MIN_WAGE_2005     = 5.15;  // federal minimum in the affordability base year
 
 function initTab5(){
-  renderAffordHero();
-  buildTab5ChartA();
-  buildTab5ChartB();
+  $("wageInput").value = state.myWage;   // a shared link may carry a different wage
+  renderAffordScenarioBar();
+  renderAffordAll();
   renderWagePresets();
-  renderCalculator();
-  renderSnapshotTable();
   $("wageInput").oninput = e => {
     state.myWage = parseFloat(e.target.value) || CONFIG.defaultWage;
     renderWagePresets();
     renderCalculator();
+    refreshTakeaway();
+    syncShareHash();
   };
 }
 
+// Everything on this tab that depends on the price-basis scenario. One function
+// so a scenario change cannot leave a card, chart or table on the old basis.
+function renderAffordAll(){
+  renderAffordHero();
+  buildTab5ChartA();
+  buildTab5ChartB();
+  renderAffordNote();
+  renderCalculator();
+  renderSnapshotTable();
+  refreshTakeaway();
+}
+
+// "MSRP" or "MSRP −15% from 2023": the price basis in words, for legends and notes.
+function affordBasisLabel(){
+  const pct = state.affordDiscountPct;
+  return pct ? `MSRP −${pct}% from ${CONFIG.affordDiscountFromYear}` : "MSRP";
+}
+
+function renderAffordScenarioBar(){
+  const el = $("affordScenarioBar");
+  el.innerHTML = `<span class="tf-label">Price basis:</span>`;
+  AFFORD_DISCOUNT_SCENARIOS.forEach(sc=>{
+    const btn = document.createElement("button");
+    btn.className = "tf-btn" + (state.affordDiscountPct===sc.pct ? " active" : "");
+    btn.innerHTML = `<span>${sc.label}</span><span class="sub">${sc.sub}</span>`;
+    btn.onclick = () => setAffordDiscount(sc.pct);
+    el.appendChild(btn);
+  });
+  const pct = state.affordDiscountPct;
+  el.insertAdjacentHTML("beforeend", `<div class="scenario-note">${pct
+    ? `<strong>Scenario, not data:</strong> every price from ${CONFIG.affordDiscountFromYear} on is cut ${pct}%, using the 15–30% range in the MSRP note below. Observed transaction prices are not in this file.`
+    : `MSRP as listed. Transaction prices in the 2023–24 bust ran below this — try a discount to see how much it moves the picture.`}</div>`);
+}
+function setAffordDiscount(pct){
+  state.affordDiscountPct = pct;
+  renderAffordScenarioBar();
+  renderAffordAll();
+  syncShareHash();
+}
+
 function renderAffordHero(){
-  const latest = AFFORD_LATEST, base = AFFORD_BASE;
+  const { latest, base, rows } = affordModel();
   // First three cards are derived: hours now vs. hours in the base year.
   const cards = BIKE_TIERS.map(t=>{
     const now = latest[t.hrsField], then = base[t.hrsField];
@@ -1860,22 +2034,27 @@ function renderAffordHero(){
     // shift the headline percentage (e.g. 1.8% becoming 1.9%).
     const pct = latest[t.idxField] - 100;
     const worse = pct > 0;
+    const seriesLow = rows.every(r => r[t.hrsField] >= now);
     return {
-      label: {entry:"Entry hardtail", mid:"Mid-range full-sus", premium:"Premium enduro"}[t.key],
+      label: t.heroLabel,
       change: `${pct>=0?"+":"-"}${Math.abs(pct).toFixed(1)}%`,
       arrow: Math.abs(pct) < 3 ? "→" : worse ? "▲" : "▼",
       col: Math.abs(pct) < 3 ? PALETTE.amber : worse ? PALETTE.red : PALETTE.green,
       detail: `${now} hrs in ${latest.year} vs. ${then} hrs in ${base.year}`,
-      sub: {
-        entry:"Cheapest it's been in 20 years",
-        mid:"Essentially flat over 20 years",
-        premium:"More labor, but far more bike",
-      }[t.key],
+      sub: seriesLow ? `Lowest in ${rows.length} years of data`
+         : Math.abs(pct) < 3 ? `Essentially flat since ${base.year}`
+         : worse ? `More labor than in ${base.year}` : `Less labor than in ${base.year}`,
     };
   });
-  // Fourth card is a written takeaway about the peak year, not a calculation.
-  cards.push({ label:"COVID peak (2022)", change:"+37–76%", detail:"All tiers hit hardest ever",
-               col:PALETTE.rose, arrow:"↑↑", sub:"Worst: premium at 387.7 hrs (+76%)" });
+  // Fourth card: the same measure at the COVID peak year, computed from the rows.
+  const peak = rows.find(r => r.year === CONFIG.covidPeakYear);
+  const peakPcts = BIKE_TIERS.map(t => peak[t.idxField] - 100);
+  const hi = Math.max(...peakPcts), lo = Math.min(...peakPcts);
+  const worst = BIKE_TIERS[peakPcts.indexOf(hi)];
+  cards.push({ label:`COVID peak (${peak.year})`, change:`+${lo.toFixed(0)}–${hi.toFixed(0)}%`,
+               detail:"Hours of work vs. the base year, by tier",
+               col:PALETTE.rose, arrow:"↑↑",
+               sub:`Worst: ${worst.heroLabel.toLowerCase()} at ${peak[worst.hrsField]} hrs (+${hi.toFixed(0)}%)` });
 
   $("affordHeroGrid").innerHTML = cards.map(k=>`
     <div class="afford-hero-card" style="border-color:${withAlpha(k.col,"44")};border-left-color:${k.col}">
@@ -1888,12 +2067,14 @@ function renderAffordHero(){
 
 // Hours-to-buy, indexed to the base year = 100. Below 100 = more affordable.
 function buildTab5ChartA(){
+  const { rows } = affordModel();
+  const dom = domainFrom(rows.flatMap(r => BIKE_TIERS.map(t => r[t.idxField])), 8);
   makeLineChart("chart5a", {
-    labels: AFFORD_ROWS.map(r=>r.year),
+    labels: rows.map(r=>r.year),
     datasets: BIKE_TIERS.map(t =>
-      lineDataset(t.label, AFFORD_ROWS.map(r=>r[t.idxField]), t.color,
+      lineDataset(tierLabel(t.label, "estimated"), rows.map(r=>r[t.idxField]), t.color,
                   {width: t.key==="premium" ? 2 : 2.5, pointHover:4})),
-    yMin: 70, yMax: 200,
+    yMin: dom.min, yMax: dom.max,
     tooltipCallbacks: {
       title: items => `${items[0].label} (${CONFIG.affordBaseYear}=100)`,
       label: ctx => {
@@ -1905,24 +2086,44 @@ function buildTab5ChartA(){
     },
     refLines: [
       {type:"horizontal", value:100, color:cssVar("--faint2"), width:1, dash:[5,3], label:`${CONFIG.affordBaseYear} baseline`},
-      {type:"vertical", value:2022, color:withAlpha(PALETTE.red,"55"), width:1, dash:[4,3], label:"PEAK"},
+      {type:"vertical", value:CONFIG.covidPeakYear, color:withAlpha(PALETTE.red,"55"), width:1, dash:[4,3], label:"PEAK"},
     ],
   });
 }
 
 // Wages and prices as separate lines on a shared base year.
 function buildTab5ChartB(){
+  const { wagePriceIdx } = affordModel();
+  const dom = domainFrom(wagePriceIdx.flatMap(r => [r.wageIdx, ...BIKE_TIERS.map(t => r[t.idxField])]), 10);
   makeLineChart("chart5b", {
-    labels: WAGE_PRICE_IDX.map(r=>r.year),
+    labels: wagePriceIdx.map(r=>r.year),
     datasets: [
-      lineDataset("Avg Hourly Wage (AHETPI)", WAGE_PRICE_IDX.map(r=>r.wageIdx), PALETTE.blue, {width:3, dash:[6,3]}),
+      lineDataset("Avg Hourly Wage (AHETPI)", wagePriceIdx.map(r=>r.wageIdx), PALETTE.blue, {width:3, dash:[6,3]}),
       ...BIKE_TIERS.map(t =>
-        lineDataset(`${t.label} MSRP`, WAGE_PRICE_IDX.map(r=>r[t.idxField]), t.color, {width:2})),
+        lineDataset(tierLabel(`${t.label} ${affordBasisLabel()}`, "estimated"), wagePriceIdx.map(r=>r[t.idxField]), t.color, {width:2})),
     ],
-    yMin: 80, yMax: 260,
+    yMin: dom.min, yMax: dom.max,
     tooltipCallbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} (${CONFIG.affordBaseYear}=100)` },
     refLines: [{type:"horizontal", value:100, color:cssVar("--border3"), width:1}],
   });
+}
+
+// The sentence under the wages-vs-prices chart, computed from the same index the
+// chart draws so it cannot disagree with it (it used to be typed by hand).
+const WAGE_TIE_BAND = 5;   // index points: within this of wage growth counts as "essentially tied"
+function renderAffordNote(){
+  const { wagePriceIdx } = affordModel();
+  const last = wagePriceIdx[wagePriceIdx.length - 1];
+  const wageGrowth = last.wageIdx - 100;
+  const parts = BIKE_TIERS.map(t=>{
+    const g = last[t.idxField] - 100;
+    const verdict = g - wageGrowth > WAGE_TIE_BAND ? "prices pulled ahead"
+                  : wageGrowth - g > WAGE_TIE_BAND ? "wages won" : "essentially tied";
+    return `${t.heroLabel.split(" ")[0]} ${affordBasisLabel()} grew ${g.toFixed(0)}% — ${verdict}`;
+  });
+  $("afford5bNote").innerHTML =
+    `Wages (blue dashed) grew ~${wageGrowth.toFixed(0)}% since ${CONFIG.affordBaseYear}. ${parts.join(". ")}. ` +
+    `A ${last.year} premium bike is categorically better than its ${CONFIG.affordBaseYear} equivalent in every dimension, which an MSRP series cannot show.`;
 }
 
 const WAGE_PRESETS = [
@@ -1941,18 +2142,21 @@ function setWage(val){
   $("wageInput").value = val;
   renderWagePresets();
   renderCalculator();
+  refreshTakeaway();
+  syncShareHash();
 }
 
 function renderCalculator(){
   const wage = state.myWage;
-  const latestYear = AFFORD_LATEST.year, baseYear = AFFORD_BASE.year;
+  const { latest, base, baseHours } = affordModel();
+  const latestYear = latest.year, baseYear = base.year;
   const tiers = BIKE_TIERS.map(t=>{
-    const price = BIKE_PRICES[t.key][latestYear];
+    const price = latest[t.priceField];
     return {
       ...t,
       price,
       hrs:  parseFloat((price / wage).toFixed(1)),      // your hours at your wage
-      base: parseFloat(AFFORD_BASE_HOURS[t.key].toFixed(1)),  // base-year worker's hours
+      base: parseFloat(baseHours[t.key].toFixed(1)),  // base-year worker's hours
     };
   });
 
@@ -1965,7 +2169,7 @@ function renderCalculator(){
       <div class="calc-tier" style="border-color:${withAlpha(t.color,"33")}">
         <div class="calc-tier-label">${t.label}</div>
         <div class="calc-tier-hrs" style="color:${t.color}">${t.hrs} <span class="unit">hrs</span></div>
-        <div class="calc-tier-basis">at $${wage.toFixed(2)}/hr for $${t.price.toLocaleString()} MSRP</div>
+        <div class="calc-tier-basis">at $${wage.toFixed(2)}/hr for $${t.price.toLocaleString()} ${state.affordDiscountPct ? "scenario price" : "MSRP"}</div>
         <div class="calc-tier-vs">
           <div class="calc-tier-vs-label">vs. ${baseYear} average worker:</div>
           <div class="calc-tier-vs-val" style="color:${diffColor}">${diffText} <span style="color:var(--faint);font-weight:400;font-size:9px">(${pct>=0?"+":""}${pct.toFixed(1)}%)</span></div>
@@ -1977,8 +2181,8 @@ function renderCalculator(){
   // Extra context that only applies at or near the wage floor.
   const warn = $("minwageWarn");
   if(wage < 10){
-    const entryPrice = BIKE_PRICES.entry[latestYear], midPrice = BIKE_PRICES.mid[latestYear];
-    const entryBasePrice = BIKE_PRICES.entry[baseYear];
+    const entryPrice = latest.entryPrice, midPrice = latest.midPrice;
+    const entryBasePrice = base.entryPrice;
     warn.innerHTML = `⚠ At the federal minimum wage of $${FEDERAL_MIN_WAGE}/hr (frozen since 2009), an entry hardtail requires ${(entryPrice/FEDERAL_MIN_WAGE).toFixed(1)} hours of work and a mid-range bike requires ${(midPrice/FEDERAL_MIN_WAGE).toFixed(1)} hours. At the ${baseYear} federal minimum of $${MIN_WAGE_2005}/hr, the same entry bike cost ${(entryBasePrice/MIN_WAGE_2005).toFixed(0)} hours. The sport has become less accessible at the wage floor due to frozen federal minimum wage policy.`;
     warn.classList.add("show");
   } else {
@@ -1996,7 +2200,7 @@ function renderSnapshotTable(){
   const headerRow = ["Year","Avg Wage","Entry Hrs ($)","Mid Hrs ($)","Premium Hrs ($)","Context"];
   const PEAK_YEAR = 2022, BEST_YEAR = 2024;
   const rowsHtml = years.map((y,i)=>{
-    const r = AFFORD_ROWS.find(d=>d.year===y);
+    const r = affordModel().rows.find(d=>d.year===y);
     const isPeak = y===PEAK_YEAR, isBest = y===BEST_YEAR;
     const bg = isPeak ? "var(--tintRed)" : isBest ? "var(--tintGreen)" : (i%2===0 ? "var(--panel)" : "var(--panel2)");
     const yearColor = isPeak ? PALETTE.red : isBest ? PALETTE.green : "var(--text)";
@@ -2038,12 +2242,12 @@ const CORR_SHORT_LABELS = {
 };
 
 const CORRELATION_SERIES = {
-  uscpi:{ label:"US CPI (FRED)", short:"US CPI", color:PALETTE.blue, data:fredCPI },
-  bikes:{ label:"Bikes CPI (BLS)", short:"Bikes CPI", color:PALETTE.orange, data:bikeCPI },
+  uscpi:{ label:"US CPI (FRED)", short:"US CPI", color:PALETTE.blue, tier:"exact", data:fredCPI },
+  bikes:{ label:"Bikes CPI (BLS)", short:"Bikes CPI", color:PALETTE.orange, tier:"exact", data:bikeCPI },
   ...Object.fromEntries(
     Object.entries(EXTRA_SERIES)
       .filter(([key]) => key !== "realSportRec")
-      .map(([key, s]) => [key, { label:s.label, short:CORR_SHORT_LABELS[key] || s.label, color:s.color, data:s.data }])
+      .map(([key, s]) => [key, { label:s.label, short:CORR_SHORT_LABELS[key] || s.label, color:s.color, tier:s.tier, data:s.data }])
   ),
 };
 
@@ -2067,11 +2271,34 @@ const CORRELATION_EXCLUDED = [
 state.corrSelected = new Set(CORRELATION_DEFAULTS);
 state.corrActivePair = null; // [keyA, keyB] or null
 
+// Two-tailed 95% critical t values for 1..30 degrees of freedom (standard table);
+// beyond 30 the value settles near 2.0. Used to ask "could this r plausibly be
+// zero?" without a statistics library.
+const T_CRIT_95 = [null,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.160,2.145,
+  2.131,2.120,2.110,2.101,2.093,2.086,2.080,2.074,2.069,2.064,2.060,2.056,2.052,2.048,2.045,2.042];
+const tCrit95 = df => df <= 30 ? T_CRIT_95[df] : 2.0;
+
+// The years the toggle currently removes from every coefficient.
+const corrExcludedYears = () => state.corrExCovid ? CONFIG.covidShockYears : [];
+// "2020–2022" (or "2020, 2022, 2024" if the list is not a run), for labels.
+function covidYearsLabel(){
+  const ys = [...CONFIG.covidShockYears].sort((a,b)=>a-b);
+  const run = ys.every((y,i) => i===0 || y === ys[i-1]+1);
+  return run ? `${ys[0]}–${ys[ys.length-1]}` : ys.join(", ");
+}
+
 // Pearson correlation coefficient between two annual-%-change series, using
-// only the years both series actually have. Needs at least 3 overlapping
-// years to mean anything; returns null below that (and the UI shows "—").
-function pearsonR(dataA, dataB){
-  const years = Object.keys(dataA).map(Number).filter(y => dataB[y] != null).sort((a,b)=>a-b);
+// only the years both series actually have, minus any in `excluded`. Needs at
+// least 3 remaining years to mean anything; returns null below that (and the UI
+// shows "—"). `significant` is true when r is distinguishable from zero at 95%.
+// That test treats each year as an independent draw, which flatters it: annual
+// price changes are serially correlated, so read "significant" as a minimum bar
+// for taking a coefficient seriously, not as proof of a link.
+function pearsonR(dataA, dataB, excluded = []){
+  const skip = new Set(excluded);
+  const overlap = Object.keys(dataA).map(Number).filter(y => dataB[y] != null).sort((a,b)=>a-b);
+  const years = overlap.filter(y => !skip.has(y));
+  const droppedYears = overlap.filter(y => skip.has(y));
   const n = years.length;
   if(n < 3) return null;
   const xs = years.map(y=>dataA[y]), ys = years.map(y=>dataB[y]);
@@ -2079,7 +2306,9 @@ function pearsonR(dataA, dataB){
   let num=0, dx2=0, dy2=0;
   for(let i=0;i<n;i++){ const dx=xs[i]-mx, dy=ys[i]-my; num+=dx*dy; dx2+=dx*dx; dy2+=dy*dy; }
   if(dx2===0 || dy2===0) return null; // a flat series has no defined correlation
-  return { r: num/Math.sqrt(dx2*dy2), n, years };
+  const r = num/Math.sqrt(dx2*dy2);
+  const t = Math.abs(r) * Math.sqrt((n-2) / Math.max(1e-12, 1 - r*r));
+  return { r, n, years, droppedYears, significant: t > tCrit95(n-2) };
 }
 
 // ── small colour-math helpers, local to this tab ──
@@ -2128,7 +2357,7 @@ function renderCorrChips(){
     const btn = document.createElement("button");
     btn.className = "corr-chip" + (active ? " active" : "") + (locked ? " locked" : "");
     btn.title = locked ? "At least 2 categories are required" : "";
-    btn.textContent = (active ? "● " : "○ ") + s.label;
+    btn.textContent = (active ? "● " : "○ ") + tierLabel(s.label, s.tier);
     if(active){ btn.style.background = withAlpha(s.color,"22"); btn.style.borderColor = s.color; btn.style.color = s.color; }
     btn.onclick = () => toggleCorrSeries(key);
     el.appendChild(btn);
@@ -2196,13 +2425,16 @@ function renderCorrMatrix(){
         cell.textContent = "1.00";
         cell.title = `${CORRELATION_SERIES[rowKey].label} vs itself`;
       } else {
-        const res = pearsonR(CORRELATION_SERIES[rowKey].data, CORRELATION_SERIES[colKey].data);
+        const res = pearsonR(CORRELATION_SERIES[rowKey].data, CORRELATION_SERIES[colKey].data, corrExcludedYears());
         const bg = corrCellColor(res ? res.r : null);
         cell.style.background = bg;
         cell.style.color = corrTextColor(bg);
         cell.textContent = res ? res.r.toFixed(2) : "—";
+        // Faded = indistinguishable from zero at 95%. Word in the tooltip too,
+        // so the fade is never the only carrier of the information.
+        if(res && !res.significant) cell.classList.add("ns");
         cell.title = res
-          ? `${CORRELATION_SERIES[rowKey].label} vs ${CORRELATION_SERIES[colKey].label}\nr = ${res.r.toFixed(2)}  (${res.n} overlapping years)`
+          ? `${CORRELATION_SERIES[rowKey].label} vs ${CORRELATION_SERIES[colKey].label}\nr = ${res.r.toFixed(2)}  (${res.n} years${res.droppedYears.length ? `, ${res.droppedYears.length} COVID years excluded` : ""})\n${res.significant ? "Significant at 95%" : "Not distinguishable from zero at 95%"}`
           : `${CORRELATION_SERIES[rowKey].label} vs ${CORRELATION_SERIES[colKey].label}: not enough overlapping years`;
         if(state.corrActivePair && state.corrActivePair.includes(rowKey) && state.corrActivePair.includes(colKey)){
           cell.classList.add("active-pair");
@@ -2239,19 +2471,20 @@ function renderCorrDetail(){
   }
   const [aKey, bKey] = state.corrActivePair;
   const sa = CORRELATION_SERIES[aKey], sb = CORRELATION_SERIES[bKey];
-  const res = pearsonR(sa.data, sb.data);
+  const res = pearsonR(sa.data, sb.data, corrExcludedYears());
   const rColor = res ? corrCellColor(res.r) : cssVar("--faint");
 
   el.innerHTML = `
     <div class="corr-detail-header">
       <div>
         <div class="corr-detail-title">${sa.label} vs ${sb.label}</div>
-        <div class="corr-detail-sub">Each point is one calendar year's annual % change in both series</div>
+        <div class="corr-detail-sub">Each point is one calendar year's annual % change in both series${res && res.droppedYears.length ? ` · hollow grey points are the excluded COVID years (${res.droppedYears.join(", ")})` : ""}</div>
       </div>
       <div class="corr-detail-stats">
         <div class="corr-stat"><div class="corr-stat-val" style="color:${rColor}">${res ? res.r.toFixed(2) : "—"}</div><div class="corr-stat-label">r</div></div>
         <div class="corr-stat"><div class="corr-stat-val">${res ? res.n : 0}</div><div class="corr-stat-label">years</div></div>
         <div class="corr-stat" style="max-width:130px"><div class="corr-stat-val" style="font-size:12px;line-height:1.4">${res ? corrStrengthLabel(res.r) : "N/A"}</div><div class="corr-stat-label">reading</div></div>
+        <div class="corr-stat" style="max-width:130px"><div class="corr-stat-val" style="font-size:12px;line-height:1.4">${res ? (res.significant ? "Yes" : "No") : "N/A"}</div><div class="corr-stat-label">distinct from 0 at 95%</div></div>
       </div>
     </div>
     <div class="chart-wrap chart-md"><canvas id="corrScatterCanvas"></canvas></div>
@@ -2261,8 +2494,11 @@ function renderCorrDetail(){
 
 function buildCorrScatter(aKey, bKey){
   const sa = CORRELATION_SERIES[aKey], sb = CORRELATION_SERIES[bKey];
-  const years = Object.keys(sa.data).map(Number).filter(y => sb.data[y] != null).sort((x,y)=>x-y);
-  const points = years.map(y => ({ x:sa.data[y], y:sb.data[y], year:y }));
+  const overlap = Object.keys(sa.data).map(Number).filter(y => sb.data[y] != null).sort((x,y)=>x-y);
+  const dropped = new Set(corrExcludedYears());
+  const toPoint = y => ({ x:sa.data[y], y:sb.data[y], year:y });
+  const points = overlap.filter(y => !dropped.has(y)).map(toPoint);
+  const droppedPoints = overlap.filter(y => dropped.has(y)).map(toPoint);
 
   destroyChart("corrScatter");
   charts.corrScatter = new Chart($("corrScatterCanvas").getContext("2d"), {
@@ -2272,6 +2508,13 @@ function buildCorrScatter(aKey, bKey){
       backgroundColor: withAlpha(PALETTE.orange, "cc"),
       borderColor: PALETTE.orange,
       pointRadius:5, pointHoverRadius:8, pointBorderWidth:1.5,
+    }, {
+      // Excluded years stay visible but hollow and grey: you can see what the
+      // toggle removed, and that it is not simply deleting inconvenient points.
+      data: droppedPoints,
+      backgroundColor: "transparent",
+      borderColor: cssVar("--faint"),
+      pointRadius:5, pointHoverRadius:8, pointBorderWidth:1.5, pointStyle:"rectRot",
     }] },
     options:{
       responsive:true, maintainAspectRatio:false, animation:{duration:CONFIG.chartAnimationMs},
@@ -2283,7 +2526,7 @@ function buildCorrScatter(aKey, bKey){
         legend:{display:false},
         tooltip: stdTooltip({ callbacks:{
           title: () => "",
-          label: ctx => [`${ctx.raw.year}`, `${sa.short}: ${fmtPct(ctx.raw.x)}`, `${sb.short}: ${fmtPct(ctx.raw.y)}`],
+          label: ctx => [`${ctx.raw.year}${ctx.datasetIndex===1 ? " (excluded)" : ""}`, `${sa.short}: ${fmtPct(ctx.raw.x)}`, `${sb.short}: ${fmtPct(ctx.raw.y)}`],
         }}),
       }
     }
@@ -2296,16 +2539,85 @@ function renderCorrExcludedNote(){
     ${CORRELATION_EXCLUDED.map(e=>`${e.label} (${e.span})`).join(", ")}
     is left out — a correlation computed on that few years swings wildly with a single unusual one, so including it
     would show precision the data doesn't actually have. Even the categories shown here mostly cover 2000–2025;
-    read any single coefficient as a description of the last two decades, not a durable law. 2021–2022 in particular
-    hit almost every series in this file at once — that shared shock can push economically unrelated series (say,
-    steel prices and golf equipment) to look more correlated than they really are.
+    read any single coefficient as a description of the last two decades, not a durable law.
+    <br><br><strong>The COVID toggle.</strong> ${covidYearsLabel()} hit almost every series in this file at once. That shared
+    shock can push economically unrelated series (say, steel prices and golf equipment) to look more correlated than they
+    really are. The toggle drops those years from every coefficient so you can see which links survive without them.
+    <br><br><strong>Reading "significant".</strong> A faded cell is one whose r could plausibly be zero at 95% confidence for its
+    number of years. The test treats each year as independent; annual price changes are serially correlated, so it errs
+    generous. With about 20–25 points and 17 series there are also 136 pairs, so a few will clear the bar by chance alone.
   `;
 }
 
+// The switch above the matrix. Everything that depends on it re-renders from
+// state.corrExCovid, so the matrix, detail panel and takeaway cannot disagree.
+function renderCorrModeBar(){
+  const btn = $("corrExCovidBtn");
+  btn.setAttribute("aria-checked", state.corrExCovid ? "true" : "false");
+  btn.classList.toggle("on", state.corrExCovid);
+  $("corrExCovidLabel").textContent = `Exclude COVID years (${covidYearsLabel()})`;
+  $("corrModeNote").textContent = state.corrExCovid
+    ? `ON — ${CONFIG.covidShockYears.length} years dropped from every coefficient below. Fewer years means each r is less certain.`
+    : "OFF — every available year is used.";
+  btn.onclick = () => setCorrExCovid(!state.corrExCovid);
+}
+function setCorrExCovid(on){
+  state.corrExCovid = on;
+  renderCorrModeBar();
+  renderCorrMatrix();
+  renderCorrDetail();
+  refreshTakeaway();
+  syncShareHash();
+}
+
+// Bikes CPI against every other eligible series, with and without the COVID
+// years. This is the point of the toggle made visible without clicking: the
+// links that collapse when 2020–22 leave are the ones COVID manufactured.
+// Sorted by how much each coefficient moved, biggest drop first.
+function corrCovidStats(){
+  const bikes = CORRELATION_SERIES.bikes.data;
+  return CORRELATION_ORDER.filter(k => k !== "bikes").map(k=>{
+    const data = CORRELATION_SERIES[k].data;
+    return { key:k, all:pearsonR(bikes, data), ex:pearsonR(bikes, data, CONFIG.covidShockYears) };
+  }).filter(x => x.all && x.ex);
+}
+function renderCorrCovidEffect(){
+  const rows = corrCovidStats().sort((a,b) => (b.all.r - b.ex.r) - (a.all.r - a.ex.r));
+  const cell = res => `<td class="num">${res.r.toFixed(2)}${res.significant ? " <span class=\"sig\" title=\"Significant at 95%\">*</span>" : ""}</td>`;
+  const bar = res => `<span class="corr-bar" style="width:${Math.round(Math.abs(res.r)*100)}%;background:${res.r<0 ? PALETTE.blue : PALETTE.orange}"></span>`;
+  $("corrCovidEffect").innerHTML = `
+    <div class="sh"><div class="sh-title">What COVID does to Bikes CPI's correlations</div>
+      <div class="sh-sub">r with every other series, all years vs. excluding ${covidYearsLabel()} · * = distinguishable from zero at 95% · sorted by biggest drop</div></div>
+    <div class="tbl-wrap"><table class="corr-effect-table">
+      <thead><tr><th>Series</th><th>All years</th><th></th><th>Excl. ${covidYearsLabel()}</th><th></th><th>Change</th></tr></thead>
+      <tbody>${rows.map(x=>{
+        const d = x.ex.r - x.all.r;
+        return `<tr><td>${tierLabel(CORRELATION_SERIES[x.key].label, CORRELATION_SERIES[x.key].tier)}</td>
+          ${cell(x.all)}<td class="barcell">${bar(x.all)}</td>${cell(x.ex)}<td class="barcell">${bar(x.ex)}</td>
+          <td class="num" style="color:${d<0 ? PALETTE.blue : PALETTE.orange}">${d>=0?"+":"−"}${Math.abs(d).toFixed(2)}</td></tr>`;
+      }).join("")}</tbody></table></div>`;
+}
+
+// One-sentence plain-English reading of the above, computed from it.
+function corrTakeaway(){
+  const stats = corrCovidStats();
+  const sigAll = stats.filter(x => x.all.significant).length;
+  const sigEx  = stats.filter(x => x.ex.significant).length;
+  const top = [...stats].sort((a,b) => b.all.r - a.all.r)[0];
+  const topLabel = CORRELATION_SERIES[top.key].label;
+  const verdict = sigEx < sigAll
+    ? `Drop ${covidYearsLabel()} and only ${sigEx} still do — most of the apparent co-movement was one shared shock, not a lasting link.`
+    : `Drop ${covidYearsLabel()} and ${sigEx} still do — these links are not just a COVID artefact.`;
+  return `Counting every year, bike prices move significantly with ${sigAll} of ${stats.length} other series. ${verdict} `
+       + `The strongest all-years link is ${topLabel} (r ${top.all.r.toFixed(2)}), which is ${top.ex.r.toFixed(2)} without COVID.`;
+}
+
 function initTab6(){
+  renderCorrModeBar();
   renderCorrChips();
   renderCorrMatrix();
   renderCorrDetail();
+  renderCorrCovidEffect();
   renderCorrExcludedNote();
 }
 </script>
@@ -2327,14 +2639,177 @@ function initTab6(){
 // automatically after the first run.
 // ═══════════════════════════════════════════════════════════════════════════
 const TAB_CONFIG = [
-  { title:"Annual % Change",  panelId:"tab-0", init:initTab0 },
-  { title:"Cumulative Index", panelId:"tab-1", init:initTab1 },
-  { title:"COVID Era",        panelId:"tab-2", init:initTab2 },
-  { title:"Key Findings",     panelId:"tab-3", init:initTab3 },
-  { title:"Compare",          panelId:"tab-4", init:initTab4 },
-  { title:"Affordability",    panelId:"tab-5", init:initTab5 },
-  { title:"Correlation",      panelId:"tab-6", init:initTab6 },
+  { title:"Annual % Change",  slug:"annual",        panelId:"tab-0", init:initTab0, takeaway:takeawayAnnual },
+  { title:"Cumulative Index", slug:"cumulative",    panelId:"tab-1", init:initTab1, takeaway:takeawayCumulative },
+  { title:"COVID Era",        slug:"covid",         panelId:"tab-2", init:initTab2, takeaway:takeawayCovid },
+  { title:"Key Findings",     slug:"findings",      panelId:"tab-3", init:initTab3, takeaway:takeawayFindings },
+  { title:"Compare",          slug:"compare",       panelId:"tab-4", init:initTab4, takeaway:takeawayCompare },
+  { title:"Affordability",    slug:"affordability", panelId:"tab-5", init:initTab5, takeaway:takeawayAfford },
+  { title:"Correlation",      slug:"correlation",   panelId:"tab-6", init:initTab6, takeaway:corrTakeaway },
 ];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PLAIN-ENGLISH TAKEAWAYS — one sentence or two at the top of every tab.
+//
+// Each is a function that builds its sentence from the same data the charts
+// draw, so the words cannot drift out of step with the numbers (the older
+// hand-typed text is what let "+83%" and "+89%" coexist on one page). Tabs whose
+// controls change the answer (Compare, Affordability, Correlation) call
+// refreshTakeaway() from their handlers.
+// ═══════════════════════════════════════════════════════════════════════════
+const meanOf = arr => arr.reduce((a,b)=>a+b, 0) / arr.length;
+const plural = (n, word) => `${n} ${word}${n===1 ? "" : "s"}`;
+
+function takeawayAnnual(){
+  const years = allYears.filter(y => fredCPI[y] != null && bikeCPI[y] != null);
+  const avgCpi = meanOf(years.map(y => fredCPI[y])), avgBike = meanOf(years.map(y => bikeCPI[y]));
+  const beat = years.filter(y => bikeCPI[y] > fredCPI[y]);
+  const peak = years.reduce((best, y) => bikeCPI[y] > bikeCPI[best] ? y : best, years[0]);
+  const lastBike = lastYearOf(bikeCPI);
+  let run = 0; while(bikeCPI[lastBike - run] < 0) run++;   // trailing years of falling bike prices
+  return `Across ${years.length} years, consumer prices rose ${avgCpi.toFixed(1)}% a year on average; bicycles rose ${avgBike.toFixed(1)}%. `
+       + `Bikes beat inflation in only ${beat.length} of those ${years.length} years — the biggest being ${peak} (${fmtSigned(bikeCPI[peak],1)})`
+       + (run ? ` — and they have fallen in each of the last ${plural(run, "year")}.` : ".");
+}
+
+function takeawayCumulative(){
+  const end = TOTALS.endYear;
+  const econ = fredCumulative[end], bike = bikeCumulative[end];
+  const real = (bike / econ - 1) * 100;
+  return `$100 of ${CONFIG.cumulativeBaseYear} prices became $${econ.toFixed(0)} across the whole economy by ${end}, but only $${bike.toFixed(0)} for bicycles — `
+       + `about ${Math.abs(real).toFixed(0)}% ${real<0 ? "cheaper" : "dearer"} than everything else.`;
+}
+
+function takeawayCovid(){
+  const peak = covidRows.reduce((best, r) => (r.bikePct ?? -Infinity) > (best.bikePct ?? -Infinity) ? r : best, covidRows[0]);
+  const after = covidRows.filter(r => r.year > peak.year && r.bikePct != null);
+  const endedBelowZero = after.length && after[after.length-1].bikePct < 0;
+  return `Bike prices jumped ${peak.bikePct.toFixed(1)}% in ${peak.year} (overall CPI: ${fmtSigned(peak.fredPct,1)}). `
+       + (after.length ? `The following ${plural(after.length, "year")} read ${after.map(r=>fmtSigned(r.bikePct)).join(", ")}: the boom ${endedBelowZero ? "reversed into outright price declines" : "cooled"}.` : "");
+}
+
+function takeawayFindings(){
+  const realPct = ((1 + TOTALS.bikeCpiSince2000/100) / (1 + TOTALS.usCpiSince2000/100) - 1) * 100;
+  const a = CONFIG.affordBaseYear, last = Math.max(...Object.keys(BIKE_PRICES.premium).map(Number));
+  const premGrowth = (BIKE_PRICES.premium[last] / BIKE_PRICES.premium[a] - 1) * 100;
+  const cpiLevels = COMPARE_INDEX_LEVELS["US CPI"];
+  const cpiGrowth = (cpiLevels[last] / cpiLevels[a] - 1) * 100;
+  return `The average bike got ${Math.abs(realPct).toFixed(0)}% ${realPct<0 ? "cheaper" : "dearer"} in real terms since ${CONFIG.cumulativeBaseYear} — but premium MSRPs rose ${premGrowth.toFixed(0)}% from ${a} to ${last} against ${cpiGrowth.toFixed(0)}% for CPI. `
+       + `The category average and the premium tier tell opposite stories.`;
+}
+
+function takeawayCompare(){
+  const latest = CONFIG.compareLatestYear;
+  const usCpi = compareChangePct("US CPI", state.barTf, latest);
+  const rows = COMPARE_METRICS.filter(m => !m.isSpending && !m.isBaseline).map(m => ({
+    name:m.shortName, chg:compareChangePct(METRIC_TO_COMPARE_KEY[m.id], state.barTf, latest),
+  })).filter(r => r.chg != null);
+  const above = rows.filter(r => r.chg > usCpi).sort((a,b)=>b.chg-a.chg);
+  const bikes = rows.find(r => r.name.startsWith("Bikes"));
+  return `Since ${state.barTf}, US CPI rose ${usCpi.toFixed(1)}%. ${above.length ? `${above.length} of the ${rows.length} price series outran it (${above.map(r=>`${r.name} ${fmtSigned(r.chg,1)}`).join(", ")}).` : `None of the ${rows.length} price series outran it.`} `
+       + (bikes ? `Bikes CPI: ${fmtSigned(bikes.chg,1)}.` : "");
+}
+
+function takeawayAfford(){
+  const { latest, base } = affordModel();
+  const parts = BIKE_TIERS.map(t => `${t.heroLabel.toLowerCase()} ${latest[t.hrsField]} hrs (${base[t.hrsField]} in ${base.year})`);
+  const better = BIKE_TIERS.filter(t => latest[t.idxField] < 100 - 3).map(t => t.heroLabel.toLowerCase());
+  const worse  = BIKE_TIERS.filter(t => latest[t.idxField] > 100 + 3).map(t => t.heroLabel.toLowerCase());
+  return `At the ${latest.year} average wage ($${latest.wage.toFixed(2)}/hr, ${affordBasisLabel()}), it takes: ${parts.join("; ")}. `
+       + (better.length ? `Cheaper in hours of work than in ${base.year}: ${better.join(", ")}. ` : "")
+       + (worse.length ? `Dearer: ${worse.join(", ")}.` : "");
+}
+
+function renderTakeaway(idx){
+  const tab = TAB_CONFIG[idx], panel = tab && $(tab.panelId);
+  if(!panel || !tab.takeaway) return;
+  let el = panel.querySelector(".takeaway");
+  if(!el){
+    el = document.createElement("div");
+    el.className = "takeaway";
+    panel.insertBefore(el, panel.firstChild);
+  }
+  el.innerHTML = `<span class="takeaway-label">In plain English</span>${tab.takeaway()}`;
+}
+const refreshTakeaway = () => renderTakeaway(state.tab);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHAREABLE LINKS — the view you are looking at, as a URL.
+//
+// SHARE_PARAMS is the registry: one entry per piece of state worth sharing.
+// `get` reads it, `dflt` is the value that is left OUT of the URL (so a default
+// view stays a clean link), `apply` writes a value back from a link, validating
+// it first because anyone can hand-edit a URL. To share something new, add one
+// entry here and call syncShareHash() where it changes.
+//
+// The state rides in the #fragment, which never reaches a server and works on
+// static hosting. It is rewritten with replaceState, so browsing around does not
+// fill the Back button. Embedded in an iframe, the address bar belongs to the
+// parent page: the LINK button in the header copies this frame's own address
+// (the GitHub Pages URL), which is the link to share.
+// ═══════════════════════════════════════════════════════════════════════════
+const SHARE_PARAMS = [
+  { key:"tab",     get:() => TAB_CONFIG[state.tab].slug, dflt:TAB_CONFIG[0].slug,
+    apply:v => { const i = TAB_CONFIG.findIndex(t => t.slug === v); if(i >= 0) state.tab = i; } },
+  { key:"extras",  get:() => activeExtras().join(","), dflt:"",
+    apply:v => v.split(",").forEach(k => { if(EXTRA_SERIES[k]) state.extras[k] = true; }) },
+  { key:"base",    get:() => state.lineTf, dflt:2021,
+    apply:v => { if(TF_OPTIONS.some(o => o.year === +v)) state.lineTf = +v; } },
+  { key:"bbase",   get:() => state.barTf, dflt:2021,
+    apply:v => { if(TF_OPTIONS.some(o => o.year === +v)) state.barTf = +v; } },
+  { key:"excovid", get:() => state.corrExCovid ? "1" : "", dflt:"",
+    apply:v => { state.corrExCovid = v === "1"; } },
+  { key:"disc",    get:() => state.affordDiscountPct, dflt:0,
+    apply:v => { if(AFFORD_DISCOUNT_SCENARIOS.some(sc => sc.pct === +v)) state.affordDiscountPct = +v; } },
+  { key:"wage",    get:() => state.myWage, dflt:CONFIG.defaultWage,
+    apply:v => { const w = parseFloat(v); if(w > 0 && w <= 500) state.myWage = w; } },
+];
+
+function shareFragment(){
+  const q = new URLSearchParams();
+  SHARE_PARAMS.forEach(p => { const v = p.get(); if(String(v) !== String(p.dflt)) q.set(p.key, v); });
+  return q.toString();
+}
+function shareUrl(){
+  const f = shareFragment();
+  return location.href.split("#")[0] + (f ? "#" + f : "");
+}
+// Keep the address bar in step with the view. Silent if the browser refuses
+// (some sandboxed frames do): the link button still works without it.
+function syncShareHash(){
+  try { history.replaceState(null, "", shareUrl()); } catch(e) {}
+}
+function applyShareHash(){
+  const q = new URLSearchParams(location.hash.replace(/^#/, ""));
+  SHARE_PARAMS.forEach(p => { if(q.has(p.key)) p.apply(q.get(p.key)); });
+}
+
+const SHARE_TOAST_MS = 2400;        // how long "link copied" stays up
+const SHARE_TOAST_FALLBACK_MS = 9000; // if copying failed, the URL is shown instead and needs longer to be read
+function showShareToast(text, ms){
+  const el = $("shareToast");
+  el.textContent = text;
+  el.classList.add("show");
+  clearTimeout(showShareToast.t);
+  showShareToast.t = setTimeout(() => el.classList.remove("show"), ms);
+}
+async function copyShareLink(){
+  const url = shareUrl();
+  let ok = false;
+  try { await navigator.clipboard.writeText(url); ok = true; }
+  catch(e){
+    // Clipboard API is often blocked inside an iframe; the old execCommand route is not.
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = url; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      ok = document.execCommand("copy");
+      ta.remove();
+    } catch(e2) {}
+  }
+  if(ok) showShareToast("Link to this view copied", SHARE_TOAST_MS);
+  else   showShareToast(url, SHARE_TOAST_FALLBACK_MS);
+}
 
 function showTab(idx){
   state.tab = idx;
@@ -2345,6 +2820,8 @@ function showTab(idx){
   });
   const tab = TAB_CONFIG[idx];
   if(tab && !tab._loaded){ tab.init(); tab._loaded = true; }
+  renderTakeaway(idx);
+  syncShareHash();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2401,13 +2878,22 @@ function wireLimitationsToggle(){
 // ═══════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP
 // ═══════════════════════════════════════════════════════════════════════════
+// What the footer says each series runs through, computed so it is never stale.
+function renderFooterFreshness(){
+  $("footerFreshness").textContent =
+    `Series run through — US CPI: ${lastYearOf(fredCPI)} · Bikes CPI: ${lastYearOf(bikeCPI)} · Wages: ${lastYearOf(WAGES)} · MSRP tiers: ${lastYearOf(BIKE_PRICES.entry)}`;
+}
+
 document.addEventListener("DOMContentLoaded", ()=>{
+  applyShareHash();   // before anything renders, so a shared link's state is in place
   renderBenchmarks();
   renderProseFigures();
   renderThemeDots();
   renderTabsNav();
   wireLimitationsToggle();
-  showTab(0); // first tab is visible on load, so build it immediately
+  $("shareBtn").onclick = copyShareLink;
+  renderFooterFreshness();
+  showTab(state.tab); // the opening tab is visible on load, so build it immediately
 });
 </script>
 </body>

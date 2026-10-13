@@ -8,7 +8,7 @@ overall US inflation, built on FRED, BLS, and BEA data. Part of the [Post Millen
 
 ## What's inside
 
-Six tabs, all driven by the same underlying dataset:
+Seven tabs, all driven by the same underlying dataset. Each opens with a one-to-two sentence "In plain English" takeaway built from the data on that tab:
 
 | Tab | What it shows |
 |---|---|
@@ -17,7 +17,17 @@ Six tabs, all driven by the same underlying dataset:
 | **COVID Era** | A 2017–2025 zoom-in with markers at the COVID, price-peak, and bust years, plus a timeline of the tariff/freight/demand events behind them |
 | **Key Findings** | Six written takeaways, plus a comparison table against golf equipment, sporting-event tickets, and EU sport equipment |
 | **Compare** | 10 adjacent FRED/BLS/BEA series as scorecards; the price series are re-indexable to any base year and ranked in a bar chart of % change since that year. PCE Sport Equip ($) is nominal spending, not a price, so it appears only as a grey "spending, not price" scorecard |
-| **Affordability** | Hours-of-work-to-buy a bike by tier (entry/mid/premium), a live calculator using your own hourly wage, and a year-by-year snapshot table |
+| **Affordability** | Hours-of-work-to-buy a bike by tier (entry/mid/premium), a live calculator using your own hourly wage, and a year-by-year snapshot table. A **price-basis** switch (MSRP, −15%, −30% from 2023) re-prices the bust years as a what-if; it is a scenario, not observed transaction data |
+| **Correlation** | Cross-category correlation matrix with an **Exclude COVID years (2020–2022)** switch, a faded-cell marker for coefficients indistinguishable from zero at 95%, a click-through scatter (excluded years shown hollow), and a table of how each of Bikes CPI's correlations changes without COVID |
+
+### Sharing a view
+
+The **LINK** button in the header copies a URL for exactly what you're looking at: the tab, which
+comparison series are on, the Compare base years, the COVID switch, the price-basis scenario and
+the wage you typed. The state lives in the `#fragment` (e.g.
+`#tab=correlation&excovid=1`), so it works on static hosting. Add a parameter by adding one entry to
+`SHARE_PARAMS`. Inside the iframe on postmillenniumrenaissance.com the address bar belongs to the
+parent page, so share the LINK button's URL (the GitHub Pages address) rather than the browser bar.
 
 ## Data sources
 
@@ -42,7 +52,7 @@ reporting, not a FRED/BLS series.
 
 ### A note on precision
 
-Not every number here carries the same confidence:
+Not every number here carries the same confidence. The page now shows it: every series has a `tier` (see `TIERS`) that sets its line style (long dash = exact, short dash † = approximate, dotted ‡ = estimated; on the Compare chart exact lines are solid) and adds the mark to its legend entry, chip and scorecard.
 
 - **Exact** — FRED series values, BLS CPI figures
 - **† Approximate** — the two PPI series (Sporting Goods Mfg, Golf Equipment) are annual
@@ -159,18 +169,17 @@ All data lives in one block near the top of `index.html` (search for `// DATA`).
 is a plain `{year: value, ...}` object — add a new year's key to the relevant object(s) and
 the charts, tables, and scorecards pick it up automatically.
 
-**Numbers that compute themselves** (no manual edit needed): the header stat cards for US CPI
+**Numbers that compute themselves** (no manual edit needed): the plain-English takeaways, the Affordability hero cards (including the COVID-peak card) and the sentence under the wages-vs-prices chart, the footer's "series run through" line, and the header stat cards for US CPI
 and Bikes CPI, the "gap" card and the two figures in the Cumulative Index paragraph (all from
 `TOTALS`, which runs over the newest year both series share), the Compare tab's CPI baselines and traffic-light colours, and the Affordability
-hero cards, calculator, and snapshot table (all from `AFFORD_ROWS` / `BIKE_PRICES`).
+hero cards, calculator, and snapshot table (all from `affordModel()` / `BIKE_PRICES`).
 
 **Numbers that do NOT update themselves** — revisit these if a new year changes the story:
 
-- The six **Key Findings** cards (`initTab3`) — hand-written takeaways
-- The **COVID-peak** hero card on Affordability — a written takeaway, unlike the three beside it
+- The prose in the six **Key Findings** cards (`initTab3`) — hand-written, though the figures drawn from this file (CPI, bike CPI, totals) are now inserted from the data
 - The **1978–2026 long-run averages** (1.73%/yr, 3.43%/yr) — outside the range of data in this file
-- The three header cards sourced outside this file: **Sports Tickets**, **EU Sport Equipment**, **MTB MSRP Surge**
-- Each metric's `recentVal` / `recentNote` in `COMPARE_METRICS`
+- The header cards sourced outside this file: **Sports Tickets** (the "in 2024 alone" note now computes), **EU Sport Equipment**, **MTB MSRP Surge**. Note the EU card's "+~9%, 0.9%/yr" does not match the `euEquip` series in this file (+13.4% compounded, 1.3%/yr over 2014–2024) — reconcile before the next update
+- `recentVal` / `recentNote` in `COMPARE_METRICS` for the series that come from outside this file (the PPIs, PCE Other, Retailers, Sporting Events, Real PCE); US CPI, Bikes CPI, PCE $ and PCE S&R now compute
 - The `note` text on each series in `EXTRA_SERIES`
 
 ### Deploying
@@ -182,7 +191,7 @@ this repo. No build step, no CI, nothing else to run.
 
 ```
 MTB-inflation/
-├── index.html            ← everything: data, styling, charts, all six tabs
+├── index.html            ← everything: data, styling, charts, all seven tabs
 ├── favicon.ico
 ├── favicon-32x32.png
 ├── apple-touch-icon.png
